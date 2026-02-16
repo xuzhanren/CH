@@ -3,7 +3,7 @@ bin/
 obj/
 **/obj/
 out/
-**/out
+**/out/
 
 # User-specific files
 *.user
