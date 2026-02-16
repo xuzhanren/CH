@@ -10,12 +10,11 @@
 using System;
 using System.Reflection;
 
-[assembly: Microsoft.AspNetCore.Identity.UI.UIFrameworkAttribute("Bootstrap5")]
 [assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("aspnet-CanHappy-5e697c67-373c-4c1b-b122-20100aac7b5f")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("CanHappy")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e968ea61ed2f3cb7d1b4f1317214818674fc15c2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1374fa02f80ea9cb614ac5c5dff8379c92e5bc5")]
 [assembly: System.Reflection.AssemblyProductAttribute("CanHappy")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CanHappy")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
