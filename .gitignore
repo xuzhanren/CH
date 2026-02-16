@@ -1,0 +1,47 @@
+# Build artifacts
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE folders
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Rider / ReSharper
+.idea/
+*.sln.iml
+_ReSharper*/
+*.DotSettings.user
+
+# Logs
+*.log
+logs/
+
+# Runtime / process artifacts
+*.pid
+*.seed
+*.pid.lock
+
+# ASP.NET / local secrets
+secrets.json
+appsettings.Local.json
+appsettings.*.local.json
+
+# Database/local files
+*.db
+*.sqlite
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
