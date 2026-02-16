@@ -1,0 +1,53 @@
+@model IEnumerable<CanHappy.Models.Category>
+
+@{
+    ViewData["Title"] = "Categories";
+    var selectedCategory = ViewData["SelectedCategoryName"]?.ToString();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-0">Categories</h1>
+        @if (!string.IsNullOrWhiteSpace(selectedCategory))
+        {
+            <div class="text-secondary">Showing: @selectedCategory</div>
+        }
+    </div>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    }
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Sort Order</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Code</td>
+                <td>@item.Description</td>
+                <td>@item.SortOrder</td>
+                <td class="text-nowrap">
+                    <a asp-action="Details" asp-route-id="@item.CategoryId" class="btn btn-sm btn-outline-secondary">Details</a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.CategoryId" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.CategoryId" class="btn btn-sm btn-outline-danger">Delete</a>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
