@@ -1,7 +1,9 @@
 # Build artifacts
 bin/
+obj/
 **/obj/
 out/
+**/out
 
 # User-specific files
 *.user
