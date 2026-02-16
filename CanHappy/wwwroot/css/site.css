@@ -21,6 +21,38 @@ body {
   margin-bottom: 60px;
 }
 
+.canhappy-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.canhappy-logo {
+  width: 130px;
+  height: auto;
+  display: block;
+}
+
+.canhappy-brand-text {
+  display: none;
+  font-weight: 700;
+}
+
+.theme-toggle-btn {
+  font-weight: 500;
+}
+
+.login-dropdown-menu .theme-toggle-btn {
+  width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 575.98px) {
+  .canhappy-logo {
+    width: 108px;
+  }
+}
+
 .navbar .dropdown-menu {
   max-height: 60vh;
   overflow-y: auto;
@@ -28,6 +60,12 @@ body {
 
 .footer {
   background-color: var(--bs-body-bg);
+}
+
+html[data-bs-theme="dark"] .text-dark,
+html[data-bs-theme="dark"] .nav-link.text-dark,
+html[data-bs-theme="dark"] .dropdown-item.text-dark {
+  color: #fff !important;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {

@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CanHappy")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e968ea61ed2f3cb7d1b4f1317214818674fc15c2")]
 [assembly: System.Reflection.AssemblyProductAttribute("CanHappy")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CanHappy")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -202,7 +202,6 @@ C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\a3ygkwa5zy-{0}-2z0ns
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\nezrqnk58p-{0}-muycvpuwrr-muycvpuwrr.gz
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\v0zgfp0y55-{0}-87fc7y1x7t-87fc7y1x7t.gz
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\yfc7ypekbg-{0}-mlv21k5csn-mlv21k5csn.gz
-C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\bu4bh2xo9l-{0}-5cpa0zgkx0-5cpa0zgkx0.gz
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\3klx8dm3dn-{0}-61n19gt1b8-61n19gt1b8.gz
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\fzfraxyc8n-{0}-erwsik5p75-erwsik5p75.gz
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\atc9pyobp6-{0}-bqjiyaj88i-bqjiyaj88i.gz
@@ -277,3 +276,6 @@ C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\refint\CanHappy.dll
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\CanHappy.pdb
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\CanHappy.genruntimeconfig.cache
 C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\ref\CanHappy.dll
+C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\CanHappy.sourcelink.json
+C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\tdikuh9jjo-{0}-j41xfzupk8-j41xfzupk8.gz
+C:\DR\Projects\VSC\CH\CanHappy\obj\Debug\net10.0\compressed\bu4bh2xo9l-{0}-sfqrddadhy-sfqrddadhy.gz

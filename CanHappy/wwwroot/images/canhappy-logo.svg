@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" role="img"
+    aria-labelledby="canhappyLogoTitle canhappyLogoDesc">
+    <title id="canhappyLogoTitle">CanHappy logo</title>
+    <desc id="canhappyLogoDesc">CanHappy wordmark with a smile icon</desc>
+    <g fill="none" fill-rule="evenodd">
+        <ellipse cx="32" cy="32" rx="26" ry="29" stroke="#0d6efd" stroke-width="6" />
+        <path d="M20 34c3.5 6 8 9 12 9s8.5-3 12-9" stroke="#0d6efd" stroke-width="5"
+            stroke-linecap="round" />
+        <circle cx="24" cy="25" r="2.7" fill="#0d6efd" />
+        <circle cx="40" cy="25" r="2.7" fill="#0d6efd" />
+        <path d="M57 14c2.5-5 7-8 13-8" stroke="#0d6efd" stroke-width="5" stroke-linecap="round" />
+        <g transform="translate(74 0) scale(0.88 1)">
+            <text x="0" y="29" font-family="Segoe UI, Arial, sans-serif" font-size="29"
+                font-weight="700" fill="#ff1493">CanHappy</text>
+            <text x="0" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="16"
+                font-weight="700" fill="#ff1493" letter-spacing="0">Living in Canada</text>
+        </g>
+    </g>
+</svg>
