@@ -1,6 +1,6 @@
 # Build artifacts
 bin/
-obj/
+**/obj/
 out/
 
 # User-specific files
