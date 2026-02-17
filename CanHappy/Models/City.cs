@@ -2,10 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CanHappy.Models;
 
-public class Country
+public class City
 {
     [Key]
-    public int CountryId { get; set; }
+    public int CityId { get; set; }
+
+    public int ProvinceId { get; set; }
 
     [Required]
     [StringLength(50)]
@@ -31,5 +33,7 @@ public class Country
 
     public DateTime? ModifiedDate { get; set; }
 
-    public ICollection<Province> Provinces { get; set; } = [];
+    public Province? Province { get; set; }
+
+    public ICollection<Area> Areas { get; set; } = [];
 }
