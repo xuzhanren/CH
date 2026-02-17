@@ -8,6 +8,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Subcategory> Subcategories => Set<Subcategory>();
+    public DbSet<Listing> Listings => Set<Listing>();
     public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Province> Provinces => Set<Province>();
@@ -130,6 +131,60 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             entity.HasIndex(e => e.CityId);
             entity.HasIndex(e => new { e.CityId, e.DeletedInd, e.PublishDate });
+
+            entity.HasOne(e => e.City)
+                .WithMany()
+                .HasForeignKey(e => e.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Listing>(entity =>
+        {
+            entity.ToTable("Listing");
+            entity.HasKey(e => e.ListingGUID);
+
+            entity.Property(e => e.Subject)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.KeyWords)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.PostalCode)
+                .HasMaxLength(15);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ModifiedBY)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.SubcategoryId);
+            entity.HasIndex(e => e.ProvinceId);
+            entity.HasIndex(e => e.CityId);
+            entity.HasIndex(e => new { e.CityId, e.DeletedInd, e.CreatedDate });
+
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Subcategory)
+                .WithMany()
+                .HasForeignKey(e => e.SubcategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Province)
+                .WithMany()
+                .HasForeignKey(e => e.ProvinceId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.City)
                 .WithMany()
