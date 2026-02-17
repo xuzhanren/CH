@@ -7,6 +7,8 @@ namespace CanHappy.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
 {
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Subcategory> Subcategories => Set<Subcategory>();
+    public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Province> Provinces => Set<Province>();
     public DbSet<City> Cities => Set<City>();
@@ -39,6 +41,100 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             entity.Property(e => e.CreatedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        builder.Entity<Subcategory>(entity =>
+        {
+            entity.ToTable("Subcategory");
+            entity.HasKey(e => e.SubcategoryId);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Code)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ModifiedBY)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => new { e.CategoryId, e.Name })
+                .IsUnique();
+
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Ad>(entity =>
+        {
+            entity.ToTable("Ad");
+            entity.HasKey(e => e.AdGUID);
+
+            entity.Property(e => e.PostalCode)
+                .HasMaxLength(15);
+
+            entity.Property(e => e.Subject)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.TargetURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ImageURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.CurrencyCode)
+                .HasMaxLength(10);
+
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("Draft");
+
+            entity.Property(e => e.Price)
+                .HasPrecision(18, 2);
+
+            entity.Property(e => e.ContactName)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ContactEmail)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ContactPhone)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ModifiedBY)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.PublishDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.CityId);
+            entity.HasIndex(e => new { e.CityId, e.DeletedInd, e.PublishDate });
+
+            entity.HasOne(e => e.City)
+                .WithMany()
+                .HasForeignKey(e => e.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<Country>(entity =>
