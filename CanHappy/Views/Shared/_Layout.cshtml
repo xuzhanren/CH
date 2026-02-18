@@ -64,9 +64,12 @@
                                                     <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">All
                                                         Categories</a>
                                                     </li>
-                                                    <li class="nav-item">
-                                                        <a class="nav-link text-dark" href="/swagger" target="_blank" rel="noopener">API Docs</a>
-                                                    </li>
+                                                    @if (User.IsInRole("Admin"))
+                                                    {
+                                                        <li class="nav-item">
+                                                            <a class="nav-link text-dark" href="/swagger" target="_blank" rel="noopener">API Docs</a>
+                                                        </li>
+                                                    }
                                                 </ul>
                                                 <div class="d-flex align-items-center">
                                                     <partial name="_LoginPartial" />
