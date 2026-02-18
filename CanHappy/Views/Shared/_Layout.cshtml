@@ -50,20 +50,17 @@
                                                         <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
                                                            data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
                                                         <ul class="dropdown-menu">
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Roles">Manage Roles</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Manage Users</a></li>
                                                             <li><a class="dropdown-item" asp-controller="Admin" asp-action="Ads">Manage Ads</a></li>
                                                             <li><a class="dropdown-item" asp-controller="Admin" asp-action="Areas">Manage Areas</a></li>
+                                                            <li><a class="dropdown-item" asp-controller="Category" asp-action="Index">Manage Categories</a></li>
                                                             <li><a class="dropdown-item" asp-controller="Admin" asp-action="Cities">Manage Cities</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Provinces">Manage Provinces</a></li>
                                                             <li><a class="dropdown-item" asp-controller="Admin" asp-action="Listings">Manage Listings</a></li>
+                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Provinces">Manage Provinces</a></li>
+                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Roles">Manage Roles</a></li>
+                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Manage Users</a></li>
                                                         </ul>
                                                     </li>
                                                 }
-                                                <li class="nav-item">
-                                                    <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">All
-                                                        Categories</a>
-                                                    </li>
                                                     @if (User.IsInRole("Admin"))
                                                     {
                                                         <li class="nav-item">
