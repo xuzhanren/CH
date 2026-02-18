@@ -10,9 +10,6 @@
             @if (SignInManager.IsSignedIn(User))
             {
                 <li>
-                    <span class="dropdown-item-text">Welcome, @User.Identity?.Name</span>
-                </li>
-                <li>
                     <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Manage Account</a>
                 </li>
                 <li>
