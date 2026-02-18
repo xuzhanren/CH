@@ -1,4 +1,35 @@
-﻿<!DOCTYPE html>
+@using CanHappy.Data
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext LayoutDbContext
+
+@{
+    var topCategoryNames = new[]
+    {
+        "Buy & Sell",
+        "Car & Vehicle",
+        "Home Rental",
+        "Estate Sale",
+        "Car Pool",
+        "Business Yellow Page"
+    };
+
+    var topCategoryTooltips = await LayoutDbContext.Categories
+        .AsNoTracking()
+        .Where(category => topCategoryNames.Contains(category.Name))
+        .ToDictionaryAsync(
+            category => category.Name,
+            category => string.IsNullOrWhiteSpace(category.Description) ? category.Name : category.Description,
+            StringComparer.OrdinalIgnoreCase);
+
+    string TooltipFor(string categoryName)
+    {
+        return topCategoryTooltips.TryGetValue(categoryName, out var tooltip)
+            ? tooltip
+            : categoryName;
+    }
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -11,8 +42,8 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg border-bottom box-shadow ">
-            <div class="container-fluid p-1">
+        <nav class="navbar navbar-expand-lg border-bottom box-shadow compact-nav">
+            <div class="container-fluid px-1 py-0">
                 <a class="navbar-brand canhappy-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <img src="~/images/canhappy-logo.svg" alt="CanHappy" class="canhappy-logo" />
                     <span class="canhappy-brand-text">CanHappy</span>
@@ -21,75 +52,102 @@
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                           asp-route-name="Buy & Sell">Buy & Sell</a></li>
+
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-column w-100">
+                    <div class="d-sm-inline-flex justify-content-between w-100 compact-nav-row1">
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home"
+                                   asp-action="Index">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
+                                <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                               asp-route-name="Car & Vehicle">Car & Vehicle</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                                   asp-route-name="Home Rental">Home Rental</a></li>
-                                            <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                                       asp-route-name="Estate Sale">Estate Sale</a></li>
-                                                <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                                           asp-route-name="Car Pool">Car Pool</a></li>
-                                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                                               asp-route-name="Business Yellow Page">Business Yellow Page</a></li>
-                                                    </ul>
-                                                </li>
-                                                @if (User.IsInRole("Admin"))
-                                                {
-                                                    <li class="nav-item dropdown">
-                                                        <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
-                                                           data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
-                                                        <ul class="dropdown-menu">
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Ads">Manage Ads</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Areas">Manage Areas</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Category" asp-action="Index">Manage Categories</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Cities">Manage Cities</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Listings">Manage Listings</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Provinces">Manage Provinces</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Roles">Manage Roles</a></li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Manage Users</a></li>
+                                               asp-route-name="Buy & Sell" title="@TooltipFor("Buy & Sell")">Buy & Sell</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
+                                               asp-route-name="Car & Vehicle" title="@TooltipFor("Car & Vehicle")">Car & Vehicle</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
+                                               asp-route-name="Home Rental" title="@TooltipFor("Home Rental")">Home Rental</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
+                                               asp-route-name="Estate Sale" title="@TooltipFor("Estate Sale")">Estate Sale</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
+                                               asp-route-name="Car Pool" title="@TooltipFor("Car Pool")">Car Pool</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
+                                               asp-route-name="Business Yellow Page" title="@TooltipFor("Business Yellow Page")">Business Yellow Page</a></li>
                                                         </ul>
                                                     </li>
-                                                }
                                                     @if (User.IsInRole("Admin"))
                                                     {
-                                                        <li class="nav-item">
-                                                            <a class="nav-link text-dark" href="/swagger" target="_blank" rel="noopener">API Docs</a>
-                                                        </li>
-                                                    }
-                                                </ul>
-                                                <div class="d-flex align-items-center">
-                                                    <partial name="_LoginPartial" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </nav>
-                                </header>
-                                <div class="container">
-                                    <main role="main" class="pb-3">
-                                        @RenderBody()
-                                    </main>
-                                </div>
+                                                        <li class="nav-item dropdown">
+                                                            <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
+                                                               data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
+                                                            <ul class="dropdown-menu">
+                                                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Ads">Manage Ads</a>
+                                                                </li>
+                                                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Areas">Manage
+                                                                    Areas</a></li>
+                                                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index">Manage
+                                                                        Categories</a></li>
+                                                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Cities">Manage
+                                                                            Cities</a></li>
+                                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Listings">Manage
+                                                                                Listings</a></li>
+                                                                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Provinces">Manage
+                                                                                    Provinces</a></li>
+                                                                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Roles">Manage
+                                                                                        Roles</a></li>
+                                                                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Manage
+                                                                                            Users</a></li>
+                                                                                        </ul>
+                                                                                    </li>
+                                                                                    <li class="nav-item">
+                                                                                        <a class="nav-link text-dark" href="/swagger" target="_blank" rel="noopener">API
+                                                                                            Docs</a>
+                                                                                        </li>
+                                                                                    }
+                                                                                </ul>
+                                                                                <div class="d-flex align-items-center">
+                                                                                    <partial name="_LoginPartial" />
+                                                                                </div>
+                                                                            </div>
 
-                                <footer class="border-top footer text-muted">
-                                    <div class="container">
-                                        &copy; 2026 - CanHappy - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                                    </div>
-                                </footer>
-                                <script src="~/lib/jquery/dist/jquery.min.js"></script>
-                                <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-                                <script src="~/js/site.js" asp-append-version="true"></script>
-                                @await RenderSectionAsync("Scripts", required: false)
-                            </body>
+                                                                            <ul class="navbar-nav flex-row flex-wrap border-top mt-0 pt-0 compact-nav-row2 w-100">
+                                                                                <li class="nav-item"><a class="nav-link top-category-link" asp-controller="Category"
+                                                                                                            asp-action="Index" asp-route-name="Buy & Sell" title="@TooltipFor("Buy & Sell")">Buy & Sell</a></li>
+                                                                                <li class="nav-item"><a class="nav-link top-category-link" asp-controller="Category"
+                                                                                                            asp-action="Index" asp-route-name="Car & Vehicle" title="@TooltipFor("Car & Vehicle")">Car & Vehicle</a></li>
+                                                                                <li class="nav-item"><a class="nav-link top-category-link" asp-controller="Category"
+                                                                                                            asp-action="Index" asp-route-name="Home Rental" title="@TooltipFor("Home Rental")">Home Rental</a></li>
+                                                                                <li class="nav-item"><a class="nav-link top-category-link" asp-controller="Category"
+                                                                                                            asp-action="Index" asp-route-name="Estate Sale" title="@TooltipFor("Estate Sale")">Estate Sale</a></li>
+                                                                                <li class="nav-item"><a class="nav-link top-category-link" asp-controller="Category"
+                                                                                                            asp-action="Index" asp-route-name="Car Pool" title="@TooltipFor("Car Pool")">Car Pool</a></li>
+                                                                                <li class="nav-item"><a class="nav-link top-category-link" asp-controller="Category"
+                                                                                                            asp-action="Index" asp-route-name="Business Yellow Page" title="@TooltipFor("Business Yellow Page")">Business Yellow Page</a></li>
+                                                                                                    </ul>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </nav>
+                                                                                    </header>
 
-                        </html>
+                                                                                    <div class="container">
+                                                                                        <main role="main" class="pb-3">
+                                                                                            @RenderBody()
+                                                                                        </main>
+                                                                                    </div>
+
+                                                                                    <footer class="border-top footer text-muted">
+                                                                                        <div class="container">
+                                                                                            &copy; 2026 - CanHappy - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                                                                                        </div>
+                                                                                    </footer>
+
+                                                                                    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+                                                                                    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+                                                                                    <script src="~/js/site.js" asp-append-version="true"></script>
+                                                                                    @await RenderSectionAsync("Scripts", required: false)
+                                                                                </body>
+
+                                                                            </html>

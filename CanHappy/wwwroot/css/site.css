@@ -58,6 +58,53 @@ body {
   overflow-y: auto;
 }
 
+.compact-nav {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+}
+
+.compact-nav .canhappy-logo {
+  width: 120px;
+}
+
+.compact-nav .nav-link {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+  line-height: 1.2;
+}
+
+.compact-nav .compact-nav-row2 {
+  margin-top: 0.125rem;
+  padding-top: 0.125rem;
+}
+
+.compact-nav .compact-nav-row2 .nav-link {
+  padding-top: 0.1rem;
+  padding-bottom: 0.1rem;
+}
+
+.compact-nav .top-category-link {
+  border: 1px solid var(--bs-primary);
+  color: var(--bs-primary);
+  border-radius: var(--bs-border-radius);
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+  margin-right: 0.35rem;
+  margin-bottom: 0.25rem;
+  transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+
+.compact-nav .top-category-link.is-last-visited {
+  color: var(--bs-purple);
+}
+
+.compact-nav .top-category-link:hover,
+.compact-nav .top-category-link:focus {
+  color: #fff;
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
 .footer {
   background-color: var(--bs-body-bg);
 }
