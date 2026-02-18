@@ -1,4 +1,5 @@
 using CanHappy.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CanHappy.Data;
@@ -7,6 +8,7 @@ public static class DbInitializer
 {
     private const string CanadaName = "Canada";
     private const string CanadaCode = "CA";
+    private const string AdminRoleName = "Admin";
 
     private readonly record struct ProvinceSeed(string Name, string Code);
     private readonly record struct CitySeed(string Name, string ProvinceCode);
@@ -146,6 +148,7 @@ public static class DbInitializer
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         await context.Database.MigrateAsync();
+        await SeedAdminRoleAssignmentAsync(context, services);
 
         var existing = await context.Categories.ToDictionaryAsync(c => c.Name);
 
@@ -177,6 +180,54 @@ public static class DbInitializer
 
         await context.SaveChangesAsync();
         await SeedCanadaHierarchyAsync(context);
+    }
+
+    private static async Task SeedAdminRoleAssignmentAsync(ApplicationDbContext context, IServiceProvider services)
+    {
+        var adminRole = await context.Roles.FirstOrDefaultAsync(role => role.Name == AdminRoleName);
+        if (adminRole is null)
+        {
+            adminRole = new IdentityRole(AdminRoleName)
+            {
+                NormalizedName = AdminRoleName.ToUpperInvariant()
+            };
+
+            context.Roles.Add(adminRole);
+            await context.SaveChangesAsync();
+        }
+
+        var configuration = services.GetService<IConfiguration>();
+        var configuredAdminEmail = configuration?["SeedAdmin:Email"];
+
+        IdentityUser? adminUser = null;
+
+        if (!string.IsNullOrWhiteSpace(configuredAdminEmail))
+        {
+            var normalizedEmail = configuredAdminEmail.Trim().ToUpperInvariant();
+            adminUser = await context.Users.FirstOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail);
+        }
+
+        adminUser ??= await context.Users.OrderBy(user => user.Id).FirstOrDefaultAsync();
+        if (adminUser is null)
+        {
+            return;
+        }
+
+        var alreadyMapped = await context.UserRoles
+            .AnyAsync(userRole => userRole.UserId == adminUser.Id && userRole.RoleId == adminRole.Id);
+
+        if (alreadyMapped)
+        {
+            return;
+        }
+
+        context.UserRoles.Add(new IdentityUserRole<string>
+        {
+            UserId = adminUser.Id,
+            RoleId = adminRole.Id
+        });
+
+        await context.SaveChangesAsync();
     }
 
     private static async Task SeedCanadaHierarchyAsync(ApplicationDbContext context)
