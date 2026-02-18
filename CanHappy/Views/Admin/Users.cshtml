@@ -1,0 +1,64 @@
+@model IReadOnlyList<CanHappy.Models.Admin.AdminUserListItemViewModel>
+
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <a class="btn btn-primary" asp-action="CreateUser">Add User</a>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger" role="alert">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(value => value.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>User Name</th>
+            <th>Email</th>
+            <th>Email Confirmed</th>
+            <th>Roles</th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr>
+                <td colspan="5" class="text-muted">No users found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var user in Model)
+            {
+                var roles = user.Roles.Count == 0 ? "-" : string.Join(", ", user.Roles.OrderBy(role => role));
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(user.UserName) ? "-" : user.UserName)</td>
+                    <td>@(string.IsNullOrWhiteSpace(user.Email) ? "-" : user.Email)</td>
+                    <td>@(user.EmailConfirmed ? "Yes" : "No")</td>
+                    <td>@roles</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="EditUser" asp-route-id="@user.Id">Edit</a>
+                        <form asp-action="DeleteUser" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@user.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this user?');">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
