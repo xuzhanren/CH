@@ -1,0 +1,49 @@
+@model IReadOnlyList<CanHappy.Models.City>
+
+@{
+    ViewData["Title"] = "Manage Cities";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <a class="btn btn-primary" asp-action="CreateCity">Add City</a>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Province</th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr>
+                <td colspan="4" class="text-muted">No cities found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var city in Model)
+            {
+                <tr>
+                    <td>@city.Name</td>
+                    <td>@(city.Code ?? "-")</td>
+                    <td>@(city.Province?.Name ?? "-")</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="EditCity" asp-route-id="@city.CityId">Edit</a>
+                        <form asp-action="DeleteCity" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@city.CityId" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this city?');">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

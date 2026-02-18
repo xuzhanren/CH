@@ -1,0 +1,54 @@
+@model IReadOnlyList<CanHappy.Models.Listing>
+
+@{
+    ViewData["Title"] = "Manage Listings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <a class="btn btn-primary" asp-action="CreateListing">Add Listing</a>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>Category</th>
+            <th>Subcategory</th>
+            <th>Province</th>
+            <th>City</th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr>
+                <td colspan="6" class="text-muted">No listings found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var listing in Model)
+            {
+                <tr>
+                    <td>@listing.Subject</td>
+                    <td>@(listing.Category?.Name ?? "-")</td>
+                    <td>@(listing.Subcategory?.Name ?? "-")</td>
+                    <td>@(listing.Province?.Name ?? "-")</td>
+                    <td>@(listing.City?.Name ?? "-")</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="EditListing"
+                           asp-route-id="@listing.ListingGUID">Edit</a>
+                        <form asp-action="DeleteListing" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@listing.ListingGUID" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this listing?');">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

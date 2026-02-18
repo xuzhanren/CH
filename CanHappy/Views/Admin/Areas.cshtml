@@ -1,0 +1,49 @@
+@model IReadOnlyList<CanHappy.Models.Area>
+
+@{
+    ViewData["Title"] = "Manage Areas";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@ViewData["Title"]</h1>
+    <a class="btn btn-primary" asp-action="CreateArea">Add Area</a>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>City</th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr>
+                <td colspan="4" class="text-muted">No areas found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var area in Model)
+            {
+                <tr>
+                    <td>@area.Name</td>
+                    <td>@(area.Code ?? "-")</td>
+                    <td>@(area.City?.Name ?? "-")</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="EditArea" asp-route-id="@area.AreaId">Edit</a>
+                        <form asp-action="DeleteArea" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@area.AreaId" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this area?');">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

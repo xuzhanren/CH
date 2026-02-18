@@ -9,6 +9,7 @@ public static class DbInitializer
     private const string CanadaName = "Canada";
     private const string CanadaCode = "CA";
     private const string AdminRoleName = "Admin";
+    private const string RegisteredUserRoleName = "RegisteredUser";
 
     private readonly record struct ProvinceSeed(string Name, string Code);
     private readonly record struct CitySeed(string Name, string ProvinceCode);
@@ -148,6 +149,7 @@ public static class DbInitializer
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         await context.Database.MigrateAsync();
+        await EnsureRoleExistsAsync(context, RegisteredUserRoleName);
         await SeedAdminRoleAssignmentAsync(context, services);
 
         var existing = await context.Categories.ToDictionaryAsync(c => c.Name);
@@ -184,17 +186,7 @@ public static class DbInitializer
 
     private static async Task SeedAdminRoleAssignmentAsync(ApplicationDbContext context, IServiceProvider services)
     {
-        var adminRole = await context.Roles.FirstOrDefaultAsync(role => role.Name == AdminRoleName);
-        if (adminRole is null)
-        {
-            adminRole = new IdentityRole(AdminRoleName)
-            {
-                NormalizedName = AdminRoleName.ToUpperInvariant()
-            };
-
-            context.Roles.Add(adminRole);
-            await context.SaveChangesAsync();
-        }
+        var adminRole = await EnsureRoleExistsAsync(context, AdminRoleName);
 
         var configuration = services.GetService<IConfiguration>();
         var configuredAdminEmail = configuration?["SeedAdmin:Email"];
@@ -228,6 +220,24 @@ public static class DbInitializer
         });
 
         await context.SaveChangesAsync();
+    }
+
+    private static async Task<IdentityRole> EnsureRoleExistsAsync(ApplicationDbContext context, string roleName)
+    {
+        var role = await context.Roles.FirstOrDefaultAsync(item => item.Name == roleName);
+        if (role is not null)
+        {
+            return role;
+        }
+
+        role = new IdentityRole(roleName)
+        {
+            NormalizedName = roleName.ToUpperInvariant()
+        };
+
+        context.Roles.Add(role);
+        await context.SaveChangesAsync();
+        return role;
     }
 
     private static async Task SeedCanadaHierarchyAsync(ApplicationDbContext context)

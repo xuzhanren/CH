@@ -1,0 +1,51 @@
+@model CanHappy.Models.Listing
+
+@{
+    ViewData["Title"] = "Add Listing";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="CreateListing" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="CategoryId" class="form-label"></label>
+        <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="SubcategoryId" class="form-label"></label>
+        <select asp-for="SubcategoryId" class="form-select" asp-items="ViewBag.SubcategoryId"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ProvinceId" class="form-label"></label>
+        <select asp-for="ProvinceId" class="form-select" asp-items="ViewBag.ProvinceId"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="CityId" class="form-label"></label>
+        <select asp-for="CityId" class="form-select" asp-items="ViewBag.CityId"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Subject" class="form-label"></label>
+        <input asp-for="Subject" class="form-control" />
+        <span asp-validation-for="Subject" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label asp-for="KeyWords" class="form-label"></label>
+        <input asp-for="KeyWords" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="PostalCode" class="form-label"></label>
+        <input asp-for="PostalCode" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Listings" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
