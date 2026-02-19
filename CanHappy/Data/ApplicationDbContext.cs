@@ -163,12 +163,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.Price)
                 .HasPrecision(18, 2);
 
-            entity.Property(e => e.PriceMin)
-                .HasPrecision(18, 2);
-
-            entity.Property(e => e.PriceMax)
-                .HasPrecision(18, 2);
-
             entity.Property(e => e.DiscountPercent)
                 .HasPrecision(5, 2)
                 .HasDefaultValue(0.00m);

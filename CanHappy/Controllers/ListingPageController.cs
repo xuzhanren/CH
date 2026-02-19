@@ -72,7 +72,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,PriceMin,PriceMax,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
+    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
     {
         if (!ModelState.IsValid)
         {
@@ -114,7 +114,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,PriceMin,PriceMax,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
     {
         if (id != listing.ListingGUID)
         {
@@ -149,8 +149,6 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             existingListing.CityId = listing.CityId;
             existingListing.PostalCode = listing.PostalCode;
             existingListing.Price = listing.Price;
-            existingListing.PriceMin = listing.PriceMin;
-            existingListing.PriceMax = listing.PriceMax;
             existingListing.DiscountPercent = listing.DiscountPercent;
             existingListing.ThumbnailURL = listing.ThumbnailURL;
             existingListing.ModifiedDate = DateTime.UtcNow;

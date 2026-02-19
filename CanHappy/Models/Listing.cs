@@ -33,10 +33,6 @@ public class Listing
 
     public decimal? Price { get; set; }
 
-    public decimal? PriceMin { get; set; }
-
-    public decimal? PriceMax { get; set; }
-
     public decimal DiscountPercent { get; set; }
 
     public DateTime? DiscountBeginDate { get; set; }
