@@ -95,7 +95,7 @@ body {
 }
 
 .compact-nav .top-category-link.is-last-visited {
-  color: var(--bs-purple);
+  color: #03fc7b;
 }
 
 .compact-nav .top-category-link:hover,
@@ -113,6 +113,16 @@ html[data-bs-theme="dark"] .text-dark,
 html[data-bs-theme="dark"] .nav-link.text-dark,
 html[data-bs-theme="dark"] .dropdown-item.text-dark {
   color: #fff !important;
+}
+
+html[data-bs-theme="dark"] .compact-nav .top-category-link {
+  color: var(--bs-info);
+  border-color: var(--bs-info);
+}
+
+html[data-bs-theme="dark"] .compact-nav .top-category-link.is-last-visited {
+  color: #e7c6ff;
+  border-color: var(--bs-purple);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
