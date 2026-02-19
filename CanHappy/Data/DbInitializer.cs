@@ -48,6 +48,44 @@ public static class DbInitializer
         "Auto Services"
     ];
 
+    private static readonly string[] HomeRentalSubcategoryNames =
+    [
+        "Apartments & Condos",
+        "Houses for Rent",
+        "Room Rentals",
+        "Vacation Rentals",
+        "Storage & Parking",
+        "Other"
+    ];
+
+    private static readonly string[] EstateSaleSubcategoryNames =
+    [
+        "Garage Sales",
+        "Moving Sales",
+        "Estate Auctions",
+        "Antiques & Collectibles",
+        "Other"
+    ];
+
+    private static readonly string[] CarPoolSubcategoryNames =
+    [
+        "Daily Commute",
+        "Long Distance",
+        "Airport Rides",
+        "Student Carpool",
+        "Other"
+    ];
+
+    private static readonly string[] BusinessYellowPageSubcategoryNames =
+    [
+        "Restaurants",
+        "Health & Wellness",
+        "Home Services",
+        "Professional Services",
+        "Education & Training",
+        "Other"
+    ];
+
     private static readonly ProvinceSeed[] Provinces =
     [
         new("Alberta", "AB"),
@@ -213,6 +251,10 @@ public static class DbInitializer
     {
         await SeedSubcategoriesForCategoryAsync(context, "Buy & Sell", BuyAndSellSubcategoryNames);
         await SeedSubcategoriesForCategoryAsync(context, "Car & Vehicle", CarAndVehicleSubcategoryNames);
+        await SeedSubcategoriesForCategoryAsync(context, "Home Rental", HomeRentalSubcategoryNames);
+        await SeedSubcategoriesForCategoryAsync(context, "Estate Sale", EstateSaleSubcategoryNames);
+        await SeedSubcategoriesForCategoryAsync(context, "Car Pool", CarPoolSubcategoryNames);
+        await SeedSubcategoriesForCategoryAsync(context, "Business Yellow Page", BusinessYellowPageSubcategoryNames);
     }
 
     private static async Task SeedSubcategoriesForCategoryAsync(
