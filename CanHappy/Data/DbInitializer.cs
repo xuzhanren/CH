@@ -41,6 +41,13 @@ public static class DbInitializer
         "Other"
     ];
 
+    private static readonly string[] CarAndVehicleSubcategoryNames =
+    [
+        "Cars & Trucks",
+        "Parts and Materials",
+        "Auto Services"
+    ];
+
     private static readonly ProvinceSeed[] Provinces =
     [
         new("Alberta", "AB"),
@@ -198,28 +205,37 @@ public static class DbInitializer
         }
 
         await context.SaveChangesAsync();
-        await SeedBuyAndSellSubcategoriesAsync(context);
+        await SeedCoreSubcategoriesAsync(context);
         await SeedCanadaHierarchyAsync(context);
     }
 
-    private static async Task SeedBuyAndSellSubcategoriesAsync(ApplicationDbContext context)
+    private static async Task SeedCoreSubcategoriesAsync(ApplicationDbContext context)
     {
-        var buyAndSellCategory = await context.Categories
-            .FirstOrDefaultAsync(category => category.Name == "Buy & Sell" && !category.DeletedInd);
+        await SeedSubcategoriesForCategoryAsync(context, "Buy & Sell", BuyAndSellSubcategoryNames);
+        await SeedSubcategoriesForCategoryAsync(context, "Car & Vehicle", CarAndVehicleSubcategoryNames);
+    }
 
-        if (buyAndSellCategory is null)
+    private static async Task SeedSubcategoriesForCategoryAsync(
+        ApplicationDbContext context,
+        string categoryName,
+        IReadOnlyList<string> subcategoryNames)
+    {
+        var category = await context.Categories
+            .FirstOrDefaultAsync(item => item.Name == categoryName && !item.DeletedInd);
+
+        if (category is null)
         {
             return;
         }
 
         var now = DateTime.UtcNow;
         var existingSubcategories = await context.Subcategories
-            .Where(subcategory => subcategory.CategoryId == buyAndSellCategory.CategoryId)
+            .Where(subcategory => subcategory.CategoryId == category.CategoryId)
             .ToDictionaryAsync(subcategory => subcategory.Name, StringComparer.OrdinalIgnoreCase);
 
-        for (var index = 0; index < BuyAndSellSubcategoryNames.Length; index++)
+        for (var index = 0; index < subcategoryNames.Count; index++)
         {
-            var name = BuyAndSellSubcategoryNames[index];
+            var name = subcategoryNames[index];
 
             if (existingSubcategories.TryGetValue(name, out var subcategory))
             {
@@ -234,7 +250,7 @@ public static class DbInitializer
             {
                 context.Subcategories.Add(new Subcategory
                 {
-                    CategoryId = buyAndSellCategory.CategoryId,
+                    CategoryId = category.CategoryId,
                     Name = name,
                     Code = BuildCode(name),
                     Description = name,
