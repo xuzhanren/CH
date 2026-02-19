@@ -5,7 +5,10 @@
     ViewData["Title"] = "Edit";
     var subcategoryLookup = ViewData["SubcategoryLookup"];
     var cityLookup = ViewData["CityLookup"];
+    var hasThumbnail = !string.IsNullOrWhiteSpace(Model?.ThumbnailURL);
 }
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
 
 <h1>Edit</h1>
 
@@ -13,7 +16,7 @@
     <div class="card-body">
         <h4 class="card-title">Listing</h4>
         <hr />
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ListingGUID" />
             <div class="mb-3">
@@ -57,57 +60,102 @@
                 <span asp-validation-for="DiscountPercent" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="CategoryId" class="form-label"></label>
-                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
-                    <option value="">Select Category</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="SubcategoryId" class="form-label"></label>
-                <select asp-for="SubcategoryId" class="form-select" asp-items="ViewBag.SubcategoryId">
-                    <option value="">Select Subcategory</option>
-                </select>
-                <span asp-validation-for="SubcategoryId" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="ProvinceId" class="form-label"></label>
-                <select asp-for="ProvinceId" class="form-select" asp-items="ViewBag.ProvinceId">
-                    <option value="">Select Province</option>
-                </select>
-                <span asp-validation-for="ProvinceId" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="CityId" class="form-label"></label>
-                <select asp-for="CityId" class="form-select" asp-items="ViewBag.CityId">
-                    <option value="">Select City</option>
-                </select>
-                <span asp-validation-for="CityId" class="text-danger"></span>
-            </div>
-            <input type="hidden" asp-for="ViewCount" />
-            <input type="hidden" asp-for="ClickCount" />
-            <input type="hidden" asp-for="DeletedInd" />
-            <input type="hidden" asp-for="SampleInd" />
-            <input type="hidden" asp-for="UserId" />
-            <input type="hidden" asp-for="CreatedBy" />
-            <input type="hidden" asp-for="ModifiedBY" />
-            <input type="hidden" asp-for="CreatedDate" />
-            <input type="hidden" asp-for="ModifiedDate" />
+                <label class="form-label">Thumbnail Image</label>
+                <input type="file" id="thumbnailFileInput" class="form-control" accept="image/*" />
+                <div class="mt-2 d-flex gap-2">
+                    <button type="button" id="openCropModalButton" class="btn btn-outline-primary" disabled>Clip
+                        Image</button>
+                        <button type="button" id="clearThumbnailButton" class="btn btn-outline-secondary">Clear
+                            Image</button>
+                        </div>
+                    </div>
+                    <div id="thumbnailPreviewContainer" class="mb-3 @(hasThumbnail ? string.Empty : "d-none")">
+                        <label class="form-label">Thumbnail Preview</label>
+                        <div>
+                            <img id="thumbnailPreview" src="@Model?.ThumbnailURL" alt="Listing thumbnail"
+                                 class="img-fluid rounded border" style="max-height: 220px;" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CategoryId" class="form-label"></label>
+                        <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                            <option value="">Select Category</option>
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="SubcategoryId" class="form-label"></label>
+                        <select asp-for="SubcategoryId" class="form-select" asp-items="ViewBag.SubcategoryId">
+                            <option value="">Select Subcategory</option>
+                        </select>
+                        <span asp-validation-for="SubcategoryId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ProvinceId" class="form-label"></label>
+                        <select asp-for="ProvinceId" class="form-select" asp-items="ViewBag.ProvinceId">
+                            <option value="">Select Province</option>
+                        </select>
+                        <span asp-validation-for="ProvinceId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CityId" class="form-label"></label>
+                        <select asp-for="CityId" class="form-select" asp-items="ViewBag.CityId">
+                            <option value="">Select City</option>
+                        </select>
+                        <span asp-validation-for="CityId" class="text-danger"></span>
+                    </div>
+                    <input type="hidden" asp-for="ViewCount" />
+                    <input type="hidden" asp-for="ClickCount" />
+                    <input type="hidden" asp-for="DeletedInd" />
+                    <input type="hidden" asp-for="SampleInd" />
+                    <input type="hidden" asp-for="UserId" />
+                    <input type="hidden" asp-for="CreatedBy" />
+                    <input type="hidden" asp-for="ModifiedBY" />
+                    <input type="hidden" asp-for="CreatedDate" />
+                    <input type="hidden" asp-for="ModifiedDate" />
+                    <input type="hidden" asp-for="ThumbnailURL" />
+                    <input type="hidden" id="CroppedThumbnailData" name="croppedThumbnailData" />
 
-            <div class="d-flex gap-2">
-                <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                    <div class="d-flex gap-2">
+                        <input type="submit" value="Save" class="btn btn-primary" />
+                        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                    </div>
+                </form>
             </div>
-        </form>
-    </div>
-</div>
+        </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script>
-            (() => {
+        <div class="modal fade" id="thumbnailCropModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Clip Thumbnail Image</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="cropAspectRatioSelect" class="form-label">Aspect Ratio</label>
+                            <select id="cropAspectRatioSelect" class="form-select">
+                                <option value="1:1" selected>1:1</option>
+                                <option value="16:9">16:9</option>
+                            </select>
+                        </div>
+                        <img id="cropperImage" alt="Image to crop" class="img-fluid" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" id="saveCroppedImageButton" class="btn btn-primary">Save Clipped Image</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @section Scripts {
+            @{
+                await Html.RenderPartialAsync("_ValidationScriptsPartial");
+            }
+            <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+            <script>
+                (() => {
                 const subcategories = @Html.Raw(JsonSerializer.Serialize(subcategoryLookup));
                 const cities = @Html.Raw(JsonSerializer.Serialize(cityLookup));
 
@@ -120,45 +168,45 @@
                 const selectedCityId = Number(citySelect.value || 0);
 
                 const populate = (target, items, placeholder, valueKey = "id") => {
-                    target.innerHTML = "";
+                target.innerHTML = "";
 
-                    const placeholderOption = document.createElement("option");
-                    placeholderOption.value = "";
-                    placeholderOption.textContent = placeholder;
-                    target.appendChild(placeholderOption);
+                const placeholderOption = document.createElement("option");
+                placeholderOption.value = "";
+                placeholderOption.textContent = placeholder;
+                target.appendChild(placeholderOption);
 
-                    items.forEach(item => {
-                        const option = document.createElement("option");
-                        option.value = item[valueKey];
-                        option.textContent = item.name;
-                        target.appendChild(option);
-                    });
+                items.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item[valueKey];
+                option.textContent = item.name;
+                target.appendChild(option);
+                });
                 };
 
                 const refreshSubcategories = (selectedId = 0) => {
-                    const categoryId = Number(categorySelect.value || 0);
-                    const filtered = categoryId > 0
-                        ? subcategories.filter(item => item.categoryId === categoryId)
-                        : [];
+                const categoryId = Number(categorySelect.value || 0);
+                const filtered = categoryId > 0
+                ? subcategories.filter(item => item.categoryId === categoryId)
+                : [];
 
-                    populate(subcategorySelect, filtered, "Select Subcategory");
+                populate(subcategorySelect, filtered, "Select Subcategory");
 
-                    if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
-                        subcategorySelect.value = String(selectedId);
-                    }
+                if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                subcategorySelect.value = String(selectedId);
+                }
                 };
 
                 const refreshCities = (selectedId = 0) => {
-                    const provinceId = Number(provinceSelect.value || 0);
-                    const filtered = provinceId > 0
-                        ? cities.filter(item => item.provinceId === provinceId)
-                        : [];
+                const provinceId = Number(provinceSelect.value || 0);
+                const filtered = provinceId > 0
+                ? cities.filter(item => item.provinceId === provinceId)
+                : [];
 
-                    populate(citySelect, filtered, "Select City");
+                populate(citySelect, filtered, "Select City");
 
-                    if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
-                        citySelect.value = String(selectedId);
-                    }
+                if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                citySelect.value = String(selectedId);
+                }
                 };
 
                 categorySelect.addEventListener("change", () => refreshSubcategories());
@@ -166,6 +214,114 @@
 
                 refreshSubcategories(selectedSubcategoryId);
                 refreshCities(selectedCityId);
-            })();
-    </script>
-}
+
+                const thumbnailFileInput = document.getElementById("thumbnailFileInput");
+                const openCropModalButton = document.getElementById("openCropModalButton");
+                const clearThumbnailButton = document.getElementById("clearThumbnailButton");
+                const thumbnailPreviewContainer = document.getElementById("thumbnailPreviewContainer");
+                const thumbnailPreview = document.getElementById("thumbnailPreview");
+                const thumbnailUrlInput = document.getElementById("ThumbnailURL");
+                const croppedThumbnailDataInput = document.getElementById("CroppedThumbnailData");
+
+                const cropModalElement = document.getElementById("thumbnailCropModal");
+                const cropperImage = document.getElementById("cropperImage");
+                const cropAspectRatioSelect = document.getElementById("cropAspectRatioSelect");
+                const saveCroppedImageButton = document.getElementById("saveCroppedImageButton");
+                const cropModal = new bootstrap.Modal(cropModalElement);
+
+                let sourceImageDataUrl = "";
+                let cropper = null;
+                let currentAspectRatio = 1;
+
+                const getAspectRatio = (value) => value === "16:9" ? (16 / 9) : 1;
+
+                const createCropper = () => {
+                cropper?.destroy();
+                cropper = new Cropper(cropperImage, {
+                aspectRatio: currentAspectRatio,
+                viewMode: 1,
+                autoCropArea: 1,
+                dragMode: "move"
+                });
+                };
+
+                thumbnailFileInput.addEventListener("change", () => {
+                const file = thumbnailFileInput.files?.[0];
+                if (!file) {
+                sourceImageDataUrl = "";
+                openCropModalButton.disabled = true;
+                return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                sourceImageDataUrl = event.target?.result?.toString() || "";
+                openCropModalButton.disabled = !sourceImageDataUrl;
+                if (sourceImageDataUrl) {
+                cropperImage.src = sourceImageDataUrl;
+                cropModal.show();
+                }
+                };
+                reader.readAsDataURL(file);
+                });
+
+                openCropModalButton.addEventListener("click", () => {
+                if (!sourceImageDataUrl) {
+                return;
+                }
+
+                cropperImage.src = sourceImageDataUrl;
+                cropModal.show();
+                });
+
+                cropModalElement.addEventListener("shown.bs.modal", () => {
+                if (!cropperImage.src) {
+                return;
+                }
+
+                createCropper();
+                });
+
+                cropModalElement.addEventListener("hidden.bs.modal", () => {
+                cropper?.destroy();
+                cropper = null;
+                });
+
+                cropAspectRatioSelect.addEventListener("change", () => {
+                currentAspectRatio = getAspectRatio(cropAspectRatioSelect.value);
+                if (cropper) {
+                cropper.setAspectRatio(currentAspectRatio);
+                }
+                });
+
+                saveCroppedImageButton.addEventListener("click", () => {
+                if (!cropper) {
+                return;
+                }
+
+                const canvas = cropper.getCroppedCanvas({
+                width: Math.abs(currentAspectRatio - (16 / 9)) < 0.001 ? 1280 : 800,
+                height: Math.abs(currentAspectRatio - (16 / 9)) < 0.001 ? 720 : 800,
+                imageSmoothingQuality: "high"
+                });
+
+                const croppedDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+                croppedThumbnailDataInput.value = croppedDataUrl;
+                thumbnailUrlInput.value = "";
+                thumbnailPreview.src = croppedDataUrl;
+                thumbnailPreviewContainer.classList.remove("d-none");
+                cropModal.hide();
+                });
+
+                clearThumbnailButton.addEventListener("click", () => {
+                thumbnailFileInput.value = "";
+                sourceImageDataUrl = "";
+                openCropModalButton.disabled = true;
+                croppedThumbnailDataInput.value = "";
+                thumbnailUrlInput.value = "";
+                thumbnailPreview.src = "";
+                thumbnailPreviewContainer.classList.add("d-none");
+                });
+                })();
+            </script>
+        }

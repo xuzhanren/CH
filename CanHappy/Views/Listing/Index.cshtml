@@ -21,6 +21,13 @@ else
             <div class="col-12">
                 <div class="card shadow-sm">
                     <div class="card-body">
+                        @if (!string.IsNullOrWhiteSpace(item.ThumbnailURL))
+                        {
+                            <div class="mb-3">
+                                <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
+                                     style="max-height: 220px;" />
+                            </div>
+                        }
                         <h5 class="card-title mb-3">@item.Subject</h5>
                         <div class="row g-2">
                             <div class="col-md-6"><strong>Description:</strong> @item.Description</div>

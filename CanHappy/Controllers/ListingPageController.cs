@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CanHappy.Controllers;
 
 [Route("Listing")]
-public class ListingPageController(ApplicationDbContext context) : Controller
+public class ListingPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
 {
     [HttpGet("")]
     public async Task<IActionResult> Index(string? categoryName, string? subcategoryName)
@@ -72,12 +72,21 @@ public class ListingPageController(ApplicationDbContext context) : Controller
 
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,PriceMin,PriceMax,DiscountPercent,ViewCount,ClickCount,DeletedInd,SampleInd,UserId,CreatedBy,ModifiedBY,CreatedDate,ModifiedDate")] Listing listing)
+    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,PriceMin,PriceMax,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
     {
         if (!ModelState.IsValid)
         {
             PopulateSelectLists(listing.CategoryId, listing.SubcategoryId, listing.ProvinceId, listing.CityId);
             return View("~/Views/Listing/Create.cshtml", listing);
+        }
+
+        listing.ListingGUID = Guid.NewGuid();
+        listing.CreatedDate = DateTime.UtcNow;
+        listing.ModifiedDate = null;
+
+        if (!string.IsNullOrWhiteSpace(croppedThumbnailData))
+        {
+            listing.ThumbnailURL = await SaveThumbnailFromDataUrlAsync(croppedThumbnailData);
         }
 
         context.Add(listing);
@@ -105,7 +114,7 @@ public class ListingPageController(ApplicationDbContext context) : Controller
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,PriceMin,PriceMax,DiscountPercent,ViewCount,ClickCount,DeletedInd,SampleInd,UserId,CreatedBy,ModifiedBY,CreatedDate,ModifiedDate")] Listing listing)
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,PriceMin,PriceMax,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
     {
         if (id != listing.ListingGUID)
         {
@@ -118,9 +127,34 @@ public class ListingPageController(ApplicationDbContext context) : Controller
             return View("~/Views/Listing/Edit.cshtml", listing);
         }
 
+        var existingListing = await context.Listings.FirstOrDefaultAsync(item => item.ListingGUID == id);
+        if (existingListing is null)
+        {
+            return NotFound();
+        }
+
+        if (!string.IsNullOrWhiteSpace(croppedThumbnailData))
+        {
+            listing.ThumbnailURL = await SaveThumbnailFromDataUrlAsync(croppedThumbnailData);
+        }
+
         try
         {
-            context.Update(listing);
+            existingListing.CategoryId = listing.CategoryId;
+            existingListing.SubcategoryId = listing.SubcategoryId;
+            existingListing.Subject = listing.Subject;
+            existingListing.Description = listing.Description;
+            existingListing.KeyWords = listing.KeyWords;
+            existingListing.ProvinceId = listing.ProvinceId;
+            existingListing.CityId = listing.CityId;
+            existingListing.PostalCode = listing.PostalCode;
+            existingListing.Price = listing.Price;
+            existingListing.PriceMin = listing.PriceMin;
+            existingListing.PriceMax = listing.PriceMax;
+            existingListing.DiscountPercent = listing.DiscountPercent;
+            existingListing.ThumbnailURL = listing.ThumbnailURL;
+            existingListing.ModifiedDate = DateTime.UtcNow;
+
             await context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
@@ -204,5 +238,44 @@ public class ListingPageController(ApplicationDbContext context) : Controller
     private bool ListingExists(Guid id)
     {
         return context.Listings.Any(listing => listing.ListingGUID == id);
+    }
+
+    private async Task<string?> SaveThumbnailFromDataUrlAsync(string dataUrl)
+    {
+        var commaIndex = dataUrl.IndexOf(',');
+        if (commaIndex <= 0)
+        {
+            return null;
+        }
+
+        var metadata = dataUrl[..commaIndex];
+        var base64Data = dataUrl[(commaIndex + 1)..];
+
+        if (!metadata.Contains("base64", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        byte[] imageBytes;
+        try
+        {
+            imageBytes = Convert.FromBase64String(base64Data);
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+
+        var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
+        var fileName = $"{Guid.NewGuid():N}{extension}";
+        var relativePath = $"/ListingImages/{fileName}";
+        var folderPath = Path.Combine(environment.WebRootPath, "ListingImages");
+
+        Directory.CreateDirectory(folderPath);
+
+        var filePath = Path.Combine(folderPath, fileName);
+        await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+        return relativePath;
     }
 }
