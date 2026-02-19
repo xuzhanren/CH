@@ -1,104 +1,170 @@
 @model CanHappy.Models.Listing
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "Create";
+    var subcategoryLookup = ViewData["SubcategoryLookup"];
+    var cityLookup = ViewData["CityLookup"];
 }
 
 <h1>Create</h1>
 
-<h4>Listing</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h4 class="card-title">Listing</h4>
+        <hr />
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class ="form-control" asp-items="ViewBag.CategoryId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="SubcategoryId" class="control-label"></label>
-                <select asp-for="SubcategoryId" class ="form-control" asp-items="ViewBag.SubcategoryId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Subject" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="Subject" class="form-label"></label>
                 <input asp-for="Subject" class="form-control" />
                 <span asp-validation-for="Subject" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="KeyWords" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="KeyWords" class="form-label"></label>
                 <input asp-for="KeyWords" class="form-control" />
                 <span asp-validation-for="KeyWords" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ProvinceId" class="control-label"></label>
-                <select asp-for="ProvinceId" class ="form-control" asp-items="ViewBag.ProvinceId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="CityId" class="control-label"></label>
-                <select asp-for="CityId" class ="form-control" asp-items="ViewBag.CityId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="PostalCode" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="PostalCode" class="form-label"></label>
                 <input asp-for="PostalCode" class="form-control" />
                 <span asp-validation-for="PostalCode" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ViewCount" class="control-label"></label>
-                <input asp-for="ViewCount" class="form-control" />
-                <span asp-validation-for="ViewCount" class="text-danger"></span>
+            <div class="mb-3">
+                <label asp-for="Price" class="form-label"></label>
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ClickCount" class="control-label"></label>
-                <input asp-for="ClickCount" class="form-control" />
-                <span asp-validation-for="ClickCount" class="text-danger"></span>
+            <div class="mb-3">
+                <label asp-for="PriceMin" class="form-label"></label>
+                <input asp-for="PriceMin" class="form-control" />
+                <span asp-validation-for="PriceMin" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="DeletedInd" /> @Html.DisplayNameFor(model => model.DeletedInd)
-                </label>
+            <div class="mb-3">
+                <label asp-for="PriceMax" class="form-label"></label>
+                <input asp-for="PriceMax" class="form-control" />
+                <span asp-validation-for="PriceMax" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="SampleInd" /> @Html.DisplayNameFor(model => model.SampleInd)
-                </label>
+            <div class="mb-3">
+                <label asp-for="DiscountPercent" class="form-label"></label>
+                <input asp-for="DiscountPercent" class="form-control" />
+                <span asp-validation-for="DiscountPercent" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
+            <div class="mb-3">
+                <label asp-for="CategoryId" class="form-label"></label>
+                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                    <option value="">Select Category</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CreatedBy" class="control-label"></label>
-                <input asp-for="CreatedBy" class="form-control" />
-                <span asp-validation-for="CreatedBy" class="text-danger"></span>
+            <div class="mb-3">
+                <label asp-for="SubcategoryId" class="form-label"></label>
+                <select asp-for="SubcategoryId" class="form-select" asp-items="ViewBag.SubcategoryId">
+                    <option value="">Select Subcategory</option>
+                </select>
+                <span asp-validation-for="SubcategoryId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ModifiedBY" class="control-label"></label>
-                <input asp-for="ModifiedBY" class="form-control" />
-                <span asp-validation-for="ModifiedBY" class="text-danger"></span>
+            <div class="mb-3">
+                <label asp-for="ProvinceId" class="form-label"></label>
+                <select asp-for="ProvinceId" class="form-select" asp-items="ViewBag.ProvinceId">
+                    <option value="">Select Province</option>
+                </select>
+                <span asp-validation-for="ProvinceId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ModifiedDate" class="control-label"></label>
-                <input asp-for="ModifiedDate" class="form-control" />
-                <span asp-validation-for="ModifiedDate" class="text-danger"></span>
+            <div class="mb-3">
+                <label asp-for="CityId" class="form-label"></label>
+                <select asp-for="CityId" class="form-select" asp-items="ViewBag.CityId">
+                    <option value="">Select City</option>
+                </select>
+                <span asp-validation-for="CityId" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <input type="hidden" asp-for="ViewCount" />
+            <input type="hidden" asp-for="ClickCount" />
+            <input type="hidden" asp-for="DeletedInd" />
+            <input type="hidden" asp-for="SampleInd" />
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="CreatedBy" />
+            <input type="hidden" asp-for="ModifiedBY" />
+            <input type="hidden" asp-for="CreatedDate" />
+            <input type="hidden" asp-for="ModifiedDate" />
+
+            <div class="d-flex gap-2">
                 <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+                (() => {
+                    const subcategories = @Html.Raw(JsonSerializer.Serialize(subcategoryLookup));
+                    const cities = @Html.Raw(JsonSerializer.Serialize(cityLookup));
+
+                    const categorySelect = document.getElementById("CategoryId");
+                    const subcategorySelect = document.getElementById("SubcategoryId");
+                    const provinceSelect = document.getElementById("ProvinceId");
+                    const citySelect = document.getElementById("CityId");
+
+                    const selectedSubcategoryId = Number(subcategorySelect.value || 0);
+                    const selectedCityId = Number(citySelect.value || 0);
+
+                    const populate = (target, items, placeholder, valueKey = "id") => {
+                        target.innerHTML = "";
+
+                        const placeholderOption = document.createElement("option");
+                        placeholderOption.value = "";
+                        placeholderOption.textContent = placeholder;
+                        target.appendChild(placeholderOption);
+
+                        items.forEach(item => {
+                            const option = document.createElement("option");
+                            option.value = item[valueKey];
+                            option.textContent = item.name;
+                            target.appendChild(option);
+                        });
+                    };
+
+                    const refreshSubcategories = (selectedId = 0) => {
+                        const categoryId = Number(categorySelect.value || 0);
+                        const filtered = categoryId > 0
+                            ? subcategories.filter(item => item.categoryId === categoryId)
+                            : [];
+
+                        populate(subcategorySelect, filtered, "Select Subcategory");
+
+                        if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                            subcategorySelect.value = String(selectedId);
+                        }
+                    };
+
+                    const refreshCities = (selectedId = 0) => {
+                        const provinceId = Number(provinceSelect.value || 0);
+                        const filtered = provinceId > 0
+                            ? cities.filter(item => item.provinceId === provinceId)
+                            : [];
+
+                        populate(citySelect, filtered, "Select City");
+
+                        if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                            citySelect.value = String(selectedId);
+                        }
+                    };
+
+                    categorySelect.addEventListener("change", () => refreshSubcategories());
+                    provinceSelect.addEventListener("change", () => refreshCities());
+
+                    refreshSubcategories(selectedSubcategoryId);
+                    refreshCities(selectedCityId);
+                })();
+    </script>
 }

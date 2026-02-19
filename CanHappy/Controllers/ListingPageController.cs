@@ -72,7 +72,7 @@ public class ListingPageController(ApplicationDbContext context) : Controller
 
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,ViewCount,ClickCount,DeletedInd,SampleInd,UserId,CreatedBy,ModifiedBY,CreatedDate,ModifiedDate")] Listing listing)
+    public async Task<IActionResult> Create([Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,PriceMin,PriceMax,DiscountPercent,ViewCount,ClickCount,DeletedInd,SampleInd,UserId,CreatedBy,ModifiedBY,CreatedDate,ModifiedDate")] Listing listing)
     {
         if (!ModelState.IsValid)
         {
@@ -105,7 +105,7 @@ public class ListingPageController(ApplicationDbContext context) : Controller
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,ViewCount,ClickCount,DeletedInd,SampleInd,UserId,CreatedBy,ModifiedBY,CreatedDate,ModifiedDate")] Listing listing)
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,PriceMin,PriceMax,DiscountPercent,ViewCount,ClickCount,DeletedInd,SampleInd,UserId,CreatedBy,ModifiedBY,CreatedDate,ModifiedDate")] Listing listing)
     {
         if (id != listing.ListingGUID)
         {
@@ -179,6 +179,26 @@ public class ListingPageController(ApplicationDbContext context) : Controller
         ViewData["SubcategoryId"] = new SelectList(context.Subcategories.OrderBy(subcategory => subcategory.Name), "SubcategoryId", "Name", subcategoryId);
         ViewData["ProvinceId"] = new SelectList(context.Provinces.OrderBy(province => province.Name), "ProvinceId", "Name", provinceId);
         ViewData["CityId"] = new SelectList(context.Cities.OrderBy(city => city.Name), "CityId", "Name", cityId);
+        ViewData["SubcategoryLookup"] = context.Subcategories
+            .AsNoTracking()
+            .OrderBy(subcategory => subcategory.Name)
+            .Select(subcategory => new
+            {
+                id = subcategory.SubcategoryId,
+                categoryId = subcategory.CategoryId,
+                name = subcategory.Name
+            })
+            .ToList();
+        ViewData["CityLookup"] = context.Cities
+            .AsNoTracking()
+            .OrderBy(city => city.Name)
+            .Select(city => new
+            {
+                id = city.CityId,
+                provinceId = city.ProvinceId,
+                name = city.Name
+            })
+            .ToList();
     }
 
     private bool ListingExists(Guid id)
