@@ -4,6 +4,7 @@
 	const root = document.documentElement;
 	const button = document.getElementById("theme-toggle");
 	const topCategoryLinks = Array.from(document.querySelectorAll(".top-category-link"));
+	const topCategoryDropdowns = Array.from(document.querySelectorAll(".top-category-dropdown"));
 
 	const applyTheme = (theme) => {
 		root.setAttribute("data-bs-theme", theme);
@@ -38,6 +39,34 @@
 			const targetUrl = `${link.pathname}${link.search}`;
 			localStorage.setItem(lastTopCategoryKey, targetUrl);
 			setLastTopCategory(targetUrl);
+		});
+	});
+
+	topCategoryDropdowns.forEach((dropdownElement) => {
+		let hideTimeoutId;
+
+		const openMenu = () => {
+			if (hideTimeoutId) {
+				clearTimeout(hideTimeoutId);
+				hideTimeoutId = undefined;
+			}
+			dropdownElement.classList.add("is-open");
+		};
+
+		const closeMenu = () => {
+			hideTimeoutId = setTimeout(() => {
+				dropdownElement.classList.remove("is-open");
+			}, 120);
+		};
+
+		dropdownElement.addEventListener("mouseenter", openMenu);
+		dropdownElement.addEventListener("mouseleave", closeMenu);
+		dropdownElement.addEventListener("focusin", openMenu);
+		dropdownElement.addEventListener("focusout", (event) => {
+			if (dropdownElement.contains(event.relatedTarget)) {
+				return;
+			}
+			closeMenu();
 		});
 	});
 })();
