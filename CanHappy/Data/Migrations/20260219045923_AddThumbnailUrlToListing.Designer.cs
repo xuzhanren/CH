@@ -3,6 +3,7 @@ using System;
 using CanHappy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CanHappy.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260219045923_AddThumbnailUrlToListing")]
+    partial class AddThumbnailUrlToListing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -362,18 +365,6 @@ namespace CanHappy.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<DateTime?>("DiscountBeginDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DiscountEndDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("DiscountPercent")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)")
-                        .HasDefaultValue(0.00m);
-
                     b.Property<string>("KeyWords")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -388,18 +379,6 @@ namespace CanHappy.Data.Migrations
                     b.Property<string>("PostalCode")
                         .HasMaxLength(15)
                         .HasColumnType("character varying(15)");
-
-                    b.Property<decimal?>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal?>("PriceMax")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal?>("PriceMin")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("ProvinceId")
                         .HasColumnType("integer");

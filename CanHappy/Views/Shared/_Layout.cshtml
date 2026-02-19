@@ -158,9 +158,8 @@
                                                                             {
                                                                                 var subcategoryNames = SubcategoriesFor(categoryName);
                                                                                 <li class="nav-item dropdown top-category-dropdown">
-                                                                                    <a class="nav-link top-category-link" asp-controller="Category"
-                                                                                       asp-action="Index" asp-route-name="@categoryName" title="@TooltipFor(categoryName)"
-                                                                                       role="button"
+                                                                                    <a class="nav-link top-category-link" asp-controller="Category" asp-action="Index"
+                                                                                       asp-route-name="@categoryName" title="@TooltipFor(categoryName)" role="button"
                                                                                        aria-expanded="false">@categoryName</a>
                                                                                     <ul class="dropdown-menu">
                                                                                         @if (subcategoryNames.Count == 0)
@@ -171,7 +170,11 @@
                                                                                         {
                                                                                             @foreach (var subcategoryName in subcategoryNames)
                                                                                             {
-                                                                                                <li><span class="dropdown-item-text">@subcategoryName</span></li>
+                                                                                                <li>
+                                                                                                    <a class="dropdown-item top-subcategory-link" asp-controller="ListingPage" asp-action="Index"
+                                                                                                       asp-route-categoryName="@categoryName"
+                                                                                                       asp-route-subcategoryName="@subcategoryName">@subcategoryName</a>
+                                                                                                </li>
                                                                                             }
                                                                                         }
                                                                                     </ul>

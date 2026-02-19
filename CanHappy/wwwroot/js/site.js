@@ -5,6 +5,7 @@
 	const button = document.getElementById("theme-toggle");
 	const topCategoryLinks = Array.from(document.querySelectorAll(".top-category-link"));
 	const topCategoryDropdowns = Array.from(document.querySelectorAll(".top-category-dropdown"));
+	const topSubcategoryLinks = Array.from(document.querySelectorAll(".top-subcategory-link"));
 
 	const applyTheme = (theme) => {
 		root.setAttribute("data-bs-theme", theme);
@@ -37,6 +38,20 @@
 	topCategoryLinks.forEach((link) => {
 		link.addEventListener("click", () => {
 			const targetUrl = `${link.pathname}${link.search}`;
+			localStorage.setItem(lastTopCategoryKey, targetUrl);
+			setLastTopCategory(targetUrl);
+		});
+	});
+
+	topSubcategoryLinks.forEach((subcategoryLink) => {
+		subcategoryLink.addEventListener("click", () => {
+			const dropdown = subcategoryLink.closest(".top-category-dropdown");
+			const topCategoryLink = dropdown?.querySelector(".top-category-link");
+			if (!topCategoryLink) {
+				return;
+			}
+
+			const targetUrl = `${topCategoryLink.pathname}${topCategoryLink.search}`;
 			localStorage.setItem(lastTopCategoryKey, targetUrl);
 			setLastTopCategory(targetUrl);
 		});

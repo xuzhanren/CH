@@ -28,6 +28,21 @@ public class Listing
     [StringLength(15)]
     public string? PostalCode { get; set; }
 
+    [StringLength(200)]
+    public string? ThumbnailURL { get; set; }
+
+    public decimal? Price { get; set; }
+
+    public decimal? PriceMin { get; set; }
+
+    public decimal? PriceMax { get; set; }
+
+    public decimal DiscountPercent { get; set; }
+
+    public DateTime? DiscountBeginDate { get; set; }
+
+    public DateTime? DiscountEndDate { get; set; }
+
     public int ViewCount { get; set; }
 
     public int ClickCount { get; set; }

@@ -245,6 +245,121 @@ public static class DbInitializer
         await context.SaveChangesAsync();
         await SeedCoreSubcategoriesAsync(context);
         await SeedCanadaHierarchyAsync(context);
+        await SeedOttawaSampleListingsAsync(context);
+    }
+
+    private static async Task SeedOttawaSampleListingsAsync(ApplicationDbContext context)
+    {
+        const string targetProvinceCode = "ON";
+        const string targetCityName = "Ottawa";
+        const int sampleListingsPerCombination = 2;
+        var now = DateTime.UtcNow;
+
+        var ottawaCity = await context.Cities
+            .AsNoTracking()
+            .Where(city => !city.DeletedInd && city.Name == targetCityName)
+            .Join(
+                context.Provinces.Where(province => !province.DeletedInd && province.Code == targetProvinceCode),
+                city => city.ProvinceId,
+                province => province.ProvinceId,
+                (city, _) => city)
+            .FirstOrDefaultAsync();
+
+        if (ottawaCity is null)
+        {
+            return;
+        }
+
+        var combinations = await context.Subcategories
+            .AsNoTracking()
+            .Where(subcategory => !subcategory.DeletedInd)
+            .Join(
+                context.Categories.Where(category => !category.DeletedInd),
+                subcategory => subcategory.CategoryId,
+                category => category.CategoryId,
+                (subcategory, category) => new
+                {
+                    category.CategoryId,
+                    CategoryName = category.Name,
+                    subcategory.SubcategoryId,
+                    SubcategoryName = subcategory.Name
+                })
+            .OrderBy(item => item.CategoryName)
+            .ThenBy(item => item.SubcategoryName)
+            .ToListAsync();
+
+        if (combinations.Count == 0)
+        {
+            return;
+        }
+
+        var categoryIds = combinations.Select(item => item.CategoryId).Distinct().ToHashSet();
+        var subcategoryIds = combinations.Select(item => item.SubcategoryId).Distinct().ToHashSet();
+
+        var existingSampleCounts = await context.Listings
+            .AsNoTracking()
+            .Where(listing =>
+                listing.CityId == ottawaCity.CityId &&
+                !listing.DeletedInd &&
+                listing.SampleInd &&
+                listing.CreatedBy == "system" &&
+                categoryIds.Contains(listing.CategoryId) &&
+                subcategoryIds.Contains(listing.SubcategoryId))
+            .GroupBy(listing => new { listing.CategoryId, listing.SubcategoryId })
+            .Select(group => new
+            {
+                group.Key.CategoryId,
+                group.Key.SubcategoryId,
+                Count = group.Count()
+            })
+            .ToListAsync();
+
+        var existingCountByCombination = existingSampleCounts.ToDictionary(
+            item => (item.CategoryId, item.SubcategoryId),
+            item => item.Count);
+
+        var listingsToAdd = new List<Listing>();
+
+        foreach (var combination in combinations)
+        {
+            existingCountByCombination.TryGetValue((combination.CategoryId, combination.SubcategoryId), out var existingCount);
+            var remaining = sampleListingsPerCombination - existingCount;
+
+            for (var index = 0; index < remaining; index++)
+            {
+                var sequence = existingCount + index + 1;
+                var subject = TruncateToMaxLength($"{combination.SubcategoryName} Ottawa Sample {sequence}", 50);
+                var keyWords = TruncateToMaxLength($"{combination.CategoryName}, {combination.SubcategoryName}, Ottawa", 50);
+
+                listingsToAdd.Add(new Listing
+                {
+                    ListingGUID = Guid.NewGuid(),
+                    CategoryId = combination.CategoryId,
+                    SubcategoryId = combination.SubcategoryId,
+                    Subject = subject,
+                    Description = $"Sample listing {sequence} for {combination.CategoryName} > {combination.SubcategoryName} in Ottawa.",
+                    KeyWords = keyWords,
+                    ProvinceId = ottawaCity.ProvinceId,
+                    CityId = ottawaCity.CityId,
+                    PostalCode = "K1A0A6",
+                    ViewCount = 0,
+                    ClickCount = 0,
+                    DeletedInd = false,
+                    SampleInd = true,
+                    UserId = Guid.Empty,
+                    CreatedBy = "system",
+                    CreatedDate = now
+                });
+            }
+        }
+
+        if (listingsToAdd.Count == 0)
+        {
+            return;
+        }
+
+        context.Listings.AddRange(listingsToAdd);
+        await context.SaveChangesAsync();
     }
 
     private static async Task SeedCoreSubcategoriesAsync(ApplicationDbContext context)
@@ -543,5 +658,10 @@ public static class DbInitializer
     {
         var code = new string(name.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
         return code.Length <= 50 ? code : code[..50];
+    }
+
+    private static string TruncateToMaxLength(string value, int maxLength)
+    {
+        return value.Length <= maxLength ? value : value[..maxLength];
     }
 }
