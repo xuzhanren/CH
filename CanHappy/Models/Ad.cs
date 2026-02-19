@@ -7,6 +7,14 @@ public class Ad
     [Key]
     public Guid AdGUID { get; set; } = Guid.NewGuid();
 
+    public Guid UserId { get; set; }
+
+    public int? CategoryId { get; set; }
+
+    public int? SubcategoryId { get; set; }
+
+    public int? ProvinceId { get; set; }
+
     public int CityId { get; set; }
 
     [StringLength(15)]
@@ -33,6 +41,9 @@ public class Ad
     [StringLength(20)]
     public string Status { get; set; } = "Draft";
 
+    [StringLength(15)]
+    public string? AdSize { get; set; }
+
     public bool IsFeatured { get; set; }
 
     public DateTime PublishDate { get; set; } = DateTime.UtcNow;
@@ -40,6 +51,12 @@ public class Ad
     public DateTime? ExpiryDate { get; set; }
 
     public int ViewCount { get; set; }
+
+    public int ClickCount { get; set; }
+
+    public bool PaidInd { get; set; }
+
+    public bool ActiveInd { get; set; }
 
     [StringLength(100)]
     public string? ContactName { get; set; }
@@ -63,6 +80,12 @@ public class Ad
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public DateTime? ModifiedDate { get; set; }
+
+    public Category? Category { get; set; }
+
+    public Subcategory? Subcategory { get; set; }
+
+    public Province? Province { get; set; }
 
     public City? City { get; set; }
 }

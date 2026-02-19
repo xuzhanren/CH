@@ -106,6 +106,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasMaxLength(20)
                 .HasDefaultValue("Draft");
 
+            entity.Property(e => e.AdSize)
+                .HasMaxLength(15);
+
             entity.Property(e => e.Price)
                 .HasPrecision(18, 2);
 
@@ -131,7 +134,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasIndex(e => e.CityId);
+            entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.SubcategoryId);
+            entity.HasIndex(e => e.ProvinceId);
             entity.HasIndex(e => new { e.CityId, e.DeletedInd, e.PublishDate });
+
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Subcategory)
+                .WithMany()
+                .HasForeignKey(e => e.SubcategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Province)
+                .WithMany()
+                .HasForeignKey(e => e.ProvinceId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.City)
                 .WithMany()
