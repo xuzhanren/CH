@@ -28,7 +28,7 @@ body {
 }
 
 .canhappy-logo {
-  width: 130px;
+  width: 163px;
   height: auto;
   display: block;
 }
@@ -49,7 +49,7 @@ body {
 
 @media (max-width: 575.98px) {
   .canhappy-logo {
-    width: 108px;
+    width: 135px;
   }
 }
 
@@ -64,7 +64,7 @@ body {
 }
 
 .compact-nav .canhappy-logo {
-  width: 120px;
+  width: 150px;
 }
 
 .compact-nav .nav-link {
