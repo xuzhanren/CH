@@ -24,6 +24,23 @@ public static class DbInitializer
         "Business Yellow Page"
     ];
 
+    private static readonly string[] BuyAndSellSubcategoryNames =
+    [
+        "Computers & Laptops",
+        "Cameras & Camcorders",
+        "Furniture",
+        "Arts & Music",
+        "Home Appliances",
+        "Cell Phones",
+        "Tools",
+        "Building Materials",
+        "Sports",
+        "Garden & Plants",
+        "Kids Stuff & Toys",
+        "Industrial Equipment",
+        "Other"
+    ];
+
     private static readonly ProvinceSeed[] Provinces =
     [
         new("Alberta", "AB"),
@@ -181,7 +198,56 @@ public static class DbInitializer
         }
 
         await context.SaveChangesAsync();
+        await SeedBuyAndSellSubcategoriesAsync(context);
         await SeedCanadaHierarchyAsync(context);
+    }
+
+    private static async Task SeedBuyAndSellSubcategoriesAsync(ApplicationDbContext context)
+    {
+        var buyAndSellCategory = await context.Categories
+            .FirstOrDefaultAsync(category => category.Name == "Buy & Sell" && !category.DeletedInd);
+
+        if (buyAndSellCategory is null)
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        var existingSubcategories = await context.Subcategories
+            .Where(subcategory => subcategory.CategoryId == buyAndSellCategory.CategoryId)
+            .ToDictionaryAsync(subcategory => subcategory.Name, StringComparer.OrdinalIgnoreCase);
+
+        for (var index = 0; index < BuyAndSellSubcategoryNames.Length; index++)
+        {
+            var name = BuyAndSellSubcategoryNames[index];
+
+            if (existingSubcategories.TryGetValue(name, out var subcategory))
+            {
+                subcategory.SortOrder = index + 1;
+                subcategory.Code = BuildCode(name);
+                subcategory.Description = name;
+                subcategory.DeletedInd = false;
+                subcategory.ModifiedBY = "system";
+                subcategory.ModifiedDate = now;
+            }
+            else
+            {
+                context.Subcategories.Add(new Subcategory
+                {
+                    CategoryId = buyAndSellCategory.CategoryId,
+                    Name = name,
+                    Code = BuildCode(name),
+                    Description = name,
+                    SortOrder = index + 1,
+                    DeletedInd = false,
+                    SampleInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = now
+                });
+            }
+        }
+
+        await context.SaveChangesAsync();
     }
 
     private static async Task SeedAdminRoleAssignmentAsync(ApplicationDbContext context, IServiceProvider services)
