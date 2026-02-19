@@ -9,6 +9,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Subcategory> Subcategories => Set<Subcategory>();
     public DbSet<Listing> Listings => Set<Listing>();
+    public DbSet<ListingImage> ListingImages => Set<ListingImage>();
     public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Province> Provinces => Set<Province>();
@@ -205,6 +206,34 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.City)
                 .WithMany()
                 .HasForeignKey(e => e.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ListingImage>(entity =>
+        {
+            entity.ToTable("ListingImage");
+            entity.HasKey(e => e.ListingImageGUID);
+
+            entity.Property(e => e.Title)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ThumbnailURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ImageURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID);
+
+            entity.HasOne(e => e.Listing)
+                .WithMany()
+                .HasForeignKey(e => e.ListingGUID)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
