@@ -142,9 +142,25 @@
                                     <button type="button" id="editTextModeButton"
                                             class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Type
                                         Text</button>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <label for="editFontSelect" class="form-label mb-0 text-nowrap">Font</label>
+                                        <select id="editFontSelect" class="form-select form-select-sm" style="min-width: 150px;">
+                                            <option value="Arial, sans-serif" selected>Arial</option>
+                                            <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                                            <option value="Verdana, sans-serif">Verdana</option>
+                                            <option value="Tahoma, sans-serif">Tahoma</option>
+                                            <option value="Georgia, serif">Georgia</option>
+                                            <option value="'Times New Roman', serif">Times New Roman</option>
+                                            <option value="'Courier New', monospace">Courier New</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <label for="editFontSizeInput" class="form-label mb-0 text-nowrap">Font Size</label>
+                                        <input id="editFontSizeInput" type="number" class="form-control form-control-sm" min="8" max="120" step="1" value="24" style="width: 90px;" />
+                                    </div>
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <label for="editBrushSizeInput" class="form-label mb-0 text-nowrap">Brush Size</label>
-                                            <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="2" max="60" value="12"
+                                        <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="0" max="30" value="12"
                                                    style="width: 140px;" />
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -257,6 +273,8 @@
                                         const editPenModeButton = document.getElementById("editPenModeButton");
                                         const editEraseModeButton = document.getElementById("editEraseModeButton");
                                         const editTextModeButton = document.getElementById("editTextModeButton");
+                                        const editFontSelect = document.getElementById("editFontSelect");
+                                        const editFontSizeInput = document.getElementById("editFontSizeInput");
                                         const editBrushSizeInput = document.getElementById("editBrushSizeInput");
                                         const editColorInput = document.getElementById("editColorInput");
                                         const applyEditsButton = document.getElementById("applyEditsButton");
@@ -347,7 +365,8 @@
                                         const drawStroke = (fromPoint, toPoint) => {
                                         editContext.lineCap = "round";
                                         editContext.lineJoin = "round";
-                                        editContext.lineWidth = Number(editBrushSizeInput.value || 12);
+                                        const brushSize = Number.parseFloat(editBrushSizeInput.value);
+                                        editContext.lineWidth = Number.isFinite(brushSize) ? brushSize : 12;
                                         editContext.globalCompositeOperation = activeEditTool === "erase" ? "destination-out" : "source-over";
                                         editContext.strokeStyle = editColorInput.value || "#ff0000";
                                         editContext.beginPath();
@@ -549,9 +568,12 @@
                                         }
 
                                         const point = getCanvasPoint(event);
+                                        const fontSize = Number.parseInt(editFontSizeInput.value, 10);
+                                        const resolvedFontSize = Number.isFinite(fontSize) ? Math.max(8, fontSize) : 24;
+                                        const selectedFont = editFontSelect.value || "Arial, sans-serif";
                                         editContext.globalCompositeOperation = "source-over";
                                         editContext.fillStyle = editColorInput.value || "#ff0000";
-                                        editContext.font = `${Math.max(14, Number(editBrushSizeInput.value || 12) * 2)}px sans-serif`;
+                                        editContext.font = `${resolvedFontSize}px ${selectedFont}`;
                                         editContext.fillText(textValue, point.x, point.y);
                                         registerNewEdit();
                                         return;
