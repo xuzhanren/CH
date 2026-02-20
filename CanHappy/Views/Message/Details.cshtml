@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <div class="border rounded p-3 bg-light">
+        <div class="border rounded p-3 bg-body-tertiary text-body">
             @Model.Body
         </div>
     </div>
@@ -87,18 +87,18 @@
     @if (Model.IsInboxMessage)
     {
         <script>
-                    (() => {
-                        const replyModal = document.getElementById("replyMessageModal");
-                        const replyBody = document.getElementById("replyBody");
-                        if (!replyModal || !replyBody) {
-                            return;
-                        }
+                            (() => {
+                                const replyModal = document.getElementById("replyMessageModal");
+                                const replyBody = document.getElementById("replyBody");
+                                if (!replyModal || !replyBody) {
+                                    return;
+                                }
 
-                        replyModal.addEventListener("shown.bs.modal", () => {
-                            replyBody.focus();
-                            replyBody.setSelectionRange(0, 0);
-                        });
-                    })();
+                                replyModal.addEventListener("shown.bs.modal", () => {
+                                    replyBody.focus();
+                                    replyBody.setSelectionRange(0, 0);
+                                });
+                            })();
         </script>
     }
 }

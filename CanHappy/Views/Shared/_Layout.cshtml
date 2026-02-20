@@ -158,8 +158,8 @@
                                                                             {
                                                                                 var subcategoryNames = SubcategoriesFor(categoryName);
                                                                                 <li class="nav-item dropdown top-category-dropdown">
-                                                                                    <a class="nav-link top-category-link" asp-controller="Category" asp-action="Index"
-                                                                                       asp-route-name="@categoryName" title="@TooltipFor(categoryName)" role="button"
+                                                                                    <a class="nav-link top-category-link" asp-controller="ListingPage" asp-action="Index"
+                                                                                       asp-route-categoryName="@categoryName" title="@TooltipFor(categoryName)" role="button"
                                                                                        aria-expanded="false">@categoryName</a>
                                                                                     <ul class="dropdown-menu">
                                                                                         @if (subcategoryNames.Count == 0)

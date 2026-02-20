@@ -15,25 +15,29 @@
 }
 else
 {
-    <div class="list-group">
+    <div class="d-flex flex-column align-items-start gap-2 w-100">
         @foreach (var message in Model)
         {
-            <a asp-action="Details" asp-route-id="@message.UserMessageGUID" class="list-group-item list-group-item-action">
-                <div class="d-flex w-100 justify-content-between align-items-start">
-                    <div>
-                        <h5 class="mb-1">@message.Subject</h5>
-                        <p class="mb-1 text-muted">@message.BodyPreview</p>
-                        <small>
-                            From: <strong>@message.CounterpartyName</strong> |
-                            Listing: <a asp-controller="ListingPage" asp-action="Details" asp-route-id="@message.ListingGUID">@message.ListingSubject</a>
-                        </small>
-                    </div>
-                    <div class="text-end">
-                        @if (!message.IsRead)
-                        {
-                            <span class="badge bg-primary mb-1">New</span>
-                        }
-                        <div><small>@message.CreatedDate.ToLocalTime()</small></div>
+            <a asp-action="Details" asp-route-id="@message.UserMessageGUID"
+                   class="card shadow-sm text-decoration-none text-body w-100 p-1">
+                <div class="card-body">
+                    <div class="row g-2 align-items-start">
+                        <div class="col-12 col-md-10">
+                            <h5 class="mb-1">@message.Subject</h5>
+                            <p class="mb-1 text-muted">@message.BodyPreview</p>
+                            <small>
+                                From: <strong>@message.CounterpartyName</strong> |
+                                Listing: <a asp-controller="ListingPage" asp-action="Details"
+                                            asp-route-id="@message.ListingGUID">@message.ListingSubject</a>
+                            </small>
+                        </div>
+                        <div class="col-12 col-md-2 text-md-end">
+                            @if (!message.IsRead)
+                            {
+                                <span class="badge bg-primary mb-1">New</span>
+                            }
+                            <div><small>@message.CreatedDate.ToLocalTime()</small></div>
+                        </div>
                     </div>
                 </div>
             </a>
