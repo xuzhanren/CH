@@ -5,7 +5,13 @@
     ViewData["Title"] = "Listings";
     var currentUserIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var isCurrentUserGuid = Guid.TryParse(currentUserIdText, out var currentUserId);
-    var currentReturnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var currentReturnUrl = Context.Request.Path.ToString();
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var loginPageUrl = Url.Page("/Account/Login", values: new { area = "Identity" }) ?? "/Identity/Account/Login";
+    var focusListingId = ViewData["FocusListingId"] is Guid value ? value : (Guid?)null;
+    var focusListingKey = focusListingId?.ToString("N");
+    var currentCategoryName = ViewData["CategoryName"]?.ToString();
+    var currentSubcategoryName = ViewData["SubcategoryName"]?.ToString();
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -33,7 +39,10 @@ else
         @foreach (var item in Model)
         {
             <div class="col-12">
-                <div class="card shadow-sm">
+                @{
+                    var listingCardId = $"listing-card-{item.ListingGUID:N}";
+                }
+                <div id="@listingCardId" class="card shadow-sm">
                     <div class="card-body">
                         @if (!string.IsNullOrWhiteSpace(item.ThumbnailURL))
                         {
@@ -57,61 +66,184 @@ else
                     </div>
                     <div class="card-footer bg-transparent">
                         @{
-                            var canSendMessage = User.Identity?.IsAuthenticated == true
-                                && isCurrentUserGuid
-                                && item.UserId != Guid.Empty
-                                && currentUserId != item.UserId;
+                            var canManageListing = User.IsInRole("Admin")
+                            || User.IsInRole("Clerk")
+                            || (isCurrentUserGuid
+                            && item.UserId != Guid.Empty
+                            && currentUserId == item.UserId);
+                            var isOwnerListing = isCurrentUserGuid
+                            && item.UserId != Guid.Empty
+                            && currentUserId == item.UserId;
                             var messageModalId = $"sendMessageModal_{item.ListingGUID:N}";
+                            var messageListingKey = item.ListingGUID.ToString("N");
+                            var ownListingNoticeId = $"ownListingNotice_{item.ListingGUID:N}";
                             var defaultMessageSubject = $"Message about: {item.Subject}";
                             var actionLinkClass = "btn btn-link p-0 fs-5 align-baseline";
                         }
-                        @if (canSendMessage)
-                        {
-                            <a href="#" class="@actionLinkClass"
-                               data-bs-toggle="modal" data-bs-target="#@messageModalId">
-                                Send message to seller
-                            </a>
-                            <span> | </span>
-                        }
-                        <a asp-action="Edit" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Edit</a> |
-                        <a asp-action="Details" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Delete</a>
+                        <a href="#" class="@actionLinkClass send-message-link" data-message-modal-id="@messageModalId"
+                               data-listing-guid="@messageListingKey" data-is-owner="@isOwnerListing.ToString().ToLowerInvariant()"
+                               data-notice-id="@ownListingNoticeId">
+                            Message seller
+                        </a>
+                        <span id="@ownListingNoticeId" class="small text-muted ms-2 d-none">You cannot message your own
+                            listing.</span>
+                            @if (canManageListing)
+                            {
+                                <span> | </span>
+                                <a asp-action="Edit" asp-route-id="@item.ListingGUID" asp-route-categoryName="@currentCategoryName"
+                                   asp-route-subcategoryName="@currentSubcategoryName" class="@actionLinkClass">Edit</a>
+                                <span> | </span>
+                                <a asp-action="Details" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Details</a>
+                                <span> | </span>
+                                <a asp-action="Delete" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Delete</a>
+                            }
+                        </div>
                     </div>
-                </div>
 
-                @if (canSendMessage)
-                {
                     <div class="modal fade" id="@messageModalId" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Send message to seller</h5>
+                                    <h5 class="modal-title">Message seller</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <form method="post" action="@Url.Action("SendToSeller", "MessagePage", new { listingId = item.ListingGUID })">
+                                <form method="post"
+                                      action="@Url.Action("SendToSeller", "MessagePage", new { listingId = item.ListingGUID })">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="returnUrl" value="@currentReturnUrl" />
                                     <div class="modal-body">
                                         <div class="mb-3">
                                             <label for="subject_@item.ListingGUID" class="form-label">Subject</label>
-                                            <input type="text" id="subject_@item.ListingGUID" name="subject" class="form-control" maxlength="120"
-                                                   value="@defaultMessageSubject" />
+                                            <input type="text" id="subject_@item.ListingGUID" name="subject" class="form-control"
+                                                   maxlength="120" value="@defaultMessageSubject" />
                                         </div>
                                         <div class="mb-0">
                                             <label for="body_@item.ListingGUID" class="form-label">Message</label>
-                                            <textarea id="body_@item.ListingGUID" name="body" class="form-control" rows="5" maxlength="2000" required></textarea>
+                                            <textarea id="body_@item.ListingGUID" name="body" class="form-control" rows="5"
+                                                      maxlength="2000" required></textarea>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-outline-secondary"
+                                                data-bs-dismiss="modal">Cancel</button>
                                         <button type="submit" class="btn btn-primary">Send</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
+                </div>
+            }
+        </div>
+    }
+
+    @section Scripts {
+        <script>
+            (() => {
+                const isAuthenticated = @isAuthenticated.ToString().ToLowerInvariant();
+                const loginUrl = "@loginPageUrl";
+                const focusListingKey = "@focusListingKey";
+
+                const scrollToFocusedListing = (listingKey) => {
+                    if (!listingKey) {
+                        return;
+                    }
+
+                    const card = document.getElementById(`listing-card-${listingKey}`);
+                    if (!card) {
+                        return;
+                    }
+
+                    card.scrollIntoView({ behavior: "smooth", block: "center" });
+                };
+                const isOwnerListing = (listingGuid) => {
+                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
+                    if (!link) {
+                        return false;
+                    }
+
+                    return link.getAttribute("data-is-owner") === "true";
+                };
+
+                const showOwnListingNotice = (listingGuid) => {
+                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
+                    if (!link) {
+                        return;
+                    }
+
+                    const noticeId = link.getAttribute("data-notice-id");
+                    if (!noticeId) {
+                        return;
+                    }
+
+                    const notice = document.getElementById(noticeId);
+                    if (!notice) {
+                        return;
+                    }
+
+                    notice.classList.remove("d-none");
+                };
+
+                const openMessageModal = (listingGuid) => {
+                    if (!listingGuid) {
+                        return;
+                    }
+
+                    if (isOwnerListing(listingGuid)) {
+                        showOwnListingNotice(listingGuid);
+                        return;
+                    }
+
+                    const modalElement = document.getElementById(`sendMessageModal_${listingGuid}`);
+                    if (!modalElement) {
+                        return;
+                    }
+
+                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                };
+
+                document.querySelectorAll(".send-message-link").forEach((link) => {
+                    link.addEventListener("click", (event) => {
+                        event.preventDefault();
+
+                        const listingGuid = link.getAttribute("data-listing-guid");
+                        if (!listingGuid) {
+                            return;
+                        }
+
+                        if (isAuthenticated) {
+                            openMessageModal(listingGuid);
+                            return;
+                        }
+
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set("openMessageFor", listingGuid);
+                        const returnUrl = `${currentUrl.pathname}${currentUrl.search}`;
+                        const separator = loginUrl.includes("?") ? "&" : "?";
+                        window.location.href = `${loginUrl}${separator}returnUrl=${encodeURIComponent(returnUrl)}`;
+                    });
+                });
+
+                if (isAuthenticated) {
+                    const pageUrl = new URL(window.location.href);
+                    const listingToOpen = pageUrl.searchParams.get("openMessageFor");
+                    if (listingToOpen) {
+                        openMessageModal(listingToOpen);
+                        pageUrl.searchParams.delete("openMessageFor");
+                        const cleanQuery = pageUrl.searchParams.toString();
+                        const cleanUrl = `${pageUrl.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${pageUrl.hash}`;
+                        window.history.replaceState({}, "", cleanUrl);
+                    }
                 }
-            </div>
-        }
-    </div>
-}
+
+                if (focusListingKey) {
+                    scrollToFocusedListing(focusListingKey);
+                }
+
+                if (window.location.hash && window.location.hash.startsWith("#listing-card-")) {
+                    const listingFromHash = window.location.hash.substring("#listing-card-".length);
+                    scrollToFocusedListing(listingFromHash);
+                }
+            })();
+        </script>
+    }

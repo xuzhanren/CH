@@ -11,7 +11,7 @@ namespace CanHappy.Controllers;
 public class ListingPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
 {
     [HttpGet("")]
-    public async Task<IActionResult> Index(string? categoryName, string? subcategoryName)
+    public async Task<IActionResult> Index(string? categoryName, string? subcategoryName, Guid? focusListingId)
     {
         var query = context.Listings
             .Include(listing => listing.Category)
@@ -32,6 +32,11 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
         {
             query = query.Where(listing => listing.Subcategory != null && listing.Subcategory.Name == subcategoryName);
             ViewData["SubcategoryName"] = subcategoryName;
+        }
+
+        if (focusListingId.HasValue)
+        {
+            ViewData["FocusListingId"] = focusListingId.Value;
         }
 
         var listings = await query
@@ -101,18 +106,28 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
     }
 
     [HttpGet("Edit/{id:guid}")]
-    public async Task<IActionResult> Edit(Guid? id)
+    public async Task<IActionResult> Edit(Guid? id, string? categoryName, string? subcategoryName)
     {
         if (id is null)
         {
             return NotFound();
         }
 
-        var listing = await context.Listings.FindAsync(id);
+        var listing = await context.Listings
+            .Include(item => item.Category)
+            .Include(item => item.Subcategory)
+            .FirstOrDefaultAsync(item => item.ListingGUID == id);
         if (listing is null)
         {
             return NotFound();
         }
+
+        ViewData["CategoryName"] = !string.IsNullOrWhiteSpace(categoryName)
+            ? categoryName
+            : listing.Category?.Name;
+        ViewData["SubcategoryName"] = !string.IsNullOrWhiteSpace(subcategoryName)
+            ? subcategoryName
+            : listing.Subcategory?.Name;
 
         PopulateSelectLists(listing.CategoryId, listing.SubcategoryId, listing.ProvinceId, listing.CityId);
         return View("~/Views/Listing/Edit.cshtml", listing);
@@ -120,7 +135,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? categoryName, string? subcategoryName)
     {
         if (id != listing.ListingGUID)
         {
@@ -129,6 +144,8 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
         if (!ModelState.IsValid)
         {
+            ViewData["CategoryName"] = categoryName;
+            ViewData["SubcategoryName"] = subcategoryName;
             PopulateSelectLists(listing.CategoryId, listing.SubcategoryId, listing.ProvinceId, listing.CityId);
             return View("~/Views/Listing/Edit.cshtml", listing);
         }
@@ -171,7 +188,22 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             throw;
         }
 
-        return RedirectToAction(nameof(Index));
+        var resolvedCategoryName = await context.Categories
+            .Where(category => category.CategoryId == existingListing.CategoryId)
+            .Select(category => category.Name)
+            .FirstOrDefaultAsync();
+
+        var resolvedSubcategoryName = await context.Subcategories
+            .Where(subcategory => subcategory.SubcategoryId == existingListing.SubcategoryId)
+            .Select(subcategory => subcategory.Name)
+            .FirstOrDefaultAsync();
+
+        return RedirectToAction(nameof(Index), new
+        {
+            categoryName = resolvedCategoryName,
+            subcategoryName = resolvedSubcategoryName,
+            focusListingId = existingListing.ListingGUID
+        });
     }
 
     [HttpGet("Delete/{id:guid}")]

@@ -6,6 +6,10 @@
     var subcategoryLookup = ViewData["SubcategoryLookup"];
     var cityLookup = ViewData["CityLookup"];
     var hasThumbnail = !string.IsNullOrWhiteSpace(Model?.ThumbnailURL);
+    var categoryName = ViewData["CategoryName"]?.ToString();
+    var subcategoryName = ViewData["SubcategoryName"]?.ToString();
+    var listingGuid = Model?.ListingGUID ?? Guid.Empty;
+    var listingAnchor = $"listing-card-{listingGuid:N}";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
@@ -105,10 +109,14 @@
                     <input type="hidden" asp-for="ModifiedDate" />
                     <input type="hidden" asp-for="ThumbnailURL" />
                     <input type="hidden" id="CroppedThumbnailData" name="croppedThumbnailData" />
+                    <input type="hidden" name="categoryName" value="@categoryName" />
+                    <input type="hidden" name="subcategoryName" value="@subcategoryName" />
 
                     <div class="d-flex gap-2">
                         <input type="submit" value="Save" class="btn btn-primary" />
-                        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                        <a asp-action="Index" asp-route-categoryName="@categoryName"
+                           asp-route-subcategoryName="@subcategoryName" asp-fragment="@listingAnchor"
+                           class="btn btn-outline-secondary">Back to List</a>
                     </div>
                 </form>
             </div>

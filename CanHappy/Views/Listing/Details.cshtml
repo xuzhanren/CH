@@ -52,7 +52,7 @@ string.Empty;
     <div class="card-footer bg-transparent">
         @if (canSendMessage)
         {
-            <a href="#" data-bs-toggle="modal" data-bs-target="#sendMessageModal">Send message to seller</a>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#sendMessageModal">Message seller</a>
             <span> | </span>
         }
         <a asp-action="Edit" asp-route-id="@Model?.ListingGUID">Edit</a> |
@@ -66,7 +66,7 @@ string.Empty;
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Send message to seller</h5>
+                    <h5 class="modal-title">Message seller</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="post" action="@sendMessageAction">
