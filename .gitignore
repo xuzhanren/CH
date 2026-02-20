@@ -4,7 +4,8 @@ obj/
 **/obj/
 out/
 **/out/
-
+wwwroot/ListImages
+wwwroot/SampleImages
 # User-specific files
 *.user
 *.suo
