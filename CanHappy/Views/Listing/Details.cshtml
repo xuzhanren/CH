@@ -1,10 +1,31 @@
 @model CanHappy.Models.Listing
+@using System.Security.Claims
 
 @{
     ViewData["Title"] = "Details";
+    var currentUserIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var isCurrentUserGuid = Guid.TryParse(currentUserIdText, out var currentUserId);
+    var canSendMessage = User.Identity?.IsAuthenticated == true
+        && isCurrentUserGuid
+        && Model.UserId != Guid.Empty
+        && currentUserId != Model.UserId;
+    var sendMessageAction = Url.Action("SendToSeller", "MessagePage", new { listingId = Model.ListingGUID }) ??
+string.Empty;
+    var defaultMessageSubject = $"Message about: {Model.Subject}";
+    var currentReturnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
 }
 
 <h1>Details</h1>
+
+@if (TempData["MessageSuccess"] is string messageSuccess && !string.IsNullOrWhiteSpace(messageSuccess))
+{
+    <div class="alert alert-success">@messageSuccess</div>
+}
+
+@if (TempData["MessageError"] is string messageError && !string.IsNullOrWhiteSpace(messageError))
+{
+    <div class="alert alert-danger">@messageError</div>
+}
 
 <div class="card shadow-sm">
     <div class="card-body">
@@ -29,7 +50,46 @@
         </div>
     </div>
     <div class="card-footer bg-transparent">
+        @if (canSendMessage)
+        {
+            <a href="#" data-bs-toggle="modal" data-bs-target="#sendMessageModal">Send message to seller</a>
+            <span> | </span>
+        }
         <a asp-action="Edit" asp-route-id="@Model?.ListingGUID">Edit</a> |
         <a asp-action="Index">Back to List</a>
     </div>
 </div>
+
+@if (canSendMessage)
+{
+    <div class="modal fade" id="sendMessageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Send message to seller</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="@sendMessageAction">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@currentReturnUrl" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="messageSubject" class="form-label">Subject</label>
+                            <input type="text" id="messageSubject" name="subject" class="form-control" maxlength="120"
+                                   value="@defaultMessageSubject" />
+                        </div>
+                        <div class="mb-0">
+                            <label for="messageBody" class="form-label">Message</label>
+                            <textarea id="messageBody" name="body" class="form-control" rows="5" maxlength="2000"
+                                      required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

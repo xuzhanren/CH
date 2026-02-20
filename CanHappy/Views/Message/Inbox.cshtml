@@ -1,0 +1,42 @@
+@model IEnumerable<CanHappy.Models.Messaging.MessageListItemViewModel>
+
+@{
+    ViewData["Title"] = "Inbox";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Inbox</h1>
+    <a asp-action="Sent" class="btn btn-outline-secondary">Sent</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No messages in inbox.</div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var message in Model)
+        {
+            <a asp-action="Details" asp-route-id="@message.UserMessageGUID" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">@message.Subject</h5>
+                        <p class="mb-1 text-muted">@message.BodyPreview</p>
+                        <small>
+                            From: <strong>@message.CounterpartyName</strong> |
+                            Listing: <a asp-controller="ListingPage" asp-action="Details" asp-route-id="@message.ListingGUID">@message.ListingSubject</a>
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        @if (!message.IsRead)
+                        {
+                            <span class="badge bg-primary mb-1">New</span>
+                        }
+                        <div><small>@message.CreatedDate.ToLocalTime()</small></div>
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+}

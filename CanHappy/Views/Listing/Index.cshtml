@@ -1,13 +1,27 @@
 @model IEnumerable<CanHappy.Models.Listing>
+@using System.Security.Claims
 
 @{
     ViewData["Title"] = "Listings";
+    var currentUserIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var isCurrentUserGuid = Guid.TryParse(currentUserIdText, out var currentUserId);
+    var currentReturnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Listings</h1>
     <a asp-action="Create" class="btn btn-primary">Create New</a>
 </div>
+
+@if (TempData["MessageSuccess"] is string messageSuccess && !string.IsNullOrWhiteSpace(messageSuccess))
+{
+    <div class="alert alert-success">@messageSuccess</div>
+}
+
+@if (TempData["MessageError"] is string messageError && !string.IsNullOrWhiteSpace(messageError))
+{
+    <div class="alert alert-danger">@messageError</div>
+}
 
 @if (!Model.Any())
 {
@@ -42,11 +56,61 @@ else
                         </div>
                     </div>
                     <div class="card-footer bg-transparent">
-                        <a asp-action="Edit" asp-route-id="@item.ListingGUID">Edit</a> |
-                        <a asp-action="Details" asp-route-id="@item.ListingGUID">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.ListingGUID">Delete</a>
+                        @{
+                            var canSendMessage = User.Identity?.IsAuthenticated == true
+                                && isCurrentUserGuid
+                                && item.UserId != Guid.Empty
+                                && currentUserId != item.UserId;
+                            var messageModalId = $"sendMessageModal_{item.ListingGUID:N}";
+                            var defaultMessageSubject = $"Message about: {item.Subject}";
+                            var actionLinkClass = "btn btn-link p-0 fs-5 align-baseline";
+                        }
+                        @if (canSendMessage)
+                        {
+                            <a href="#" class="@actionLinkClass"
+                               data-bs-toggle="modal" data-bs-target="#@messageModalId">
+                                Send message to seller
+                            </a>
+                            <span> | </span>
+                        }
+                        <a asp-action="Edit" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Delete</a>
                     </div>
                 </div>
+
+                @if (canSendMessage)
+                {
+                    <div class="modal fade" id="@messageModalId" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Send message to seller</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="post" action="@Url.Action("SendToSeller", "MessagePage", new { listingId = item.ListingGUID })">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="returnUrl" value="@currentReturnUrl" />
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="subject_@item.ListingGUID" class="form-label">Subject</label>
+                                            <input type="text" id="subject_@item.ListingGUID" name="subject" class="form-control" maxlength="120"
+                                                   value="@defaultMessageSubject" />
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="body_@item.ListingGUID" class="form-label">Message</label>
+                                            <textarea id="body_@item.ListingGUID" name="body" class="form-control" rows="5" maxlength="2000" required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Send</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         }
     </div>

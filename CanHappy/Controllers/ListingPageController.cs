@@ -3,6 +3,7 @@ using CanHappy.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace CanHappy.Controllers;
 
@@ -81,6 +82,11 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
         }
 
         listing.ListingGUID = Guid.NewGuid();
+        var currentUserIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrWhiteSpace(currentUserIdText) && Guid.TryParse(currentUserIdText, out var currentUserId))
+        {
+            listing.UserId = currentUserId;
+        }
         listing.CreatedDate = DateTime.UtcNow;
         listing.ModifiedDate = null;
 

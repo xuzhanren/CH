@@ -15,6 +15,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Province> Provinces => Set<Province>();
     public DbSet<City> Cities => Set<City>();
     public DbSet<Area> Areas => Set<Area>();
+    public DbSet<UserMessage> UserMessages => Set<UserMessage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -245,6 +246,33 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasIndex(e => e.ListingGUID);
+
+            entity.HasOne(e => e.Listing)
+                .WithMany()
+                .HasForeignKey(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<UserMessage>(entity =>
+        {
+            entity.ToTable("UserMessage");
+            entity.HasKey(e => e.UserMessageGUID);
+
+            entity.Property(e => e.Subject)
+                .HasMaxLength(120)
+                .IsRequired();
+
+            entity.Property(e => e.Body)
+                .HasMaxLength(2000)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.SenderUserId);
+            entity.HasIndex(e => e.RecipientUserId);
+            entity.HasIndex(e => e.ListingGUID);
+            entity.HasIndex(e => new { e.RecipientUserId, e.CreatedDate });
 
             entity.HasOne(e => e.Listing)
                 .WithMany()
