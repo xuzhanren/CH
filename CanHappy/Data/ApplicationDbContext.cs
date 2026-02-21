@@ -19,6 +19,30 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Area> Areas => Set<Area>();
     public DbSet<UserMessage> UserMessages => Set<UserMessage>();
 
+    public override int SaveChanges()
+    {
+        NormalizeDateTimesToUtc();
+        return base.SaveChanges();
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        NormalizeDateTimesToUtc();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        NormalizeDateTimesToUtc();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        NormalizeDateTimesToUtc();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -493,6 +517,24 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 else if (property.ClrType == typeof(DateTime?))
                 {
                     property.SetValueConverter(nullableDateTimeConverter);
+                }
+            }
+        }
+    }
+
+    private void NormalizeDateTimesToUtc()
+    {
+        foreach (var entry in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified))
+        {
+            foreach (var property in entry.Properties)
+            {
+                if (property.Metadata.ClrType == typeof(DateTime) && property.CurrentValue is DateTime dateTimeValue)
+                {
+                    property.CurrentValue = CanHappy.Common.EasternTime.ToUtc(dateTimeValue);
+                }
+                else if (property.Metadata.ClrType == typeof(DateTime?) && property.CurrentValue is DateTime nullableDateTimeValue)
+                {
+                    property.CurrentValue = CanHappy.Common.EasternTime.ToUtc(nullableDateTimeValue);
                 }
             }
         }
