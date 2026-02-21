@@ -1,0 +1,932 @@
+@model CanHappy.Models.BuySellDetailIndexPageViewModel
+
+@{
+    ViewData["Title"] = "Buy/Sell Details";
+    var listingGuid = Model.ListingGUIDFilter;
+    var photoCount = Model.ListingImages.Count;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Buy/Sell Details</h1>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</div>
+
+@if (TempData["MessageSuccess"] is string messageSuccess && !string.IsNullOrWhiteSpace(messageSuccess))
+{
+    <div class="alert alert-success">@messageSuccess</div>
+}
+
+@if (TempData["MessageError"] is string messageError && !string.IsNullOrWhiteSpace(messageError))
+{
+    <div class="alert alert-danger">@messageError</div>
+}
+
+@if (listingGuid.HasValue)
+{
+    <div class="alert alert-info">Showing Buy/Sell details for listing: @listingGuid.Value</div>
+}
+
+@if (Model.ListingCard is not null)
+{
+    <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>Listing</strong>
+            @if (Model.CanManageFocusedListing && Model.ListingImages.Count < 30)
+            {
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addPhotoButton">Add Photo</button>
+            }
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Photos (@photoCount/30)</strong>
+                </div>
+                @if (!Model.ListingImages.Any())
+                {
+                    <div class="text-muted">No photos found for this listing.</div>
+                }
+                else
+                {
+                    <div class="row g-2">
+                        @foreach (var image in Model.ListingImages.Select((value, index) => new { value, index }))
+                        {
+                            var previewUrl = !string.IsNullOrWhiteSpace(image.value.ImageURL) ? image.value.ImageURL :
+                            image.value.ThumbnailURL;
+                            <div class="col-md-3 col-sm-4 col-6">
+                                <div class="card h-100">
+                                    <button type="button" class="btn p-0 border-0 text-start view-listing-photo"
+                                            data-index="@image.index" data-image-url="@previewUrl"
+                                            data-image-title="@image.value.Title">
+                                        <img src="@previewUrl" class="card-img-top" alt="@image.value.Title"
+                                             style="height: 150px; object-fit: cover;" />
+                                    </button>
+                                    <div class="card-body p-2">
+                                        <div class="small text-truncate">@(string.IsNullOrWhiteSpace(image.value.Title) ? "Photo" :
+                                                                            image.value.Title)</div>
+                                        <div class="small text-muted">Sort: @image.value.SorOrder</div>
+                                        @if (Model.CanManageFocusedListing)
+                                        {
+                                            <div class="d-flex gap-1 mt-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary edit-photo-button"
+                                                        data-listing-image-guid="@image.value.ListingImageGUID" data-title="@image.value.Title"
+                                                        data-sort-order="@image.value.SorOrder" data-image-url="@previewUrl">
+                                                    Edit Photo
+                                                </button>
+                                                <form method="post"
+                                                      asp-action="DeletePhoto"
+                                                      asp-route-listingGuid="@Model.ListingCard.ListingGUID"
+                                                      asp-route-listingImageGuid="@image.value.ListingImageGUID"
+                                                      onsubmit="return confirm('Delete this photo?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-md-6"><strong>Subject:</strong> @Model.ListingCard.Subject</div>
+                    <div class="col-md-6"><strong>Description:</strong> @Model.ListingCard.Description</div>
+                    <div class="col-md-4"><strong>CategoryId:</strong> @Model.ListingCard.CategoryId</div>
+                    <div class="col-md-4"><strong>SubcategoryId:</strong> @Model.ListingCard.SubcategoryId</div>
+                    <div class="col-md-4"><strong>ProvinceId:</strong> @Model.ListingCard.ProvinceId</div>
+                    <div class="col-md-4"><strong>CityId:</strong> @Model.ListingCard.CityId</div>
+                    <div class="col-md-4"><strong>Price:</strong> @Model.ListingCard.Price</div>
+                    <div class="col-md-4"><strong>Brand:</strong> @Model.ListingCard.Brand</div>
+                    <div class="col-md-4"><strong>Condition:</strong> @Model.ListingCard.Condition</div>
+                    <div class="col-md-4"><strong>ManufactureYear:</strong> @Model.ListingCard.ManufactureYear</div>
+                    <div class="col-md-4"><strong>Model:</strong> @Model.ListingCard.Model</div>
+                    <div class="col-md-4"><strong>Quantity:</strong> @Model.ListingCard.Quantity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Buy/Sell Detail</strong>
+                @if (Model.CanManageFocusedListing)
+                {
+                    @if (Model.HasExistingFocusDetail && Model.FocusDetail?.BuySellDetailGUID is Guid focusDetailId)
+                    {
+                        <span>
+                            <a asp-action="Edit" asp-route-id="@focusDetailId">Edit</a>
+                            <span> | </span>
+                            <a asp-action="Delete" asp-route-id="@focusDetailId">Delete</a>
+                        </span>
+                    }
+                    else
+                    {
+                        <a asp-action="Create" asp-route-listingGuid="@Model.ListingCard.ListingGUID">Create Detail</a>
+                    }
+                }
+            </div>
+            <div class="card-body">
+                @if (Model.FocusDetail is null)
+                {
+                    <div class="text-muted">No Buy/Sell detail found.</div>
+                }
+                else
+                {
+                    <div class="row g-2">
+                        <div class="col-md-6"><strong>Model:</strong> @Model.FocusDetail.BuySellModel</div>
+                        <div class="col-md-6"><strong>Material:</strong> @Model.FocusDetail.Material</div>
+                        <div class="col-md-4"><strong>NegotiablePriceInd:</strong> @Model.FocusDetail.NegotiablePriceInd</div>
+                        <div class="col-md-4"><strong>DeliveryAvailableInd:</strong> @Model.FocusDetail.DeliveryAvailableInd</div>
+                        <div class="col-md-4"><strong>PickupAvailableInd:</strong> @Model.FocusDetail.PickupAvailableInd</div>
+                        <div class="col-md-6"><strong>WarrantyInfo:</strong> @Model.FocusDetail.WarrantyInfo</div>
+                        <div class="col-md-6"><strong>AdditionalDetails:</strong> @Model.FocusDetail.AdditionalDetails</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (Model.ListingImages.Any())
+        {
+            <div class="modal fade" id="listingPhotoViewerModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Listing Photo Viewer</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div id="viewerImageTitle" class="fw-semibold"></div>
+                                <div class="btn-group">
+                                    <button type="button" id="viewerPrev" class="btn btn-outline-secondary btn-sm">Prev</button>
+                                    <button type="button" id="viewerZoomOut" class="btn btn-outline-secondary btn-sm">-</button>
+                                    <button type="button" id="viewerZoomReset"
+                                            class="btn btn-outline-secondary btn-sm">100%</button>
+                                    <button type="button" id="viewerZoomIn" class="btn btn-outline-secondary btn-sm">+</button>
+                                    <button type="button" id="viewerNext" class="btn btn-outline-secondary btn-sm">Next</button>
+                                </div>
+                            </div>
+                            <div class="border rounded bg-dark d-flex justify-content-center align-items-center overflow-auto"
+                                 style="min-height: 520px;">
+                                <img id="viewerMainImage" alt="Listing photo"
+                                      style="max-width: 100%; max-height: 500px; transform-origin: center center; transition: transform .15s ease; cursor: grab;" />
+                            </div>
+                            <div class="mt-3 d-flex gap-2 overflow-auto pb-1" id="viewerThumbnailStrip">
+                                @foreach (var image in Model.ListingImages.Select((value, index) => new { value, index }))
+                                {
+                                    var thumbUrl = !string.IsNullOrWhiteSpace(image.value.ThumbnailURL) ? image.value.ThumbnailURL :
+                                    image.value.ImageURL;
+                                    var fullUrl = !string.IsNullOrWhiteSpace(image.value.ImageURL) ? image.value.ImageURL :
+                                    image.value.ThumbnailURL;
+                                    <button type="button" class="btn p-0 border viewer-thumb" data-index="@image.index"
+                                            data-image-url="@fullUrl" data-image-title="@image.value.Title" style="min-width: 90px;">
+                                        <img src="@thumbUrl" alt="Thumbnail @image.index"
+                                             style="width: 90px; height: 70px; object-fit: cover;" />
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                (() => {
+                    const viewerModalElement = document.getElementById("listingPhotoViewerModal");
+                    if (!viewerModalElement) {
+                        return;
+                    }
+
+                    const viewerMainImage = document.getElementById("viewerMainImage");
+                    const viewerImageTitle = document.getElementById("viewerImageTitle");
+                    const viewerPrev = document.getElementById("viewerPrev");
+                    const viewerNext = document.getElementById("viewerNext");
+                    const viewerZoomIn = document.getElementById("viewerZoomIn");
+                    const viewerZoomOut = document.getElementById("viewerZoomOut");
+                    const viewerZoomReset = document.getElementById("viewerZoomReset");
+                    const viewerThumbButtons = Array.from(document.querySelectorAll(".viewer-thumb"));
+                    const triggerButtons = Array.from(document.querySelectorAll(".view-listing-photo"));
+
+                    let zoomScale = 1;
+                    let selectedIndex = 0;
+                    let translateX = 0;
+                    let translateY = 0;
+                    let isDragging = false;
+                    let dragStartX = 0;
+                    let dragStartY = 0;
+
+                    const getViewerModal = () => {
+                        if (!window.bootstrap || !window.bootstrap.Modal) {
+                            return null;
+                        }
+
+                        return window.bootstrap.Modal.getOrCreateInstance(viewerModalElement);
+                    };
+
+                    const applyZoom = () => {
+                        viewerMainImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${zoomScale})`;
+                        viewerZoomReset.textContent = `${Math.round(zoomScale * 100)}%`;
+                    };
+
+                    const updateSelection = (index) => {
+                        if (viewerThumbButtons.length === 0) {
+                            return;
+                        }
+
+                        if (index < 0) {
+                            index = viewerThumbButtons.length - 1;
+                        } else if (index >= viewerThumbButtons.length) {
+                            index = 0;
+                        }
+
+                        const selected = viewerThumbButtons.find(button => Number.parseInt(button.dataset.index, 10) === index);
+                        if (!selected) {
+                            return;
+                        }
+
+                        selectedIndex = index;
+                        viewerMainImage.src = selected.dataset.imageUrl || "";
+                        viewerImageTitle.textContent = selected.dataset.imageTitle || "Photo";
+                        zoomScale = 1;
+                        translateX = 0;
+                        translateY = 0;
+                        applyZoom();
+
+                        viewerThumbButtons.forEach(button => {
+                            const isActive = Number.parseInt(button.dataset.index, 10) === selectedIndex;
+                            button.classList.toggle("border-primary", isActive);
+                            button.classList.toggle("border-2", isActive);
+                        });
+
+                        selected.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                    };
+
+                    viewerThumbButtons.forEach(button => {
+                        button.addEventListener("click", () => {
+                            const index = Number.parseInt(button.dataset.index, 10);
+                            if (Number.isFinite(index)) {
+                                updateSelection(index);
+                            }
+                        });
+                    });
+
+                    triggerButtons.forEach(button => {
+                        button.addEventListener("click", () => {
+                            const index = Number.parseInt(button.dataset.index, 10);
+                            if (Number.isFinite(index)) {
+                                updateSelection(index);
+                            }
+
+                            const viewerModal = getViewerModal();
+                            viewerModal?.show();
+                        });
+                    });
+
+                    viewerZoomIn.addEventListener("click", () => {
+                        zoomScale = Math.min(4, zoomScale + 0.2);
+                        applyZoom();
+                    });
+
+                    viewerZoomOut.addEventListener("click", () => {
+                        zoomScale = Math.max(0.2, zoomScale - 0.2);
+                        applyZoom();
+                    });
+
+                    viewerZoomReset.addEventListener("click", () => {
+                        zoomScale = 1;
+                        translateX = 0;
+                        translateY = 0;
+                        applyZoom();
+                    });
+
+                    viewerPrev.addEventListener("click", () => {
+                        updateSelection(selectedIndex - 1);
+                    });
+
+                    viewerNext.addEventListener("click", () => {
+                        updateSelection(selectedIndex + 1);
+                    });
+
+                    viewerMainImage.addEventListener("wheel", (event) => {
+                        event.preventDefault();
+                        zoomScale = event.deltaY < 0
+                            ? Math.min(4, zoomScale + 0.1)
+                            : Math.max(0.2, zoomScale - 0.1);
+                        applyZoom();
+                    }, { passive: false });
+
+                    viewerMainImage.addEventListener("pointerdown", (event) => {
+                        isDragging = true;
+                        dragStartX = event.clientX - translateX;
+                        dragStartY = event.clientY - translateY;
+                        viewerMainImage.style.cursor = "grabbing";
+                        viewerMainImage.setPointerCapture(event.pointerId);
+                    });
+
+                    viewerMainImage.addEventListener("pointermove", (event) => {
+                        if (!isDragging) {
+                            return;
+                        }
+
+                        translateX = event.clientX - dragStartX;
+                        translateY = event.clientY - dragStartY;
+                        applyZoom();
+                    });
+
+                    const stopDragging = (event) => {
+                        if (!isDragging) {
+                            return;
+                        }
+
+                        isDragging = false;
+                        viewerMainImage.style.cursor = "grab";
+                        if (typeof event.pointerId !== "undefined") {
+                            viewerMainImage.releasePointerCapture(event.pointerId);
+                        }
+                    };
+
+                    viewerMainImage.addEventListener("pointerup", stopDragging);
+                    viewerMainImage.addEventListener("pointercancel", stopDragging);
+                    viewerMainImage.addEventListener("pointerleave", stopDragging);
+
+                    if (viewerThumbButtons.length > 0) {
+                        updateSelection(0);
+                    }
+                })();
+            </script>
+        }
+    }
+else
+    {
+        @if (!Model.Items.Any())
+        {
+            <div class="alert alert-info">No Buy/Sell details found.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered align-middle">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Description</th>
+                            <th>CategoryId</th>
+                            <th>SubcategoryId</th>
+                            <th>ProvinceId</th>
+                            <th>CityId</th>
+                            <th>Price</th>
+                            <th>Brand</th>
+                            <th>Condition</th>
+                            <th>ManufactureYear</th>
+                            <th>Listing Model</th>
+                            <th>Quantity</th>
+                            <th>Detail Model</th>
+                            <th>Material</th>
+                            <th>NegotiablePriceInd</th>
+                            <th>DeliveryAvailableInd</th>
+                            <th>PickupAvailableInd</th>
+                            <th>WarrantyInfo</th>
+                            <th>AdditionalDetails</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>@item.Subject</td>
+                                <td>@item.Description</td>
+                                <td>@item.CategoryId</td>
+                                <td>@item.SubcategoryId</td>
+                                <td>@item.ProvinceId</td>
+                                <td>@item.CityId</td>
+                                <td>@item.Price</td>
+                                <td>@item.Brand</td>
+                                <td>@item.Condition</td>
+                                <td>@item.ManufactureYear</td>
+                                <td>@item.ListingModel</td>
+                                <td>@item.Quantity</td>
+                                <td>@item.BuySellModel</td>
+                                <td>@item.Material</td>
+                                <td>@item.NegotiablePriceInd</td>
+                                <td>@item.DeliveryAvailableInd</td>
+                                <td>@item.PickupAvailableInd</td>
+                                <td>@item.WarrantyInfo</td>
+                                <td>@item.AdditionalDetails</td>
+                                <td>
+                                    @if (item.CanManage)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.BuySellDetailGUID">Edit</a>
+                                        <span> | </span>
+                                        <a asp-action="Delete" asp-route-id="@item.BuySellDetailGUID">Delete</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+
+    @if (Model.ListingCard is not null && Model.CanManageFocusedListing)
+    {
+        <form id="photoUpsertForm" method="post" asp-action="UpsertPhoto" asp-route-listingGuid="@Model.ListingCard.ListingGUID"
+              class="d-none">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="photoListingImageGuid" name="listingImageGuid" />
+            <input type="hidden" id="photoTitleInput" name="title" />
+            <input type="hidden" id="photoSortOrderInput" name="sorOrder" />
+            <input type="hidden" id="photoCroppedDataInput" name="croppedImageData" />
+        </form>
+
+        <input type="file" id="photoFileInput" class="d-none" accept="image/*" />
+
+        <div class="modal fade" id="listingPhotoCropModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header py-2 px-3">
+                        <h5 class="modal-title">Clip Listing Photo</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-2 pb-2 px-3">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label for="photoTitleEditor" class="form-label">Title</label>
+                                <input id="photoTitleEditor" type="text" class="form-control" maxlength="50" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="photoSortOrderEditor" class="form-label">Sort Order</label>
+                                <input id="photoSortOrderEditor" type="number" class="form-control" min="0" max="999" step="1"
+                                       value="0" />
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 align-items-center pb-2 mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label for="cropAspectRatioSelect" class="form-label mb-0 text-nowrap">Aspect Ratio</label>
+                                <select id="cropAspectRatioSelect" class="form-select form-select-sm" style="min-width: 100px;">
+                                    <option value="1:1" selected>1:1</option>
+                                    <option value="3:2">3:2</option>
+                                    <option value="4:3">4:3</option>
+                                    <option value="16:9">16:9</option>
+                                    <option value="9:16">9:16</option>
+                                </select>
+                            </div>
+                            <button type="button" id="editCropModeButton" class="btn btn-sm btn-primary mb-1 text-nowrap">Crop
+                                Mode</button>
+                                <button type="button" id="editPenModeButton"
+                                        class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Free Draw Pen</button>
+                                <button type="button" id="editEraseModeButton"
+                                        class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Erase</button>
+                                <button type="button" id="editTextModeButton"
+                                        class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Type Text</button>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <label for="editFontSelect" class="form-label mb-0 text-nowrap">Font</label>
+                                    <select id="editFontSelect" class="form-select form-select-sm" style="min-width: 150px;">
+                                        <option value="Arial, sans-serif" selected>Arial</option>
+                                        <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                                        <option value="Verdana, sans-serif">Verdana</option>
+                                        <option value="Tahoma, sans-serif">Tahoma</option>
+                                        <option value="Georgia, serif">Georgia</option>
+                                        <option value="'Times New Roman', serif">Times New Roman</option>
+                                        <option value="'Courier New', monospace">Courier New</option>
+                                    </select>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <label for="editFontSizeInput" class="form-label mb-0 text-nowrap">Font Size</label>
+                                    <input id="editFontSizeInput" type="number" class="form-control form-control-sm" min="8"
+                                           max="120" step="1" value="24" style="width: 90px;" />
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <label for="editBrushSizeInput" class="form-label mb-0 text-nowrap">Brush Size</label>
+                                    <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="0" max="30" value="12"
+                                           style="width: 140px;" />
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <label for="editColorInput" class="form-label mb-0 text-nowrap">Color</label>
+                                    <input id="editColorInput" type="color" class="form-control form-control-color"
+                                           value="#ff0000" />
+                                </div>
+                                <button type="button" id="applyEditsButton"
+                                        class="btn btn-sm btn-outline-primary mb-1 text-nowrap">Apply Edits</button>
+                                <button type="button" id="undoEditButton"
+                                        class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Undo</button>
+                                <button type="button" id="redoEditButton"
+                                        class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Redo</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary mb-1 text-nowrap"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="saveCroppedImageButton"
+                                        class="btn btn-sm btn-primary mb-1 text-nowrap">Save Clipped Image</button>
+                            </div>
+                            <div class="position-relative border rounded overflow-hidden bg-light" style="min-height: 420px;">
+                                <img id="cropperImage" alt="Image to crop" class="img-fluid w-100" />
+                                <canvas id="editCanvas" class="w-100 d-none"
+                                        style="touch-action: none; cursor: crosshair;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @section Scripts {
+            <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+            <script>
+                (() => {
+                const addPhotoButton = document.getElementById("addPhotoButton");
+                const photoFileInput = document.getElementById("photoFileInput");
+                const photoUpsertForm = document.getElementById("photoUpsertForm");
+                if (!addPhotoButton || !photoFileInput || !photoUpsertForm) {
+                return;
+                }
+
+                const photoListingImageGuidInput = document.getElementById("photoListingImageGuid");
+                const photoTitleInput = document.getElementById("photoTitleInput");
+                const photoSortOrderInput = document.getElementById("photoSortOrderInput");
+                const photoCroppedDataInput = document.getElementById("photoCroppedDataInput");
+
+                const photoTitleEditor = document.getElementById("photoTitleEditor");
+                const photoSortOrderEditor = document.getElementById("photoSortOrderEditor");
+
+                const cropModalElement = document.getElementById("listingPhotoCropModal");
+                const cropperImage = document.getElementById("cropperImage");
+                const editCanvas = document.getElementById("editCanvas");
+                const editContext = editCanvas.getContext("2d");
+                const cropAspectRatioSelect = document.getElementById("cropAspectRatioSelect");
+                const editCropModeButton = document.getElementById("editCropModeButton");
+                const editPenModeButton = document.getElementById("editPenModeButton");
+                const editEraseModeButton = document.getElementById("editEraseModeButton");
+                const editTextModeButton = document.getElementById("editTextModeButton");
+                const editFontSelect = document.getElementById("editFontSelect");
+                const editFontSizeInput = document.getElementById("editFontSizeInput");
+                const editBrushSizeInput = document.getElementById("editBrushSizeInput");
+                const editColorInput = document.getElementById("editColorInput");
+                const applyEditsButton = document.getElementById("applyEditsButton");
+                const undoEditButton = document.getElementById("undoEditButton");
+                const redoEditButton = document.getElementById("redoEditButton");
+                const saveCroppedImageButton = document.getElementById("saveCroppedImageButton");
+                const cropModal = new bootstrap.Modal(cropModalElement);
+
+                let sourceImageDataUrl = "";
+                let workingImageDataUrl = "";
+                let cropper = null;
+                let currentAspectRatio = 1;
+                let activeEditTool = "crop";
+                let isDrawing = false;
+                let lastPoint = null;
+                let editHistory = [];
+                let redoHistory = [];
+
+                const getAspectRatio = (value) => {
+                const parts = (value || "").split(":");
+                if (parts.length !== 2) {
+                return 1;
+                }
+
+                const width = Number(parts[0]);
+                const height = Number(parts[1]);
+                if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+                return 1;
+                }
+
+                return width / height;
+                };
+
+                const getCanvasSize = (aspectRatio) => {
+                if (Math.abs(aspectRatio - (16 / 9)) < 0.001) {
+                return { width: 1280, height: 720 };
+                }
+
+                const base = 800;
+                if (aspectRatio >= 1) {
+                return {
+                width: base,
+                height: Math.round(base / aspectRatio)
+                };
+                }
+
+                return {
+                width: Math.round(base * aspectRatio),
+                height: base
+                };
+                };
+
+                const createCropper = () => {
+                cropper?.destroy();
+                cropper = new Cropper(cropperImage, {
+                aspectRatio: currentAspectRatio,
+                viewMode: 1,
+                autoCropArea: 1,
+                dragMode: "move"
+                });
+                };
+
+                const setToolButtonStyles = () => {
+                const entries = [
+                [editCropModeButton, "crop"],
+                [editPenModeButton, "pen"],
+                [editEraseModeButton, "erase"],
+                [editTextModeButton, "text"]
+                ];
+
+                entries.forEach(([button, mode]) => {
+                const isActive = activeEditTool === mode;
+                button.classList.toggle("btn-primary", isActive);
+                button.classList.toggle("btn-outline-secondary", !isActive);
+                });
+                };
+
+                const getCanvasPoint = (event) => {
+                const rect = editCanvas.getBoundingClientRect();
+                const scaleX = editCanvas.width / rect.width;
+                const scaleY = editCanvas.height / rect.height;
+                return {
+                x: (event.clientX - rect.left) * scaleX,
+                y: (event.clientY - rect.top) * scaleY
+                };
+                };
+
+                const drawStroke = (fromPoint, toPoint) => {
+                editContext.lineCap = "round";
+                editContext.lineJoin = "round";
+                const brushSize = Number.parseFloat(editBrushSizeInput.value);
+                editContext.lineWidth = Number.isFinite(brushSize) ? brushSize : 12;
+                editContext.globalCompositeOperation = activeEditTool === "erase" ? "destination-out" : "source-over";
+                editContext.strokeStyle = editColorInput.value || "#ff0000";
+                editContext.beginPath();
+                editContext.moveTo(fromPoint.x, fromPoint.y);
+                editContext.lineTo(toPoint.x, toPoint.y);
+                editContext.stroke();
+                editContext.globalCompositeOperation = "source-over";
+                };
+
+                const loadImageToCanvas = (imageDataUrl, onLoaded = null) => {
+                if (!imageDataUrl) {
+                return;
+                }
+
+                const image = new Image();
+                image.onload = () => {
+                editCanvas.width = image.naturalWidth;
+                editCanvas.height = image.naturalHeight;
+                editContext.clearRect(0, 0, editCanvas.width, editCanvas.height);
+                editContext.drawImage(image, 0, 0, editCanvas.width, editCanvas.height);
+                if (typeof onLoaded === "function") {
+                onLoaded();
+                }
+                };
+                image.src = imageDataUrl;
+                };
+
+                const pushCanvasHistory = () => {
+                if (!editCanvas.width || !editCanvas.height) {
+                return;
+                }
+
+                const snapshot = editCanvas.toDataURL("image/png");
+                if (editHistory.length > 0 && editHistory[editHistory.length - 1] === snapshot) {
+                return;
+                }
+
+                editHistory.push(snapshot);
+                if (editHistory.length > 30) {
+                editHistory.shift();
+                }
+                };
+
+                const registerNewEdit = () => {
+                pushCanvasHistory();
+                redoHistory = [];
+                };
+
+                const undoCanvasEdit = () => {
+                if (editHistory.length <= 1) {
+                return;
+                }
+
+                redoHistory.push(editHistory[editHistory.length - 1]);
+                editHistory.pop();
+                const previousSnapshot = editHistory[editHistory.length - 1];
+                loadImageToCanvas(previousSnapshot);
+                };
+
+                const redoCanvasEdit = () => {
+                if (redoHistory.length === 0) {
+                return;
+                }
+
+                const nextSnapshot = redoHistory.pop();
+                if (!nextSnapshot) {
+                return;
+                }
+
+                editHistory.push(nextSnapshot);
+                loadImageToCanvas(nextSnapshot);
+                };
+
+                const showCropperImage = () => {
+                editCanvas.classList.add("d-none");
+                cropperImage.classList.remove("d-none");
+                cropperImage.src = workingImageDataUrl || sourceImageDataUrl;
+
+                if (cropperImage.complete) {
+                createCropper();
+                } else {
+                cropperImage.addEventListener("load", () => createCropper(), { once: true });
+                }
+                };
+
+                const applyCanvasEdits = () => {
+                if (editCanvas.classList.contains("d-none")) {
+                return;
+                }
+
+                workingImageDataUrl = editCanvas.toDataURL("image/png");
+                sourceImageDataUrl = workingImageDataUrl;
+                };
+
+                const switchToTool = (tool) => {
+                activeEditTool = tool;
+                setToolButtonStyles();
+
+                if (tool === "crop") {
+                applyCanvasEdits();
+                showCropperImage();
+                return;
+                }
+
+                cropper?.destroy();
+                cropper = null;
+
+                cropperImage.classList.add("d-none");
+                editCanvas.classList.remove("d-none");
+                if (!editCanvas.width || !editCanvas.height) {
+                loadImageToCanvas(workingImageDataUrl || sourceImageDataUrl, () => {
+                editHistory = [];
+                redoHistory = [];
+                pushCanvasHistory();
+                });
+                }
+                };
+
+                const openEditor = (imageDataUrl, listingImageGuid, title, sortOrder) => {
+                sourceImageDataUrl = imageDataUrl || "";
+                workingImageDataUrl = sourceImageDataUrl;
+                photoListingImageGuidInput.value = listingImageGuid || "";
+                photoTitleEditor.value = title || "";
+                photoSortOrderEditor.value = sortOrder || "0";
+
+                activeEditTool = "crop";
+                setToolButtonStyles();
+                editHistory = [];
+                redoHistory = [];
+                editCanvas.width = 0;
+                editCanvas.height = 0;
+                cropperImage.src = sourceImageDataUrl;
+                cropModal.show();
+                };
+
+                addPhotoButton.addEventListener("click", () => {
+                photoListingImageGuidInput.value = "";
+                photoTitleEditor.value = "";
+                photoSortOrderEditor.value = String(@photoCount + 1);
+                photoFileInput.click();
+                });
+
+                photoFileInput.addEventListener("change", () => {
+                const file = photoFileInput.files?.[0];
+                if (!file) {
+                return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                const dataUrl = event.target?.result?.toString() || "";
+                openEditor(dataUrl, "", photoTitleEditor.value, photoSortOrderEditor.value);
+                };
+                reader.readAsDataURL(file);
+                });
+
+                document.querySelectorAll(".edit-photo-button").forEach((button) => {
+                button.addEventListener("click", () => {
+                const imageUrl = button.getAttribute("data-image-url") || "";
+                const listingImageGuid = button.getAttribute("data-listing-image-guid") || "";
+                const title = button.getAttribute("data-title") || "";
+                const sortOrder = button.getAttribute("data-sort-order") || "0";
+                openEditor(imageUrl, listingImageGuid, title, sortOrder);
+                });
+                });
+
+                cropModalElement.addEventListener("shown.bs.modal", () => {
+                if (!cropperImage.src) {
+                return;
+                }
+
+                if (activeEditTool === "crop") {
+                createCropper();
+                }
+                });
+
+                cropModalElement.addEventListener("hidden.bs.modal", () => {
+                cropper?.destroy();
+                cropper = null;
+                });
+
+                cropAspectRatioSelect.addEventListener("change", () => {
+                currentAspectRatio = getAspectRatio(cropAspectRatioSelect.value);
+                if (cropper) {
+                cropper.setAspectRatio(currentAspectRatio);
+                }
+                });
+
+                editCropModeButton.addEventListener("click", () => switchToTool("crop"));
+                editPenModeButton.addEventListener("click", () => switchToTool("pen"));
+                editEraseModeButton.addEventListener("click", () => switchToTool("erase"));
+                editTextModeButton.addEventListener("click", () => switchToTool("text"));
+                applyEditsButton.addEventListener("click", () => switchToTool("crop"));
+                undoEditButton.addEventListener("click", () => undoCanvasEdit());
+                redoEditButton.addEventListener("click", () => redoCanvasEdit());
+
+                editCanvas.addEventListener("pointerdown", (event) => {
+                if (activeEditTool === "text") {
+                const textValue = prompt("Enter text to add:");
+                if (!textValue) {
+                return;
+                }
+
+                const point = getCanvasPoint(event);
+                const fontSize = Number.parseInt(editFontSizeInput.value, 10);
+                const resolvedFontSize = Number.isFinite(fontSize) ? Math.max(8, fontSize) : 24;
+                const selectedFont = editFontSelect.value || "Arial, sans-serif";
+                editContext.globalCompositeOperation = "source-over";
+                editContext.fillStyle = editColorInput.value || "#ff0000";
+                editContext.font = `${resolvedFontSize}px ${selectedFont}`;
+                editContext.fillText(textValue, point.x, point.y);
+                registerNewEdit();
+                return;
+                }
+
+                if (activeEditTool !== "pen" && activeEditTool !== "erase") {
+                return;
+                }
+
+                isDrawing = true;
+                lastPoint = getCanvasPoint(event);
+                editCanvas.setPointerCapture(event.pointerId);
+                });
+
+                editCanvas.addEventListener("pointermove", (event) => {
+                if (!isDrawing || !lastPoint) {
+                return;
+                }
+
+                const nextPoint = getCanvasPoint(event);
+                drawStroke(lastPoint, nextPoint);
+                lastPoint = nextPoint;
+                });
+
+                const stopDrawing = (event) => {
+                if (isDrawing) {
+                isDrawing = false;
+                lastPoint = null;
+                registerNewEdit();
+                if (typeof event.pointerId !== "undefined") {
+                editCanvas.releasePointerCapture(event.pointerId);
+                }
+                }
+                };
+
+                editCanvas.addEventListener("pointerup", stopDrawing);
+                editCanvas.addEventListener("pointerleave", stopDrawing);
+                editCanvas.addEventListener("pointercancel", stopDrawing);
+
+                saveCroppedImageButton.addEventListener("click", () => {
+                if (activeEditTool !== "crop") {
+                switchToTool("crop");
+                }
+
+                if (!cropper) {
+                return;
+                }
+
+                const canvasSize = getCanvasSize(currentAspectRatio);
+                const canvas = cropper.getCroppedCanvas({
+                width: canvasSize.width,
+                height: canvasSize.height,
+                imageSmoothingQuality: "high"
+                });
+
+                photoTitleInput.value = photoTitleEditor.value || "";
+                photoSortOrderInput.value = photoSortOrderEditor.value || "0";
+                photoCroppedDataInput.value = canvas.toDataURL("image/jpeg", 0.9);
+                cropModal.hide();
+                photoUpsertForm.submit();
+                });
+
+                setToolButtonStyles();
+                })();
+            </script>
+        }

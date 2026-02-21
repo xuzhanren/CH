@@ -41,14 +41,26 @@ else
             <div class="col-12">
                 @{
                     var listingCardId = $"listing-card-{item.ListingGUID:N}";
+                    var isBuySellCategory = string.Equals(item.Category?.Name, "Buy & Sell", StringComparison.OrdinalIgnoreCase);
+                    var buySellDetailsUrl = Url.Action("Index", "BuySellDetailPage", new { listingGuid = item.ListingGUID }) ?? "#";
                 }
                 <div id="@listingCardId" class="card shadow-sm">
                     <div class="card-body">
                         @if (!string.IsNullOrWhiteSpace(item.ThumbnailURL))
                         {
                             <div class="mb-3">
-                                <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
-                                     style="max-height: 220px;" />
+                                @if (isBuySellCategory)
+                                {
+                                    <a href="@buySellDetailsUrl">
+                                        <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
+                                             style="max-height: 220px;" />
+                                    </a>
+                                }
+                                else
+                                {
+                                    <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
+                                         style="max-height: 220px;" />
+                                }
                             </div>
                         }
                         <h5 class="card-title mb-3">@item.Subject</h5>
@@ -85,6 +97,15 @@ else
                                data-notice-id="@ownListingNoticeId">
                             Message seller
                         </a>
+                        <span> | </span>
+                        @if (isBuySellCategory)
+                        {
+                            <a href="@buySellDetailsUrl" class="@actionLinkClass">Details</a>
+                        }
+                        else
+                        {
+                            <a asp-action="Details" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Details</a>
+                        }
                         <span id="@ownListingNoticeId" class="small text-muted ms-2 d-none">You cannot message your own
                             listing.</span>
                             @if (canManageListing)
@@ -92,8 +113,6 @@ else
                                 <span> | </span>
                                 <a asp-action="Edit" asp-route-id="@item.ListingGUID" asp-route-categoryName="@currentCategoryName"
                                    asp-route-subcategoryName="@currentSubcategoryName" class="@actionLinkClass">Edit</a>
-                                <span> | </span>
-                                <a asp-action="Details" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Details</a>
                                 <span> | </span>
                                 <a asp-action="Delete" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Delete</a>
                             }
@@ -139,111 +158,111 @@ else
 
     @section Scripts {
         <script>
-            (() => {
-                const isAuthenticated = @isAuthenticated.ToString().ToLowerInvariant();
-                const loginUrl = "@loginPageUrl";
-                const focusListingKey = "@focusListingKey";
+                    (() => {
+                        const isAuthenticated = @isAuthenticated.ToString().ToLowerInvariant();
+                        const loginUrl = "@loginPageUrl";
+                        const focusListingKey = "@focusListingKey";
 
-                const scrollToFocusedListing = (listingKey) => {
-                    if (!listingKey) {
-                        return;
-                    }
+                        const scrollToFocusedListing = (listingKey) => {
+                            if (!listingKey) {
+                                return;
+                            }
 
-                    const card = document.getElementById(`listing-card-${listingKey}`);
-                    if (!card) {
-                        return;
-                    }
+                            const card = document.getElementById(`listing-card-${listingKey}`);
+                            if (!card) {
+                                return;
+                            }
 
-                    card.scrollIntoView({ behavior: "smooth", block: "center" });
-                };
-                const isOwnerListing = (listingGuid) => {
-                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
-                    if (!link) {
-                        return false;
-                    }
+                            card.scrollIntoView({ behavior: "smooth", block: "center" });
+                        };
+                        const isOwnerListing = (listingGuid) => {
+                            const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
+                            if (!link) {
+                                return false;
+                            }
 
-                    return link.getAttribute("data-is-owner") === "true";
-                };
+                            return link.getAttribute("data-is-owner") === "true";
+                        };
 
-                const showOwnListingNotice = (listingGuid) => {
-                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
-                    if (!link) {
-                        return;
-                    }
+                        const showOwnListingNotice = (listingGuid) => {
+                            const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
+                            if (!link) {
+                                return;
+                            }
 
-                    const noticeId = link.getAttribute("data-notice-id");
-                    if (!noticeId) {
-                        return;
-                    }
+                            const noticeId = link.getAttribute("data-notice-id");
+                            if (!noticeId) {
+                                return;
+                            }
 
-                    const notice = document.getElementById(noticeId);
-                    if (!notice) {
-                        return;
-                    }
+                            const notice = document.getElementById(noticeId);
+                            if (!notice) {
+                                return;
+                            }
 
-                    notice.classList.remove("d-none");
-                };
+                            notice.classList.remove("d-none");
+                        };
 
-                const openMessageModal = (listingGuid) => {
-                    if (!listingGuid) {
-                        return;
-                    }
+                        const openMessageModal = (listingGuid) => {
+                            if (!listingGuid) {
+                                return;
+                            }
 
-                    if (isOwnerListing(listingGuid)) {
-                        showOwnListingNotice(listingGuid);
-                        return;
-                    }
+                            if (isOwnerListing(listingGuid)) {
+                                showOwnListingNotice(listingGuid);
+                                return;
+                            }
 
-                    const modalElement = document.getElementById(`sendMessageModal_${listingGuid}`);
-                    if (!modalElement) {
-                        return;
-                    }
+                            const modalElement = document.getElementById(`sendMessageModal_${listingGuid}`);
+                            if (!modalElement) {
+                                return;
+                            }
 
-                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
-                };
+                            bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                        };
 
-                document.querySelectorAll(".send-message-link").forEach((link) => {
-                    link.addEventListener("click", (event) => {
-                        event.preventDefault();
+                        document.querySelectorAll(".send-message-link").forEach((link) => {
+                            link.addEventListener("click", (event) => {
+                                event.preventDefault();
 
-                        const listingGuid = link.getAttribute("data-listing-guid");
-                        if (!listingGuid) {
-                            return;
-                        }
+                                const listingGuid = link.getAttribute("data-listing-guid");
+                                if (!listingGuid) {
+                                    return;
+                                }
+
+                                if (isAuthenticated) {
+                                    openMessageModal(listingGuid);
+                                    return;
+                                }
+
+                                const currentUrl = new URL(window.location.href);
+                                currentUrl.searchParams.set("openMessageFor", listingGuid);
+                                const returnUrl = `${currentUrl.pathname}${currentUrl.search}`;
+                                const separator = loginUrl.includes("?") ? "&" : "?";
+                                window.location.href = `${loginUrl}${separator}returnUrl=${encodeURIComponent(returnUrl)}`;
+                            });
+                        });
 
                         if (isAuthenticated) {
-                            openMessageModal(listingGuid);
-                            return;
+                            const pageUrl = new URL(window.location.href);
+                            const listingToOpen = pageUrl.searchParams.get("openMessageFor");
+                            if (listingToOpen) {
+                                openMessageModal(listingToOpen);
+                                pageUrl.searchParams.delete("openMessageFor");
+                                const cleanQuery = pageUrl.searchParams.toString();
+                                const cleanUrl = `${pageUrl.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${pageUrl.hash}`;
+                                window.history.replaceState({}, "", cleanUrl);
+                            }
                         }
 
-                        const currentUrl = new URL(window.location.href);
-                        currentUrl.searchParams.set("openMessageFor", listingGuid);
-                        const returnUrl = `${currentUrl.pathname}${currentUrl.search}`;
-                        const separator = loginUrl.includes("?") ? "&" : "?";
-                        window.location.href = `${loginUrl}${separator}returnUrl=${encodeURIComponent(returnUrl)}`;
-                    });
-                });
+                        if (focusListingKey) {
+                            scrollToFocusedListing(focusListingKey);
+                        }
 
-                if (isAuthenticated) {
-                    const pageUrl = new URL(window.location.href);
-                    const listingToOpen = pageUrl.searchParams.get("openMessageFor");
-                    if (listingToOpen) {
-                        openMessageModal(listingToOpen);
-                        pageUrl.searchParams.delete("openMessageFor");
-                        const cleanQuery = pageUrl.searchParams.toString();
-                        const cleanUrl = `${pageUrl.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${pageUrl.hash}`;
-                        window.history.replaceState({}, "", cleanUrl);
-                    }
-                }
-
-                if (focusListingKey) {
-                    scrollToFocusedListing(focusListingKey);
-                }
-
-                if (window.location.hash && window.location.hash.startsWith("#listing-card-")) {
-                    const listingFromHash = window.location.hash.substring("#listing-card-".length);
-                    scrollToFocusedListing(listingFromHash);
-                }
-            })();
+                        if (window.location.hash && window.location.hash.startsWith("#listing-card-")) {
+                            const listingFromHash = window.location.hash.substring("#listing-card-".length);
+                            scrollToFocusedListing(listingFromHash);
+                        }
+                    })();
         </script>
     }

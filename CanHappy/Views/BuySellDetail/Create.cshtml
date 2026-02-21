@@ -1,0 +1,75 @@
+@model CanHappy.Models.BuySellDetailEditViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+<h4>Buy/Sell Detail</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="ListingGUID" class="form-label"></label>
+                <select asp-for="ListingGUID" class="form-select" asp-items="ViewBag.ListingGUID">
+                    <option value="">Select Listing</option>
+                </select>
+                <span asp-validation-for="ListingGUID" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BuySellModel" class="form-label"></label>
+                <input asp-for="BuySellModel" class="form-control" />
+                <span asp-validation-for="BuySellModel" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Material" class="form-label"></label>
+                <input asp-for="Material" class="form-control" />
+                <span asp-validation-for="Material" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-2">
+                <input asp-for="NegotiablePriceInd" class="form-check-input" />
+                <label asp-for="NegotiablePriceInd" class="form-check-label"></label>
+            </div>
+
+            <div class="form-check mb-2">
+                <input asp-for="DeliveryAvailableInd" class="form-check-input" />
+                <label asp-for="DeliveryAvailableInd" class="form-check-label"></label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="PickupAvailableInd" class="form-check-input" />
+                <label asp-for="PickupAvailableInd" class="form-check-label"></label>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="WarrantyInfo" class="form-label"></label>
+                <input asp-for="WarrantyInfo" class="form-control" />
+                <span asp-validation-for="WarrantyInfo" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AdditionalDetails" class="form-label"></label>
+                <textarea asp-for="AdditionalDetails" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="AdditionalDetails" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
