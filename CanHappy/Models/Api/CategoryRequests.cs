@@ -1,12 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CanHappy.Models;
+namespace CanHappy.Models.Api;
 
-public class Category
+public class CategoryUpsertRequest
 {
-    [Key]
-    public int CategoryId { get; set; }
-
     [Required]
     [StringLength(50)]
     public string Name { get; set; } = string.Empty;
@@ -22,17 +19,5 @@ public class Category
 
     public int SortOrder { get; set; }
 
-    public bool DeletedInd { get; set; }
-
     public bool SampleInd { get; set; }
-
-    [StringLength(100)]
-    public string? CreatedBy { get; set; }
-
-    [StringLength(100)]
-    public string? ModifiedBy { get; set; }
-
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-
-    public DateTime? ModifiedDate { get; set; }
 }

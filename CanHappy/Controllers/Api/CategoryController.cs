@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Models.Api;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -36,8 +37,18 @@ public class CategoryController(ApplicationDbContext context) : ControllerBase
 
     [HttpPost]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public async Task<ActionResult<Category>> Create(Category category)
+    public async Task<ActionResult<Category>> Create(CategoryUpsertRequest request)
     {
+        var category = new Category
+        {
+            Name = request.Name,
+            Code = request.Code,
+            Description = request.Description,
+            KeyWords = request.KeyWords,
+            SortOrder = request.SortOrder,
+            SampleInd = request.SampleInd
+        };
+
         category.CategoryId = 0;
         category.CreatedBy = User.Identity?.Name ?? "api-user";
         category.CreatedDate = DateTime.UtcNow;
@@ -50,7 +61,7 @@ public class CategoryController(ApplicationDbContext context) : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public async Task<IActionResult> Update(int id, Category updatedCategory)
+    public async Task<IActionResult> Update(int id, CategoryUpsertRequest request)
     {
         var category = await context.Categories.FindAsync(id);
         if (category is null || category.DeletedInd)
@@ -58,11 +69,12 @@ public class CategoryController(ApplicationDbContext context) : ControllerBase
             return NotFound();
         }
 
-        category.Name = updatedCategory.Name;
-        category.Code = updatedCategory.Code;
-        category.Description = updatedCategory.Description;
-        category.SortOrder = updatedCategory.SortOrder;
-        category.SampleInd = updatedCategory.SampleInd;
+        category.Name = request.Name;
+        category.Code = request.Code;
+        category.Description = request.Description;
+        category.KeyWords = request.KeyWords;
+        category.SortOrder = request.SortOrder;
+        category.SampleInd = request.SampleInd;
         category.ModifiedBy = User.Identity?.Name ?? "api-user";
         category.ModifiedDate = DateTime.UtcNow;
 

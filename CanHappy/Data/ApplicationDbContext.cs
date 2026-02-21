@@ -37,6 +37,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.Description)
                 .HasMaxLength(100);
 
+            entity.Property(e => e.KeyWords)
+                .HasMaxLength(800);
+
+            entity.Property(e => e.KeyWords)
+                .HasMaxLength(800);
+
             entity.Property(e => e.CreatedBy)
                 .HasMaxLength(100);
 

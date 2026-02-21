@@ -1,12 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CanHappy.Models;
+namespace CanHappy.Models.Api;
 
-public class Subcategory
+public class SubcategoryUpsertRequest
 {
-    [Key]
-    public int SubcategoryId { get; set; }
-
+    [Required]
     public int CategoryId { get; set; }
 
     [Required]
@@ -23,20 +21,5 @@ public class Subcategory
     public string? KeyWords { get; set; }
 
     public int SortOrder { get; set; }
-
-    public bool DeletedInd { get; set; }
-
     public bool SampleInd { get; set; }
-
-    [StringLength(100)]
-    public string? CreatedBy { get; set; }
-
-    [StringLength(100)]
-    public string? ModifiedBY { get; set; }
-
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-
-    public DateTime? ModifiedDate { get; set; }
-
-    public Category? Category { get; set; }
 }

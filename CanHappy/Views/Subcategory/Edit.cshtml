@@ -1,15 +1,23 @@
-@model CanHappy.Models.Category
-
+@model CanHappy.Models.Subcategory
 @{
-    ViewData["Title"] = "Create Category";
+    ViewData["Title"] = "Edit Subcategory";
+    var categories = ViewData["Categories"] as List<CanHappy.Models.Category>;
 }
-
-<h1 class="h3">Create Category</h1>
-
+<h1 class="h3">Edit Subcategory</h1>
 <div class="row">
     <div class="col-md-8 col-lg-6">
-        <form asp-action="Create">
+        <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="SubcategoryId" />
+            <input type="hidden" asp-for="CreatedBy" />
+            <input type="hidden" asp-for="CreatedDate" />
+            <input type="hidden" asp-for="DeletedInd" />
+            <div class="mb-3">
+                <label asp-for="CategoryId" class="form-label"></label>
+                <select asp-for="CategoryId" class="form-select"
+                        asp-items="@(new SelectList(categories, "CategoryId", "Name"))"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
             <div class="mb-3">
                 <label asp-for="Name" class="form-label"></label>
                 <input asp-for="Name" class="form-control" />
@@ -44,7 +52,6 @@
         </form>
     </div>
 </div>
-
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

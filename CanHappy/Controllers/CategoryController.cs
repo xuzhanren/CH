@@ -57,7 +57,7 @@ public class CategoryController(ApplicationDbContext context) : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create([Bind("Name,Code,Description,SortOrder,SampleInd")] Category category)
+    public async Task<IActionResult> Create([Bind("Name,Code,Description,KeyWords,SortOrder,SampleInd")] Category category)
     {
         if (!ModelState.IsValid)
         {
@@ -91,7 +91,7 @@ public class CategoryController(ApplicationDbContext context) : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Edit(int id, [Bind("CategoryId,Name,Code,Description,SortOrder,SampleInd,DeletedInd,CreatedBy,CreatedDate")] Category category)
+    public async Task<IActionResult> Edit(int id, [Bind("CategoryId,Name,Code,Description,KeyWords,SortOrder,SampleInd,DeletedInd,CreatedBy,CreatedDate")] Category category)
     {
         if (id != category.CategoryId)
         {
