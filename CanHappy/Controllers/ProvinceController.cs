@@ -41,7 +41,7 @@ public class ProvinceController(ApplicationDbContext context) : ControllerBase
     {
         province.ProvinceId = 0;
         province.CreatedBy = User.Identity?.Name ?? "api-user";
-        province.CreatedDate = DateTime.UtcNow;
+        province.CreatedDate = CanHappy.Common.EasternTime.Now;
         province.ModifiedBY = null;
         province.ModifiedDate = null;
         province.DeletedInd = false;
@@ -68,7 +68,7 @@ public class ProvinceController(ApplicationDbContext context) : ControllerBase
         province.Description = updatedProvince.Description;
         province.SampleInd = updatedProvince.SampleInd;
         province.ModifiedBY = User.Identity?.Name ?? "api-user";
-        province.ModifiedDate = DateTime.UtcNow;
+        province.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
@@ -86,9 +86,10 @@ public class ProvinceController(ApplicationDbContext context) : ControllerBase
 
         province.DeletedInd = true;
         province.ModifiedBY = User.Identity?.Name ?? "api-user";
-        province.ModifiedDate = DateTime.UtcNow;
+        province.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
     }
 }
+

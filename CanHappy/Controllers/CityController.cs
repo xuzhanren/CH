@@ -41,7 +41,7 @@ public class CityController(ApplicationDbContext context) : ControllerBase
     {
         city.CityId = 0;
         city.CreatedBy = User.Identity?.Name ?? "api-user";
-        city.CreatedDate = DateTime.UtcNow;
+        city.CreatedDate = CanHappy.Common.EasternTime.Now;
         city.ModifiedBY = null;
         city.ModifiedDate = null;
         city.DeletedInd = false;
@@ -68,7 +68,7 @@ public class CityController(ApplicationDbContext context) : ControllerBase
         city.Description = updatedCity.Description;
         city.SampleInd = updatedCity.SampleInd;
         city.ModifiedBY = User.Identity?.Name ?? "api-user";
-        city.ModifiedDate = DateTime.UtcNow;
+        city.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
@@ -86,9 +86,10 @@ public class CityController(ApplicationDbContext context) : ControllerBase
 
         city.DeletedInd = true;
         city.ModifiedBY = User.Identity?.Name ?? "api-user";
-        city.ModifiedDate = DateTime.UtcNow;
+        city.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
     }
 }
+

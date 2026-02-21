@@ -50,7 +50,7 @@ public class SubcategoryController(ApplicationDbContext context) : Controller
             return View(subcategory);
         }
         subcategory.CreatedBy = User.Identity?.Name ?? "web-user";
-        subcategory.CreatedDate = DateTime.UtcNow;
+        subcategory.CreatedDate = CanHappy.Common.EasternTime.Now;
         context.Subcategories.Add(subcategory);
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
@@ -83,7 +83,7 @@ public class SubcategoryController(ApplicationDbContext context) : Controller
         try
         {
             subcategory.ModifiedBY = User.Identity?.Name ?? "web-user";
-            subcategory.ModifiedDate = DateTime.UtcNow;
+            subcategory.ModifiedDate = CanHappy.Common.EasternTime.Now;
             context.Update(subcategory);
             await context.SaveChangesAsync();
         }
@@ -119,7 +119,7 @@ public class SubcategoryController(ApplicationDbContext context) : Controller
         {
             subcategory.DeletedInd = true;
             subcategory.ModifiedBY = User.Identity?.Name ?? "web-user";
-            subcategory.ModifiedDate = DateTime.UtcNow;
+            subcategory.ModifiedDate = CanHappy.Common.EasternTime.Now;
             await context.SaveChangesAsync();
         }
         return RedirectToAction(nameof(Index));
@@ -130,3 +130,4 @@ public class SubcategoryController(ApplicationDbContext context) : Controller
         return context.Subcategories.AnyAsync(e => e.SubcategoryId == id);
     }
 }
+

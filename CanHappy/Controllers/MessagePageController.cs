@@ -189,7 +189,7 @@ public class MessagePageController(ApplicationDbContext context, UserManager<Ide
             Subject = effectiveSubject,
             Body = body.Trim(),
             IsRead = false,
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = CanHappy.Common.EasternTime.Now
         };
 
         context.UserMessages.Add(message);
@@ -243,7 +243,7 @@ public class MessagePageController(ApplicationDbContext context, UserManager<Ide
             Subject = effectiveSubject,
             Body = body.Trim(),
             IsRead = false,
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = CanHappy.Common.EasternTime.Now
         };
 
         context.UserMessages.Add(reply);
@@ -281,3 +281,4 @@ public class MessagePageController(ApplicationDbContext context, UserManager<Ide
         return RedirectToAction("Details", "ListingPage", new { id = listingId });
     }
 }
+

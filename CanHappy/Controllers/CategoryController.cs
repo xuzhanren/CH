@@ -65,7 +65,7 @@ public class CategoryController(ApplicationDbContext context) : Controller
         }
 
         category.CreatedBy = User.Identity?.Name ?? "web-user";
-        category.CreatedDate = DateTime.UtcNow;
+        category.CreatedDate = CanHappy.Common.EasternTime.Now;
         context.Categories.Add(category);
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
@@ -106,7 +106,7 @@ public class CategoryController(ApplicationDbContext context) : Controller
         try
         {
             category.ModifiedBy = User.Identity?.Name ?? "web-user";
-            category.ModifiedDate = DateTime.UtcNow;
+            category.ModifiedDate = CanHappy.Common.EasternTime.Now;
             context.Update(category);
             await context.SaveChangesAsync();
         }
@@ -153,7 +153,7 @@ public class CategoryController(ApplicationDbContext context) : Controller
         {
             category.DeletedInd = true;
             category.ModifiedBy = User.Identity?.Name ?? "web-user";
-            category.ModifiedDate = DateTime.UtcNow;
+            category.ModifiedDate = CanHappy.Common.EasternTime.Now;
             await context.SaveChangesAsync();
         }
 

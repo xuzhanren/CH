@@ -92,7 +92,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
         {
             listing.UserId = currentUserId;
         }
-        listing.CreatedDate = DateTime.UtcNow;
+        listing.CreatedDate = CanHappy.Common.EasternTime.Now;
         listing.ModifiedDate = null;
 
         if (!string.IsNullOrWhiteSpace(croppedThumbnailData))
@@ -174,7 +174,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             existingListing.Price = listing.Price;
             existingListing.DiscountPercent = listing.DiscountPercent;
             existingListing.ThumbnailURL = listing.ThumbnailURL;
-            existingListing.ModifiedDate = DateTime.UtcNow;
+            existingListing.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
             await context.SaveChangesAsync();
         }
@@ -315,3 +315,4 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
         return relativePath;
     }
 }
+

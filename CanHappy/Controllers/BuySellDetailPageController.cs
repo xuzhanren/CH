@@ -226,7 +226,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             WarrantyInfo = model.WarrantyInfo,
             AdditionalDetails = model.AdditionalDetails,
             CreatedBy = User.Identity?.Name,
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = CanHappy.Common.EasternTime.Now,
             DeletedInd = false
         };
 
@@ -314,7 +314,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         entity.WarrantyInfo = model.WarrantyInfo;
         entity.AdditionalDetails = model.AdditionalDetails;
         entity.ModifiedBY = User.Identity?.Name;
-        entity.ModifiedDate = DateTime.UtcNow;
+        entity.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
 
@@ -433,7 +433,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                 ListingImageGUID = Guid.NewGuid(),
                 ListingGUID = listingGuid,
                 CreatedBy = User.Identity?.Name,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = CanHappy.Common.EasternTime.Now,
                 DeletedInd = false,
                 SampleInd = false
             };
@@ -598,3 +598,4 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         return relativePath;
     }
 }
+

@@ -48,7 +48,7 @@ public class SubcategoryController(ApplicationDbContext context) : ControllerBas
             SortOrder = request.SortOrder,
             SampleInd = request.SampleInd,
             CreatedBy = User.Identity?.Name ?? "api-user",
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = CanHappy.Common.EasternTime.Now
         };
         context.Subcategories.Add(subcategory);
         await context.SaveChangesAsync();
@@ -72,7 +72,7 @@ public class SubcategoryController(ApplicationDbContext context) : ControllerBas
         subcategory.SortOrder = request.SortOrder;
         subcategory.SampleInd = request.SampleInd;
         subcategory.ModifiedBY = User.Identity?.Name ?? "api-user";
-        subcategory.ModifiedDate = DateTime.UtcNow;
+        subcategory.ModifiedDate = CanHappy.Common.EasternTime.Now;
         await context.SaveChangesAsync();
         return NoContent();
     }
@@ -88,8 +88,9 @@ public class SubcategoryController(ApplicationDbContext context) : ControllerBas
         }
         subcategory.DeletedInd = true;
         subcategory.ModifiedBY = User.Identity?.Name ?? "api-user";
-        subcategory.ModifiedDate = DateTime.UtcNow;
+        subcategory.ModifiedDate = CanHappy.Common.EasternTime.Now;
         await context.SaveChangesAsync();
         return NoContent();
     }
 }
+

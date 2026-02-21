@@ -277,7 +277,7 @@ public class AdminController(
     public async Task<IActionResult> CreateAd()
     {
         await PopulateCitySelectListAsync();
-        return View(new Ad { PublishDate = DateTime.UtcNow, Status = "Draft" });
+        return View(new Ad { PublishDate = CanHappy.Common.EasternTime.Now, Status = "Draft" });
     }
 
     [HttpPost]
@@ -292,7 +292,7 @@ public class AdminController(
 
         model.AdGUID = Guid.NewGuid();
         model.CreatedBy = User.Identity?.Name ?? "admin";
-        model.CreatedDate = DateTime.UtcNow;
+        model.CreatedDate = CanHappy.Common.EasternTime.Now;
         model.ModifiedBY = null;
         model.ModifiedDate = null;
         model.DeletedInd = false;
@@ -350,7 +350,7 @@ public class AdminController(
         ad.ContactPhone = model.ContactPhone;
         ad.SampleInd = model.SampleInd;
         ad.ModifiedBY = User.Identity?.Name ?? "admin";
-        ad.ModifiedDate = DateTime.UtcNow;
+        ad.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Ads));
@@ -368,7 +368,7 @@ public class AdminController(
 
         ad.DeletedInd = true;
         ad.ModifiedBY = User.Identity?.Name ?? "admin";
-        ad.ModifiedDate = DateTime.UtcNow;
+        ad.ModifiedDate = CanHappy.Common.EasternTime.Now;
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Ads));
@@ -406,7 +406,7 @@ public class AdminController(
 
         model.AreaId = 0;
         model.CreatedBy = User.Identity?.Name ?? "admin";
-        model.CreatedDate = DateTime.UtcNow;
+        model.CreatedDate = CanHappy.Common.EasternTime.Now;
         model.ModifiedBY = null;
         model.ModifiedDate = null;
         model.DeletedInd = false;
@@ -452,7 +452,7 @@ public class AdminController(
         area.Description = model.Description;
         area.SampleInd = model.SampleInd;
         area.ModifiedBY = User.Identity?.Name ?? "admin";
-        area.ModifiedDate = DateTime.UtcNow;
+        area.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Areas));
@@ -470,7 +470,7 @@ public class AdminController(
 
         area.DeletedInd = true;
         area.ModifiedBY = User.Identity?.Name ?? "admin";
-        area.ModifiedDate = DateTime.UtcNow;
+        area.ModifiedDate = CanHappy.Common.EasternTime.Now;
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Areas));
@@ -508,7 +508,7 @@ public class AdminController(
 
         model.CityId = 0;
         model.CreatedBy = User.Identity?.Name ?? "admin";
-        model.CreatedDate = DateTime.UtcNow;
+        model.CreatedDate = CanHappy.Common.EasternTime.Now;
         model.ModifiedBY = null;
         model.ModifiedDate = null;
         model.DeletedInd = false;
@@ -554,7 +554,7 @@ public class AdminController(
         city.Description = model.Description;
         city.SampleInd = model.SampleInd;
         city.ModifiedBY = User.Identity?.Name ?? "admin";
-        city.ModifiedDate = DateTime.UtcNow;
+        city.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Cities));
@@ -572,7 +572,7 @@ public class AdminController(
 
         city.DeletedInd = true;
         city.ModifiedBY = User.Identity?.Name ?? "admin";
-        city.ModifiedDate = DateTime.UtcNow;
+        city.ModifiedDate = CanHappy.Common.EasternTime.Now;
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Cities));
@@ -610,7 +610,7 @@ public class AdminController(
 
         model.ProvinceId = 0;
         model.CreatedBy = User.Identity?.Name ?? "admin";
-        model.CreatedDate = DateTime.UtcNow;
+        model.CreatedDate = CanHappy.Common.EasternTime.Now;
         model.ModifiedBY = null;
         model.ModifiedDate = null;
         model.DeletedInd = false;
@@ -656,7 +656,7 @@ public class AdminController(
         province.Description = model.Description;
         province.SampleInd = model.SampleInd;
         province.ModifiedBY = User.Identity?.Name ?? "admin";
-        province.ModifiedDate = DateTime.UtcNow;
+        province.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Provinces));
@@ -674,7 +674,7 @@ public class AdminController(
 
         province.DeletedInd = true;
         province.ModifiedBY = User.Identity?.Name ?? "admin";
-        province.ModifiedDate = DateTime.UtcNow;
+        province.ModifiedDate = CanHappy.Common.EasternTime.Now;
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Provinces));
@@ -716,7 +716,7 @@ public class AdminController(
         model.ListingGUID = Guid.NewGuid();
         model.UserId = model.UserId == Guid.Empty ? Guid.NewGuid() : model.UserId;
         model.CreatedBy = User.Identity?.Name ?? "admin";
-        model.CreatedDate = DateTime.UtcNow;
+        model.CreatedDate = CanHappy.Common.EasternTime.Now;
         model.ModifiedBY = null;
         model.ModifiedDate = null;
         model.DeletedInd = false;
@@ -769,7 +769,7 @@ public class AdminController(
         listing.SampleInd = model.SampleInd;
         listing.UserId = model.UserId == Guid.Empty ? listing.UserId : model.UserId;
         listing.ModifiedBY = User.Identity?.Name ?? "admin";
-        listing.ModifiedDate = DateTime.UtcNow;
+        listing.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Listings));
@@ -787,7 +787,7 @@ public class AdminController(
 
         listing.DeletedInd = true;
         listing.ModifiedBY = User.Identity?.Name ?? "admin";
-        listing.ModifiedDate = DateTime.UtcNow;
+        listing.ModifiedDate = CanHappy.Common.EasternTime.Now;
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Listings));

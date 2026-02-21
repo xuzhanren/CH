@@ -41,7 +41,7 @@ public class CountryController(ApplicationDbContext context) : ControllerBase
     {
         country.CountryId = 0;
         country.CreatedBy = User.Identity?.Name ?? "api-user";
-        country.CreatedDate = DateTime.UtcNow;
+        country.CreatedDate = CanHappy.Common.EasternTime.Now;
         country.ModifiedBY = null;
         country.ModifiedDate = null;
         country.DeletedInd = false;
@@ -67,7 +67,7 @@ public class CountryController(ApplicationDbContext context) : ControllerBase
         country.Description = updatedCountry.Description;
         country.SampleInd = updatedCountry.SampleInd;
         country.ModifiedBY = User.Identity?.Name ?? "api-user";
-        country.ModifiedDate = DateTime.UtcNow;
+        country.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
@@ -85,9 +85,10 @@ public class CountryController(ApplicationDbContext context) : ControllerBase
 
         country.DeletedInd = true;
         country.ModifiedBY = User.Identity?.Name ?? "api-user";
-        country.ModifiedDate = DateTime.UtcNow;
+        country.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
     }
 }
+

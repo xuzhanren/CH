@@ -227,7 +227,7 @@ public static class DbInitializer
                     category.KeyWords = "buy sell sale computer laptop used new refurbished Camera Camcorders Furniture desk table chair bed box sofa music Arts Music Home  Appliances Cell Phones Tools Building Materials Sports Garden Plants Kids Toys game Industrial  Equipment Samsung iPhone fridge refridgerator washer dryer stove range electronics TV bag luggage case LG Fridgedare parts";
                 }
                 category.ModifiedBy = "system";
-                category.ModifiedDate = DateTime.UtcNow;
+                category.ModifiedDate = CanHappy.Common.EasternTime.Now;
                 category.DeletedInd = false;
             }
             else
@@ -241,7 +241,7 @@ public static class DbInitializer
                     DeletedInd = false,
                     SampleInd = false,
                     CreatedBy = "system",
-                    CreatedDate = DateTime.UtcNow,
+                    CreatedDate = CanHappy.Common.EasternTime.Now,
                     KeyWords = name == "Buy & Sell" ? "buy sell sale computer laptop used new refurbished Camera Camcorders Furniture desk table chair bed box sofa music Arts Music Home  Appliances Cell Phones Tools Building Materials Sports Garden Plants Kids Toys game Industrial  Equipment Samsung iPhone fridge refridgerator washer dryer stove range electronics TV bag luggage case LG Fridgedare parts" : null
                 });
             }
@@ -258,7 +258,7 @@ public static class DbInitializer
         const string targetProvinceCode = "ON";
         const string targetCityName = "Ottawa";
         const int sampleListingsPerCombination = 2;
-        var now = DateTime.UtcNow;
+        var now = CanHappy.Common.EasternTime.Now;
 
         var ottawaCity = await context.Cities
             .AsNoTracking()
@@ -390,7 +390,7 @@ public static class DbInitializer
             return;
         }
 
-        var now = DateTime.UtcNow;
+        var now = CanHappy.Common.EasternTime.Now;
         var existingSubcategories = await context.Subcategories
             .Where(subcategory => subcategory.CategoryId == category.CategoryId)
             .ToDictionaryAsync(subcategory => subcategory.Name, StringComparer.OrdinalIgnoreCase);
@@ -486,7 +486,7 @@ public static class DbInitializer
 
     private static async Task SeedCanadaHierarchyAsync(ApplicationDbContext context)
     {
-        var now = DateTime.UtcNow;
+        var now = CanHappy.Common.EasternTime.Now;
 
         var country = await context.Countries.FirstOrDefaultAsync(c => c.Code == CanadaCode || c.Name == CanadaName);
         if (country is null)

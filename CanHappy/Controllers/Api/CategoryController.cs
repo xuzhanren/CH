@@ -51,7 +51,7 @@ public class CategoryController(ApplicationDbContext context) : ControllerBase
 
         category.CategoryId = 0;
         category.CreatedBy = User.Identity?.Name ?? "api-user";
-        category.CreatedDate = DateTime.UtcNow;
+        category.CreatedDate = CanHappy.Common.EasternTime.Now;
 
         context.Categories.Add(category);
         await context.SaveChangesAsync();
@@ -76,7 +76,7 @@ public class CategoryController(ApplicationDbContext context) : ControllerBase
         category.SortOrder = request.SortOrder;
         category.SampleInd = request.SampleInd;
         category.ModifiedBy = User.Identity?.Name ?? "api-user";
-        category.ModifiedDate = DateTime.UtcNow;
+        category.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
@@ -94,7 +94,7 @@ public class CategoryController(ApplicationDbContext context) : ControllerBase
 
         category.DeletedInd = true;
         category.ModifiedBy = User.Identity?.Name ?? "api-user";
-        category.ModifiedDate = DateTime.UtcNow;
+        category.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();

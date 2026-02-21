@@ -27,7 +27,8 @@ public class ListingImage
     [StringLength(100)]
     public string? CreatedBy { get; set; }
 
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedDate { get; set; } = CanHappy.Common.EasternTime.Now;
 
     public Listing? Listing { get; set; }
 }
+

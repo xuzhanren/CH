@@ -41,7 +41,7 @@ public class AreaController(ApplicationDbContext context) : ControllerBase
     {
         area.AreaId = 0;
         area.CreatedBy = User.Identity?.Name ?? "api-user";
-        area.CreatedDate = DateTime.UtcNow;
+        area.CreatedDate = CanHappy.Common.EasternTime.Now;
         area.ModifiedBY = null;
         area.ModifiedDate = null;
         area.DeletedInd = false;
@@ -68,7 +68,7 @@ public class AreaController(ApplicationDbContext context) : ControllerBase
         area.Description = updatedArea.Description;
         area.SampleInd = updatedArea.SampleInd;
         area.ModifiedBY = User.Identity?.Name ?? "api-user";
-        area.ModifiedDate = DateTime.UtcNow;
+        area.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
@@ -86,9 +86,10 @@ public class AreaController(ApplicationDbContext context) : ControllerBase
 
         area.DeletedInd = true;
         area.ModifiedBY = User.Identity?.Name ?? "api-user";
-        area.ModifiedDate = DateTime.UtcNow;
+        area.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
     }
 }
+

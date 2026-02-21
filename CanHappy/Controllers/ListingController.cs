@@ -41,7 +41,7 @@ public class ListingController(ApplicationDbContext context) : ControllerBase
     {
         listing.ListingGUID = Guid.NewGuid();
         listing.CreatedBy = User.Identity?.Name ?? "api-user";
-        listing.CreatedDate = DateTime.UtcNow;
+        listing.CreatedDate = CanHappy.Common.EasternTime.Now;
         listing.ModifiedBY = null;
         listing.ModifiedDate = null;
         listing.DeletedInd = false;
@@ -75,7 +75,7 @@ public class ListingController(ApplicationDbContext context) : ControllerBase
         listing.SampleInd = updatedListing.SampleInd;
         listing.UserId = updatedListing.UserId;
         listing.ModifiedBY = User.Identity?.Name ?? "api-user";
-        listing.ModifiedDate = DateTime.UtcNow;
+        listing.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
@@ -93,9 +93,10 @@ public class ListingController(ApplicationDbContext context) : ControllerBase
 
         listing.DeletedInd = true;
         listing.ModifiedBY = User.Identity?.Name ?? "api-user";
-        listing.ModifiedDate = DateTime.UtcNow;
+        listing.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
     }
 }
+

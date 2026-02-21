@@ -23,7 +23,8 @@ public class UserMessage
 
     public bool IsRead { get; set; }
 
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedDate { get; set; } = CanHappy.Common.EasternTime.Now;
 
     public Listing? Listing { get; set; }
 }
+

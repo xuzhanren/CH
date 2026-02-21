@@ -32,7 +32,7 @@ public class Category
     [StringLength(100)]
     public string? ModifiedBy { get; set; }
 
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedDate { get; set; } = CanHappy.Common.EasternTime.Now;
 
     public DateTime? ModifiedDate { get; set; }
 }

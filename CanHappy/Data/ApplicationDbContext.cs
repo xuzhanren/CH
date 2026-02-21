@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using CanHappy.Models;
 
 namespace CanHappy.Data;
@@ -467,5 +468,33 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasForeignKey(e => e.CityId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        ApplyEasternDateTimeConverters(builder);
+    }
+
+    private static void ApplyEasternDateTimeConverters(ModelBuilder builder)
+    {
+        var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+            value => CanHappy.Common.EasternTime.ToUtc(value),
+            value => CanHappy.Common.EasternTime.ToEastern(value));
+
+        var nullableDateTimeConverter = new ValueConverter<DateTime?, DateTime?>(
+            value => value.HasValue ? CanHappy.Common.EasternTime.ToUtc(value.Value) : value,
+            value => value.HasValue ? CanHappy.Common.EasternTime.ToEastern(value.Value) : value);
+
+        foreach (var entityType in builder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
+                {
+                    property.SetValueConverter(dateTimeConverter);
+                }
+                else if (property.ClrType == typeof(DateTime?))
+                {
+                    property.SetValueConverter(nullableDateTimeConverter);
+                }
+            }
+        }
     }
 }

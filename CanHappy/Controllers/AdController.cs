@@ -41,7 +41,7 @@ public class AdController(ApplicationDbContext context) : ControllerBase
     {
         ad.AdGUID = Guid.NewGuid();
         ad.CreatedBy = User.Identity?.Name ?? "api-user";
-        ad.CreatedDate = DateTime.UtcNow;
+        ad.CreatedDate = CanHappy.Common.EasternTime.Now;
         ad.ModifiedBY = null;
         ad.ModifiedDate = null;
         ad.DeletedInd = false;
@@ -80,7 +80,7 @@ public class AdController(ApplicationDbContext context) : ControllerBase
         ad.ContactPhone = updatedAd.ContactPhone;
         ad.SampleInd = updatedAd.SampleInd;
         ad.ModifiedBY = User.Identity?.Name ?? "api-user";
-        ad.ModifiedDate = DateTime.UtcNow;
+        ad.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
@@ -98,9 +98,10 @@ public class AdController(ApplicationDbContext context) : ControllerBase
 
         ad.DeletedInd = true;
         ad.ModifiedBY = User.Identity?.Name ?? "api-user";
-        ad.ModifiedDate = DateTime.UtcNow;
+        ad.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
         return NoContent();
     }
 }
+

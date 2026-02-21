@@ -46,7 +46,7 @@ public class Ad
 
     public bool IsFeatured { get; set; }
 
-    public DateTime PublishDate { get; set; } = DateTime.UtcNow;
+    public DateTime PublishDate { get; set; } = CanHappy.Common.EasternTime.Now;
 
     public DateTime? ExpiryDate { get; set; }
 
@@ -77,7 +77,7 @@ public class Ad
     [StringLength(100)]
     public string? ModifiedBY { get; set; }
 
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedDate { get; set; } = CanHappy.Common.EasternTime.Now;
 
     public DateTime? ModifiedDate { get; set; }
 
