@@ -222,6 +222,10 @@ public static class DbInitializer
             if (existing.TryGetValue(name, out var category))
             {
                 category.SortOrder = index + 1;
+                if (name == "Buy & Sell")
+                {
+                    category.KeyWords = "buy sell sale computer laptop used new refurbished Camera Camcorders Furniture desk table chair bed box sofa music Arts Music Home  Appliances Cell Phones Tools Building Materials Sports Garden Plants Kids Toys game Industrial  Equipment Samsung iPhone fridge refridgerator washer dryer stove range electronics TV bag luggage case LG Fridgedare parts";
+                }
                 category.ModifiedBy = "system";
                 category.ModifiedDate = DateTime.UtcNow;
                 category.DeletedInd = false;
@@ -237,7 +241,8 @@ public static class DbInitializer
                     DeletedInd = false,
                     SampleInd = false,
                     CreatedBy = "system",
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    KeyWords = name == "Buy & Sell" ? "buy sell sale computer laptop used new refurbished Camera Camcorders Furniture desk table chair bed box sofa music Arts Music Home  Appliances Cell Phones Tools Building Materials Sports Garden Plants Kids Toys game Industrial  Equipment Samsung iPhone fridge refridgerator washer dryer stove range electronics TV bag luggage case LG Fridgedare parts" : null
                 });
             }
         }
