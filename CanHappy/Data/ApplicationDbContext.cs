@@ -183,6 +183,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.ThumbnailURL)
                 .HasMaxLength(200);
 
+            entity.Property(e => e.Brand)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Condition)
+                .HasMaxLength(10)
+                .HasDefaultValue("Used");
+
+            entity.Property(e => e.Model)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.Quantity)
+                .HasDefaultValue(1);
+
             entity.Property(e => e.Price)
                 .HasPrecision(18, 2);
 

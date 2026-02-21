@@ -31,6 +31,19 @@ public class Listing
     [StringLength(200)]
     public string? ThumbnailURL { get; set; }
 
+    [StringLength(50)]
+    public string? Brand { get; set; }
+
+    [StringLength(10)]
+    public string Condition { get; set; } = "Used";
+
+    [StringLength(30)]
+    public string? Model { get; set; }
+
+    public int Quantity { get; set; } = 1;
+
+    public int? ManufactureYear { get; set; }
+
     public decimal? Price { get; set; }
 
     public decimal DiscountPercent { get; set; }
