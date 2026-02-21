@@ -1,7 +1,7 @@
 @model IEnumerable<CanHappy.Models.Messaging.MessageListItemViewModel>
 
 @{
-    ViewData["Title"] = "Inbox";
+    ViewData["Title"] = "Your Inbox Messages";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -18,19 +18,24 @@ else
     <div class="d-flex flex-column align-items-start gap-2 w-100">
         @foreach (var message in Model)
         {
-            <a asp-action="Details" asp-route-id="@message.UserMessageGUID"
-                   class="card shadow-sm text-decoration-none text-body w-100 p-1">
+            <div class="card shadow ps-2 text-body w-100">
+
                 <div class="card-body">
                     <div class="row g-2 align-items-start">
+
                         <div class="col-12 col-md-10">
-                            <h5 class="mb-1">@message.Subject</h5>
-                            <p class="mb-1 text-muted">@message.BodyPreview</p>
+                            <a asp-action="Details" asp-route-id="@message.UserMessageGUID"
+                                   class="text-decoration-none text-body w-100">
+                                <h5 class="mb-1">@message.Subject</h5>
+                                <p class="mb-1 text-muted">@message.BodyPreview</p>
+                            </a>
                             <small>
-                                From: <strong>@message.CounterpartyName</strong> |
-                                Listing: <a asp-controller="ListingPage" asp-action="Details"
-                                            asp-route-id="@message.ListingGUID">@message.ListingSubject</a>
+                                From: <strong>@message.CounterpartyName</strong> | Listing:
+                                <a asp-controller="ListingPage" asp-action="Details"
+                                   asp-route-id="@message.ListingGUID">@message.ListingSubject</a>
                             </small>
                         </div>
+
                         <div class="col-12 col-md-2 text-md-end">
                             @if (!message.IsRead)
                             {
@@ -40,7 +45,9 @@ else
                         </div>
                     </div>
                 </div>
-            </a>
+
+            </div>
+
         }
     </div>
 }
