@@ -66,4 +66,6 @@ public class Listing
     public Province? Province { get; set; }
 
     public City? City { get; set; }
+
+    public BuySellDetail? BuySellDetail { get; set; }
 }

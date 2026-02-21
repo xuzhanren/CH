@@ -9,6 +9,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Subcategory> Subcategories => Set<Subcategory>();
     public DbSet<Listing> Listings => Set<Listing>();
+    public DbSet<BuySellDetail> BuySellDetails => Set<BuySellDetail>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
     public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<Country> Countries => Set<Country>();
@@ -250,6 +251,50 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.Listing)
                 .WithMany()
                 .HasForeignKey(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<BuySellDetail>(entity =>
+        {
+            entity.ToTable("BuySellDetail");
+            entity.HasKey(e => e.BuySellDetailGUID);
+
+            entity.Property(e => e.Model)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.PostalCode)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.Material)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.WarrantyInfo)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.AdditionalDetails)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.PickupTime)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.PickupLocation)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ModifiedBY)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID)
+                .IsUnique();
+
+            entity.HasOne(e => e.Listing)
+                .WithOne(e => e.BuySellDetail)
+                .HasForeignKey<BuySellDetail>(e => e.ListingGUID)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
