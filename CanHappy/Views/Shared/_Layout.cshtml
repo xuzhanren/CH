@@ -162,29 +162,6 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Home"
                                    asp-action="Index">Home</a>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
-                                   data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                               asp-route-name="Buy & Sell" title="@TooltipFor("Buy & Sell")">Buy & Sell</a>
-                                    </li>
-                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                           asp-route-name="Car & Vehicle" title="@TooltipFor("Car & Vehicle")">Car &
-                                        Vehicle</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                               asp-route-name="Home Rental" title="@TooltipFor("Home Rental")">Home
-                                            Rental</a></li>
-                                            <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                                   asp-route-name="Estate Sale" title="@TooltipFor("Estate Sale")">Estate
-                                                Sale</a></li>
-                                                <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                                           asp-route-name="Car Pool" title="@TooltipFor("Car Pool")">Car Pool</a></li>
-                                                    <li><a class="dropdown-item" asp-controller="Category" asp-action="Index"
-                                                               asp-route-name="Business Yellow Page"
-                                                               title="@TooltipFor("Business Yellow Page")">Business Yellow Page</a></li>
-                                                    </ul>
-                                                </li>
                                                 @if (User.IsInRole("Admin"))
                                                 {
                                                     <li class="nav-item dropdown">
@@ -220,7 +197,7 @@
                                                                                 <form asp-controller="ListingPage" asp-action="Index" method="get"
                                                                                       class="top-nav-search-box me-lg-2" id="topNavSearchBox">
                                                                                     <div class="top-nav-search-primary">
-                                                                                        <button type="submit" class="top-nav-search-icon" aria-label="Search">
+                                                                                        <button type="button" id="topNavSearchButton" class="top-nav-search-icon" aria-label="Search">
                                                                                             🔍
                                                                                         </button>
                                                                                         <input type="text" id="topNavKeywordInput" name="keywords" value="@selectedKeywords"
@@ -340,6 +317,7 @@
 
                                                                         const searchBox = document.getElementById("topNavSearchBox");
                                                                         const keywordInput = document.getElementById("topNavKeywordInput");
+                                                                        const searchButton = document.getElementById("topNavSearchButton");
                                                                         const advancedSection = document.getElementById("topNavSearchAdvanced");
                                                                         const categorySelect = document.getElementById("topNavCategorySelect");
                                                                         const subcategorySelect = document.getElementById("topNavSubcategorySelect");
@@ -347,9 +325,13 @@
                                                                         const citySelect = document.getElementById("topNavCitySelect");
                                                                         const geoStatus = document.getElementById("topNavGeoStatus");
 
-                                                                        if (!searchBox || !keywordInput || !advancedSection || !categorySelect || !subcategorySelect || !provinceSelect || !citySelect) {
+                                                                        if (!searchBox || !keywordInput || !searchButton || !advancedSection || !categorySelect || !subcategorySelect || !provinceSelect || !citySelect) {
                                                                             return;
                                                                         }
+
+                                                                        const executeSearch = () => {
+                                                                            searchBox.submit();
+                                                                        };
 
                                                                         const normalize = (value) => (value || "").trim().toLowerCase();
                                                                         const tokenize = (value) => normalize(value)
@@ -533,6 +515,16 @@
                                                                             keywordInputTimer = setTimeout(() => {
                                                                                 autoSelectCategoryAndSubcategory();
                                                                             }, 300);
+                                                                        });
+
+                                                                        keywordInput.addEventListener("keydown", (event) => {
+                                                                            if (event.key === "Enter") {
+                                                                                event.preventDefault();
+                                                                            }
+                                                                        });
+
+                                                                        searchButton.addEventListener("click", () => {
+                                                                            executeSearch();
                                                                         });
 
                                                                         categorySelect.addEventListener("change", () => {

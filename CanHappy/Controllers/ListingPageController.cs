@@ -44,8 +44,12 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
             if (normalizedTerms.Length > 0)
             {
+                var keywordPatterns = normalizedTerms
+                    .Select(term => $"%{term}%")
+                    .ToArray();
+
                 query = query.Where(listing => listing.KeyWords != null
-                    && normalizedTerms.Any(term => EF.Functions.ILike(listing.KeyWords, $"%{term}%")));
+                    && keywordPatterns.Any(pattern => EF.Functions.ILike(listing.KeyWords, pattern)));
             }
 
             ViewData["Keywords"] = keywords;

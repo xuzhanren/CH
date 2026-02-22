@@ -6,10 +6,7 @@
     <div>
         <h1 class="h3 mb-0">Subcategories</h1>
     </div>
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-        <a asp-action="Create" class="btn btn-primary">Create New</a>
-    }
+    <a href="/Subcategory/Create" class="btn btn-primary">Create New</a>
 </div>
 <div class="table-responsive">
     <table class="table table-striped align-middle">

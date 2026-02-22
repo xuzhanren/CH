@@ -32,7 +32,8 @@ public class SubcategoryController(ApplicationDbContext context) : Controller
         return View(subcategory);
     }
 
-    [Authorize]
+    [HttpGet]
+    [AllowAnonymous]
     public IActionResult Create()
     {
         ViewData["Categories"] = context.Categories.OrderBy(c => c.Name).ToList();

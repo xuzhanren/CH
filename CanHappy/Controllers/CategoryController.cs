@@ -48,7 +48,8 @@ public class CategoryController(ApplicationDbContext context) : Controller
         return View(category);
     }
 
-    [Authorize]
+    [HttpGet]
+    [AllowAnonymous]
     public IActionResult Create()
     {
         return View();

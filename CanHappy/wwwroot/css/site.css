@@ -157,16 +157,16 @@ body {
 .top-nav-search-icon {
   border: 0;
   background: transparent;
-  font-size: 0.9rem;
-  line-height: 1;
+  font-size: 1.2rem;
+  line-height: 1.2;
   padding: 0.05rem 0.15rem;
   color: inherit;
 }
 
 .top-nav-search-input {
-  width: 500px;
-  min-width: 500px;
-  max-width: 500px;
+  width: 250px;
+  min-width: 100px;
+  max-width: 250px;
 }
 
 .top-nav-search-advanced {
