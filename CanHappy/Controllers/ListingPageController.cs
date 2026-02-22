@@ -11,7 +11,7 @@ namespace CanHappy.Controllers;
 public class ListingPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
 {
     [HttpGet("")]
-    public async Task<IActionResult> Index(string? categoryName, string? subcategoryName, Guid? focusListingId)
+    public async Task<IActionResult> Index(string? categoryName, string? subcategoryName, string? keywords, int? provinceId, int? cityId, Guid? focusListingId)
     {
         var query = context.Listings
             .Include(listing => listing.Category)
@@ -32,6 +32,35 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
         {
             query = query.Where(listing => listing.Subcategory != null && listing.Subcategory.Name == subcategoryName);
             ViewData["SubcategoryName"] = subcategoryName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(keywords))
+        {
+            var normalizedTerms = keywords
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(term => !string.IsNullOrWhiteSpace(term))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (normalizedTerms.Length > 0)
+            {
+                query = query.Where(listing => listing.KeyWords != null
+                    && normalizedTerms.Any(term => EF.Functions.ILike(listing.KeyWords, $"%{term}%")));
+            }
+
+            ViewData["Keywords"] = keywords;
+        }
+
+        if (provinceId.HasValue)
+        {
+            query = query.Where(listing => listing.ProvinceId == provinceId.Value);
+            ViewData["ProvinceId"] = provinceId.Value;
+        }
+
+        if (cityId.HasValue)
+        {
+            query = query.Where(listing => listing.CityId == cityId.Value);
+            ViewData["CityId"] = cityId.Value;
         }
 
         if (focusListingId.HasValue)
