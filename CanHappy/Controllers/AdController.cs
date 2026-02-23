@@ -70,7 +70,8 @@ public class AdController(ApplicationDbContext context) : ControllerBase
         ad.ImageURL = updatedAd.ImageURL;
         ad.Price = updatedAd.Price;
         ad.CurrencyCode = updatedAd.CurrencyCode;
-        ad.Status = updatedAd.Status;
+        ad.AdStatusId = updatedAd.AdStatusId;
+        ad.AdSizeId = updatedAd.AdSizeId;
         ad.IsFeatured = updatedAd.IsFeatured;
         ad.PublishDate = updatedAd.PublishDate;
         ad.ExpiryDate = updatedAd.ExpiryDate;

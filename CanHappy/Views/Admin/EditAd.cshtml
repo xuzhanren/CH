@@ -1,8 +1,15 @@
 @model CanHappy.Models.Ad
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "Edit Ad";
+    var hasImage = !string.IsNullOrWhiteSpace(Model?.ImageURL);
+    var subcategoryLookup = ViewData["SubcategoryLookup"];
+    var cityLookup = ViewData["CityLookup"];
+    var isRegisteredOnlyUser = User.IsInRole("RegisteredUser") && !User.IsInRole("Admin") && !User.IsInRole("Clerk");
 }
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
 
 <h1>@ViewData["Title"]</h1>
 
@@ -10,33 +17,759 @@
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="AdGUID" />
-    <div class="mb-3">
-        <label asp-for="CityId" class="form-label"></label>
-        <select asp-for="CityId" class="form-select" asp-items="ViewBag.CityId"></select>
-        <span asp-validation-for="CityId" class="text-danger"></span>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="CategoryId" class="form-label"></label>
+            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                <option value="">Select Category</option>
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="SubcategoryId" class="form-label"></label>
+            <select asp-for="SubcategoryId" class="form-select" asp-items="ViewBag.SubcategoryId">
+                <option value="">Select Subcategory</option>
+            </select>
+            <span asp-validation-for="SubcategoryId" class="text-danger"></span>
+        </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="ProvinceId" class="form-label"></label>
+            <select asp-for="ProvinceId" class="form-select" asp-items="ViewBag.ProvinceId">
+                <option value="">Select Province</option>
+            </select>
+            <span asp-validation-for="ProvinceId" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="CityId" class="form-label"></label>
+            <select asp-for="CityId" class="form-select" asp-items="ViewBag.CityId"></select>
+            <span asp-validation-for="CityId" class="text-danger"></span>
+        </div>
+    </div>
+
     <div class="mb-3">
         <label asp-for="Subject" class="form-label"></label>
         <input asp-for="Subject" class="form-control" />
         <span asp-validation-for="Subject" class="text-danger"></span>
     </div>
+
     <div class="mb-3">
         <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
+        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
         <span asp-validation-for="Description" class="text-danger"></span>
     </div>
-    <div class="mb-3">
-        <label asp-for="Price" class="form-label"></label>
-        <input asp-for="Price" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Status" class="form-label"></label>
-        <input asp-for="Status" class="form-control" />
-    </div>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Ads" class="btn btn-secondary">Cancel</a>
-</form>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+    <div class="mb-3">
+        <label asp-for="KeyWords" class="form-label"></label>
+        <input asp-for="KeyWords" class="form-control" />
+        <span asp-validation-for="KeyWords" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="PostalCode" class="form-label"></label>
+            <input asp-for="PostalCode" class="form-control" />
+            <span asp-validation-for="PostalCode" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="Price" class="form-label"></label>
+            @if (!isRegisteredOnlyUser)
+            {
+                <input asp-for="Price" class="form-control" />
+            }
+            else
+            {
+                <input asp-for="Price" class="form-control" readonly />
+            }
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="CurrencyCode" class="form-label"></label>
+            <input asp-for="CurrencyCode" class="form-control" />
+            <span asp-validation-for="CurrencyCode" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        @if (!isRegisteredOnlyUser)
+        {
+            <div class="col-md-4 mb-3">
+                <label asp-for="AdStatusId" class="form-label"></label>
+                <select asp-for="AdStatusId" class="form-select" asp-items="ViewBag.AdStatusId">
+                    <option value="">Select Status</option>
+                </select>
+                <span asp-validation-for="AdStatusId" class="text-danger"></span>
+            </div>
+        }
+        else
+        {
+            <div class="col-md-4 mb-3">
+                <label asp-for="AdStatusId" class="form-label"></label>
+                <select asp-for="AdStatusId" class="form-select" asp-items="ViewBag.AdStatusId" disabled>
+                    <option value="">Select Status</option>
+                </select>
+                <input type="hidden" asp-for="AdStatusId" />
+            </div>
+        }
+        <div class="col-md-4 mb-3">
+            <label asp-for="AdSizeId" class="form-label"></label>
+            <select asp-for="AdSizeId" class="form-select" asp-items="ViewBag.AdSizeId">
+                <option value="">Select Ad Size</option>
+            </select>
+            <span asp-validation-for="AdSizeId" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="TargetURL" class="form-label"></label>
+            <input asp-for="TargetURL" class="form-control" />
+            <span asp-validation-for="TargetURL" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="PublishDate" class="form-label"></label>
+            <input asp-for="PublishDate" type="datetime-local" class="form-control" />
+            <span asp-validation-for="PublishDate" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="ExpiryDate" class="form-label"></label>
+            <input asp-for="ExpiryDate" type="datetime-local" class="form-control" />
+            <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 form-check mb-3">
+            <input asp-for="IsFeatured" class="form-check-input" />
+            <label asp-for="IsFeatured" class="form-check-label"></label>
+        </div>
+        @if (!isRegisteredOnlyUser)
+        {
+            <div class="col-md-4 form-check mb-3">
+                <input asp-for="PaidInd" class="form-check-input" />
+                <label asp-for="PaidInd" class="form-check-label"></label>
+            </div>
+            <div class="col-md-4 form-check mb-3">
+                <input asp-for="ActiveInd" class="form-check-input" />
+                <label asp-for="ActiveInd" class="form-check-label"></label>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" asp-for="PaidInd" />
+            <input type="hidden" asp-for="ActiveInd" />
+        }
+    </div>
+
+    @if (!isRegisteredOnlyUser)
+    {
+        <div class="row">
+            <div class="col-md-6 form-check mb-3">
+                <input asp-for="DeletedInd" class="form-check-input" />
+                <label asp-for="DeletedInd" class="form-check-label"></label>
+            </div>
+            <div class="col-md-6 form-check mb-3">
+                <input asp-for="SampleInd" class="form-check-input" />
+                <label asp-for="SampleInd" class="form-check-label"></label>
+            </div>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="DeletedInd" />
+        <input type="hidden" asp-for="SampleInd" />
+    }
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="ContactName" class="form-label"></label>
+            <input asp-for="ContactName" class="form-control" />
+            <span asp-validation-for="ContactName" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ContactEmail" class="form-label"></label>
+            <input asp-for="ContactEmail" class="form-control" />
+            <span asp-validation-for="ContactEmail" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="ContactPhone" class="form-label"></label>
+            <input asp-for="ContactPhone" class="form-control" />
+            <span asp-validation-for="ContactPhone" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Ad Image</label>
+        <input type="file" id="adImageFileInput" class="form-control" accept="image/*" />
+        <div class="mt-2 d-flex gap-2">
+            <button type="button" id="openAdCropModalButton" class="btn btn-outline-primary" disabled>Clip
+                Image</button>
+                <button type="button" id="clearAdImageButton" class="btn btn-outline-secondary">Clear Image</button>
+            </div>
+        </div>
+
+        <div id="adImagePreviewContainer" class="mb-3 @(hasImage ? string.Empty : "d-none")">
+            <label class="form-label">Image Preview</label>
+            <div>
+                <img id="adImagePreview" src="@Model?.ImageURL" alt="Ad image preview" class="img-fluid rounded border"
+                     style="max-height: 220px;" />
+            </div>
+        </div>
+
+        <input type="hidden" asp-for="ImageURL" />
+        <input type="hidden" id="CroppedAdImageData" name="croppedImageData" />
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Ads" class="btn btn-secondary">Cancel</a>
+    </form>
+
+    <div class="modal fade" id="adImageCropModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content h-100">
+                <div class="modal-header py-2 px-3">
+                    <h5 class="modal-title">Clip Ad Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2 pb-2 px-3 d-flex flex-column overflow-hidden">
+                    <div class="d-flex flex-wrap gap-2 align-items-center pb-2 mb-3 flex-shrink-0">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <label for="cropAspectRatioSelect" class="form-label mb-0 text-nowrap">Aspect Ratio</label>
+                            <select id="cropAspectRatioSelect" class="form-select form-select-sm" style="min-width: 100px;">
+                                <option value="1:1" selected>1:1</option>
+                                <option value="3:2">3:2</option>
+                                <option value="4:3">4:3</option>
+                                <option value="16:9">16:9</option>
+                                <option value="9:16">9:16</option>
+                            </select>
+                        </div>
+                        <button type="button" id="editCropModeButton" class="btn btn-sm btn-primary mb-1 text-nowrap">Crop
+                            Mode</button>
+                            <button type="button" id="editPenModeButton"
+                                    class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Free Draw Pen</button>
+                            <button type="button" id="editEraseModeButton"
+                                    class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Erase</button>
+                            <button type="button" id="editTextModeButton"
+                                    class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Type Text</button>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label for="editFontSelect" class="form-label mb-0 text-nowrap">Font</label>
+                                <select id="editFontSelect" class="form-select form-select-sm" style="min-width: 150px;">
+                                    <option value="Arial, sans-serif" selected>Arial</option>
+                                    <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                                    <option value="Verdana, sans-serif">Verdana</option>
+                                    <option value="Tahoma, sans-serif">Tahoma</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                    <option value="'Courier New', monospace">Courier New</option>
+                                </select>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label for="editFontSizeInput" class="form-label mb-0 text-nowrap">Font Size</label>
+                                <input id="editFontSizeInput" type="number" class="form-control form-control-sm" min="8"
+                                       max="120" step="1" value="24" style="width: 90px;" />
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label for="editBrushSizeInput" class="form-label mb-0 text-nowrap">Brush Size</label>
+                                <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="0" max="30" value="12"
+                                       style="width: 140px;" />
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label for="editColorInput" class="form-label mb-0 text-nowrap">Color</label>
+                                <input id="editColorInput" type="color" class="form-control form-control-color"
+                                       value="#ff0000" />
+                            </div>
+                            <button type="button" id="applyEditsButton"
+                                    class="btn btn-sm btn-outline-primary mb-1 text-nowrap">Apply Edits</button>
+                            <button type="button" id="undoEditButton"
+                                    class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Undo</button>
+                            <button type="button" id="redoEditButton"
+                                    class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Redo</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mb-1 text-nowrap"
+                                    data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" id="saveCroppedImageButton"
+                                    class="btn btn-sm btn-primary mb-1 text-nowrap">Save Clipped Image</button>
+                        </div>
+                        <div class="position-relative border rounded overflow-hidden bg-light flex-grow-1"
+                             style="min-height: 0;">
+                            <img id="cropperImage" alt="Image to crop" class="w-100 h-100" style="object-fit: contain;" />
+                            <canvas id="editCanvas" class="w-100 h-100 d-none"
+                                    style="touch-action: none; cursor: crosshair; width: 100%; height: 100%;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @section Scripts {
+            <partial name="_ValidationScriptsPartial" />
+            <script>
+                (() => {
+                    const subcategories = @Html.Raw(JsonSerializer.Serialize(subcategoryLookup));
+                    const cities = @Html.Raw(JsonSerializer.Serialize(cityLookup));
+
+                    const categorySelect = document.getElementById("CategoryId");
+                    const subcategorySelect = document.getElementById("SubcategoryId");
+                    const provinceSelect = document.getElementById("ProvinceId");
+                    const citySelect = document.getElementById("CityId");
+
+                    const selectedSubcategoryId = Number(subcategorySelect?.value || 0);
+                    const selectedCityId = Number(citySelect?.value || 0);
+
+                    const populate = (target, items, placeholder, valueKey = "id") => {
+                        if (!target) {
+                            return;
+                        }
+
+                        target.innerHTML = "";
+
+                        const placeholderOption = document.createElement("option");
+                        placeholderOption.value = "";
+                        placeholderOption.textContent = placeholder;
+                        target.appendChild(placeholderOption);
+
+                        items.forEach(item => {
+                            const option = document.createElement("option");
+                            option.value = item[valueKey];
+                            option.textContent = item.name;
+                            target.appendChild(option);
+                        });
+                    };
+
+                    const refreshSubcategories = (selectedId = 0) => {
+                        const categoryId = Number(categorySelect?.value || 0);
+                        const filtered = categoryId > 0
+                            ? subcategories.filter(item => item.categoryId === categoryId)
+                            : [];
+
+                        populate(subcategorySelect, filtered, "Select Subcategory");
+
+                        if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                            subcategorySelect.value = String(selectedId);
+                        }
+                    };
+
+                    const refreshCities = (selectedId = 0) => {
+                        const provinceId = Number(provinceSelect?.value || 0);
+                        const filtered = provinceId > 0
+                            ? cities.filter(item => item.provinceId === provinceId)
+                            : [];
+
+                        populate(citySelect, filtered, "Select City");
+
+                        if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                            citySelect.value = String(selectedId);
+                        }
+                    };
+
+                    categorySelect?.addEventListener("change", () => refreshSubcategories());
+                    provinceSelect?.addEventListener("change", () => refreshCities());
+
+                    refreshSubcategories(selectedSubcategoryId);
+                    refreshCities(selectedCityId);
+                })();
+            </script>
+            <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+            <script>
+                (() => {
+                const adImageFileInput = document.getElementById("adImageFileInput");
+                const openAdCropModalButton = document.getElementById("openAdCropModalButton");
+                const clearAdImageButton = document.getElementById("clearAdImageButton");
+                const adImagePreviewContainer = document.getElementById("adImagePreviewContainer");
+                const adImagePreview = document.getElementById("adImagePreview");
+                const imageUrlInput = document.getElementById("ImageURL");
+                const croppedAdImageDataInput = document.getElementById("CroppedAdImageData");
+
+                const cropModalElement = document.getElementById("adImageCropModal");
+                const cropperImage = document.getElementById("cropperImage");
+                const editCanvas = document.getElementById("editCanvas");
+                const editContext = editCanvas.getContext("2d");
+                const cropAspectRatioSelect = document.getElementById("cropAspectRatioSelect");
+                const editCropModeButton = document.getElementById("editCropModeButton");
+                const editPenModeButton = document.getElementById("editPenModeButton");
+                const editEraseModeButton = document.getElementById("editEraseModeButton");
+                const editTextModeButton = document.getElementById("editTextModeButton");
+                const editFontSelect = document.getElementById("editFontSelect");
+                const editFontSizeInput = document.getElementById("editFontSizeInput");
+                const editBrushSizeInput = document.getElementById("editBrushSizeInput");
+                const editColorInput = document.getElementById("editColorInput");
+                const applyEditsButton = document.getElementById("applyEditsButton");
+                const undoEditButton = document.getElementById("undoEditButton");
+                const redoEditButton = document.getElementById("redoEditButton");
+                const saveCroppedImageButton = document.getElementById("saveCroppedImageButton");
+                const cropModal = new bootstrap.Modal(cropModalElement);
+
+                let sourceImageDataUrl = "";
+                let workingImageDataUrl = "";
+                let cropper = null;
+                let currentAspectRatio = 1;
+                let activeEditTool = "crop";
+                let isDrawing = false;
+                let lastPoint = null;
+                let editHistory = [];
+                let redoHistory = [];
+
+                const getAspectRatio = (value) => {
+                const parts = (value || "").split(":");
+                if (parts.length !== 2) {
+                return 1;
+                }
+
+                const width = Number(parts[0]);
+                const height = Number(parts[1]);
+                if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+                return 1;
+                }
+
+                return width / height;
+                };
+
+                const getCanvasSize = (aspectRatio) => {
+                if (Math.abs(aspectRatio - (16 / 9)) < 0.001) {
+                return { width: 1280, height: 720 };
+                }
+
+                const base = 800;
+                if (aspectRatio >= 1) {
+                return {
+                width: base,
+                height: Math.round(base / aspectRatio)
+                };
+                }
+
+                return {
+                width: Math.round(base * aspectRatio),
+                height: base
+                };
+                };
+
+                const createCropper = () => {
+                cropper?.destroy();
+                cropper = new Cropper(cropperImage, {
+                aspectRatio: currentAspectRatio,
+                viewMode: 1,
+                autoCropArea: 1,
+                dragMode: "move"
+                });
+                };
+
+                const setToolButtonStyles = () => {
+                const entries = [
+                [editCropModeButton, "crop"],
+                [editPenModeButton, "pen"],
+                [editEraseModeButton, "erase"],
+                [editTextModeButton, "text"]
+                ];
+
+                entries.forEach(([button, mode]) => {
+                const isActive = activeEditTool === mode;
+                button.classList.toggle("btn-primary", isActive);
+                button.classList.toggle("btn-outline-secondary", !isActive);
+                });
+                };
+
+                const getCanvasPoint = (event) => {
+                const rect = editCanvas.getBoundingClientRect();
+                const scaleX = editCanvas.width / rect.width;
+                const scaleY = editCanvas.height / rect.height;
+                return {
+                x: (event.clientX - rect.left) * scaleX,
+                y: (event.clientY - rect.top) * scaleY
+                };
+                };
+
+                const drawStroke = (fromPoint, toPoint) => {
+                editContext.lineCap = "round";
+                editContext.lineJoin = "round";
+                const brushSize = Number.parseFloat(editBrushSizeInput.value);
+                editContext.lineWidth = Number.isFinite(brushSize) ? brushSize : 12;
+                editContext.globalCompositeOperation = activeEditTool === "erase" ? "destination-out" : "source-over";
+                editContext.strokeStyle = editColorInput.value || "#ff0000";
+                editContext.beginPath();
+                editContext.moveTo(fromPoint.x, fromPoint.y);
+                editContext.lineTo(toPoint.x, toPoint.y);
+                editContext.stroke();
+                editContext.globalCompositeOperation = "source-over";
+                };
+
+                const loadImageToCanvas = (imageDataUrl, onLoaded = null) => {
+                if (!imageDataUrl) {
+                return;
+                }
+
+                const image = new Image();
+                image.onload = () => {
+                editCanvas.width = image.naturalWidth;
+                editCanvas.height = image.naturalHeight;
+                editContext.clearRect(0, 0, editCanvas.width, editCanvas.height);
+                editContext.drawImage(image, 0, 0, editCanvas.width, editCanvas.height);
+                if (typeof onLoaded === "function") {
+                onLoaded();
+                }
+                };
+                image.src = imageDataUrl;
+                };
+
+                const pushCanvasHistory = () => {
+                if (!editCanvas.width || !editCanvas.height) {
+                return;
+                }
+
+                const snapshot = editCanvas.toDataURL("image/png");
+                if (editHistory.length > 0 && editHistory[editHistory.length - 1] === snapshot) {
+                return;
+                }
+
+                editHistory.push(snapshot);
+                if (editHistory.length > 30) {
+                editHistory.shift();
+                }
+                };
+
+                const registerNewEdit = () => {
+                pushCanvasHistory();
+                redoHistory = [];
+                };
+
+                const undoCanvasEdit = () => {
+                if (editHistory.length <= 1) {
+                return;
+                }
+
+                redoHistory.push(editHistory[editHistory.length - 1]);
+                editHistory.pop();
+                const previousSnapshot = editHistory[editHistory.length - 1];
+                loadImageToCanvas(previousSnapshot);
+                };
+
+                const redoCanvasEdit = () => {
+                if (redoHistory.length === 0) {
+                return;
+                }
+
+                const nextSnapshot = redoHistory.pop();
+                if (!nextSnapshot) {
+                return;
+                }
+
+                editHistory.push(nextSnapshot);
+                loadImageToCanvas(nextSnapshot);
+                };
+
+                const showCropperImage = () => {
+                editCanvas.classList.add("d-none");
+                cropperImage.classList.remove("d-none");
+                cropperImage.src = workingImageDataUrl || sourceImageDataUrl;
+
+                if (cropperImage.complete) {
+                createCropper();
+                } else {
+                cropperImage.addEventListener("load", () => createCropper(), { once: true });
+                }
+                };
+
+                const applyCanvasEdits = () => {
+                if (editCanvas.classList.contains("d-none")) {
+                return;
+                }
+
+                workingImageDataUrl = editCanvas.toDataURL("image/png");
+                sourceImageDataUrl = workingImageDataUrl;
+                };
+
+                const switchToTool = (tool) => {
+                activeEditTool = tool;
+                setToolButtonStyles();
+
+                if (tool === "crop") {
+                applyCanvasEdits();
+                showCropperImage();
+                return;
+                }
+
+                cropper?.destroy();
+                cropper = null;
+
+                cropperImage.classList.add("d-none");
+                editCanvas.classList.remove("d-none");
+                if (!editCanvas.width || !editCanvas.height) {
+                loadImageToCanvas(workingImageDataUrl || sourceImageDataUrl, () => {
+                editHistory = [];
+                redoHistory = [];
+                pushCanvasHistory();
+                });
+                }
+                };
+
+                adImageFileInput.addEventListener("change", () => {
+                const file = adImageFileInput.files?.[0];
+                if (!file) {
+                sourceImageDataUrl = "";
+                workingImageDataUrl = "";
+                openAdCropModalButton.disabled = true;
+                return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                sourceImageDataUrl = event.target?.result?.toString() || "";
+                workingImageDataUrl = sourceImageDataUrl;
+                openAdCropModalButton.disabled = !sourceImageDataUrl;
+                if (sourceImageDataUrl) {
+                activeEditTool = "crop";
+                setToolButtonStyles();
+                editHistory = [];
+                redoHistory = [];
+                editCanvas.width = 0;
+                editCanvas.height = 0;
+                cropperImage.src = sourceImageDataUrl;
+                cropModal.show();
+                }
+                };
+                reader.readAsDataURL(file);
+                });
+
+                if (adImagePreview?.src) {
+                sourceImageDataUrl = adImagePreview.src;
+                workingImageDataUrl = sourceImageDataUrl;
+                openAdCropModalButton.disabled = false;
+                }
+
+                openAdCropModalButton.addEventListener("click", () => {
+                if (!sourceImageDataUrl) {
+                return;
+                }
+
+                activeEditTool = "crop";
+                setToolButtonStyles();
+                cropperImage.src = workingImageDataUrl || sourceImageDataUrl;
+                cropModal.show();
+                });
+
+                cropModalElement.addEventListener("shown.bs.modal", () => {
+                if (!cropperImage.src) {
+                return;
+                }
+
+                if (activeEditTool === "crop") {
+                createCropper();
+                }
+                });
+
+                cropModalElement.addEventListener("hidden.bs.modal", () => {
+                cropper?.destroy();
+                cropper = null;
+                });
+
+                cropAspectRatioSelect.addEventListener("change", () => {
+                currentAspectRatio = getAspectRatio(cropAspectRatioSelect.value);
+                if (cropper) {
+                cropper.setAspectRatio(currentAspectRatio);
+                }
+                });
+
+                editCropModeButton.addEventListener("click", () => switchToTool("crop"));
+                editPenModeButton.addEventListener("click", () => switchToTool("pen"));
+                editEraseModeButton.addEventListener("click", () => switchToTool("erase"));
+                editTextModeButton.addEventListener("click", () => switchToTool("text"));
+                applyEditsButton.addEventListener("click", () => switchToTool("crop"));
+                undoEditButton.addEventListener("click", () => undoCanvasEdit());
+                redoEditButton.addEventListener("click", () => redoCanvasEdit());
+
+                editCanvas.addEventListener("pointerdown", (event) => {
+                if (activeEditTool === "text") {
+                const textValue = prompt("Enter text to add:");
+                if (!textValue) {
+                return;
+                }
+
+                const point = getCanvasPoint(event);
+                const fontSize = Number.parseInt(editFontSizeInput.value, 10);
+                const resolvedFontSize = Number.isFinite(fontSize) ? Math.max(8, fontSize) : 24;
+                const selectedFont = editFontSelect.value || "Arial, sans-serif";
+                editContext.globalCompositeOperation = "source-over";
+                editContext.fillStyle = editColorInput.value || "#ff0000";
+                editContext.font = `${resolvedFontSize}px ${selectedFont}`;
+                editContext.fillText(textValue, point.x, point.y);
+                registerNewEdit();
+                return;
+                }
+
+                if (activeEditTool !== "pen" && activeEditTool !== "erase") {
+                return;
+                }
+
+                isDrawing = true;
+                lastPoint = getCanvasPoint(event);
+                editCanvas.setPointerCapture(event.pointerId);
+                });
+
+                editCanvas.addEventListener("pointermove", (event) => {
+                if (!isDrawing || !lastPoint) {
+                return;
+                }
+
+                const nextPoint = getCanvasPoint(event);
+                drawStroke(lastPoint, nextPoint);
+                lastPoint = nextPoint;
+                });
+
+                const stopDrawing = (event) => {
+                if (isDrawing) {
+                isDrawing = false;
+                lastPoint = null;
+                registerNewEdit();
+                if (typeof event.pointerId !== "undefined") {
+                editCanvas.releasePointerCapture(event.pointerId);
+                }
+                }
+                };
+
+                editCanvas.addEventListener("pointerup", stopDrawing);
+                editCanvas.addEventListener("pointerleave", stopDrawing);
+                editCanvas.addEventListener("pointercancel", stopDrawing);
+
+                saveCroppedImageButton.addEventListener("click", () => {
+                if (activeEditTool !== "crop") {
+                switchToTool("crop");
+                }
+
+                if (!cropper) {
+                return;
+                }
+
+                const canvasSize = getCanvasSize(currentAspectRatio);
+                const canvas = cropper.getCroppedCanvas({
+                width: canvasSize.width,
+                height: canvasSize.height,
+                imageSmoothingQuality: "high"
+                });
+
+                const croppedDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+                croppedAdImageDataInput.value = croppedDataUrl;
+                imageUrlInput.value = "";
+                adImagePreview.src = croppedDataUrl;
+                adImagePreviewContainer.classList.remove("d-none");
+                cropModal.hide();
+                });
+
+                clearAdImageButton.addEventListener("click", () => {
+                adImageFileInput.value = "";
+                sourceImageDataUrl = "";
+                workingImageDataUrl = "";
+                activeEditTool = "crop";
+                editHistory = [];
+                redoHistory = [];
+                setToolButtonStyles();
+                openAdCropModalButton.disabled = true;
+                croppedAdImageDataInput.value = "";
+                imageUrlInput.value = "";
+                adImagePreview.src = "";
+                adImagePreviewContainer.classList.add("d-none");
+                });
+
+                setToolButtonStyles();
+                })();
+            </script>
+        }

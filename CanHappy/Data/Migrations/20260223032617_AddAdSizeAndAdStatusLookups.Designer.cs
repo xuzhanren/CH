@@ -3,6 +3,7 @@ using System;
 using CanHappy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CanHappy.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260223032617_AddAdSizeAndAdStatusLookups")]
+    partial class AddAdSizeAndAdStatusLookups
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,13 +34,9 @@ namespace CanHappy.Data.Migrations
                     b.Property<bool>("ActiveInd")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("AdSizeId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AdStatusId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                    b.Property<string>("AdSize")
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("integer");
@@ -123,6 +122,13 @@ namespace CanHappy.Data.Migrations
                     b.Property<bool>("SampleInd")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Draft");
+
                     b.Property<int?>("SubcategoryId")
                         .HasColumnType("integer");
 
@@ -142,10 +148,6 @@ namespace CanHappy.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("AdGUID");
-
-                    b.HasIndex("AdSizeId");
-
-                    b.HasIndex("AdStatusId");
 
                     b.HasIndex("CategoryId");
 
@@ -1154,17 +1156,6 @@ namespace CanHappy.Data.Migrations
 
             modelBuilder.Entity("CanHappy.Models.Ad", b =>
                 {
-                    b.HasOne("CanHappy.Models.AdSize", "AdSizeOption")
-                        .WithMany()
-                        .HasForeignKey("AdSizeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("CanHappy.Models.AdStatus", "AdStatus")
-                        .WithMany()
-                        .HasForeignKey("AdStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("CanHappy.Models.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
@@ -1185,10 +1176,6 @@ namespace CanHappy.Data.Migrations
                         .WithMany()
                         .HasForeignKey("SubcategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AdSizeOption");
-
-                    b.Navigation("AdStatus");
 
                     b.Navigation("Category");
 

@@ -65,27 +65,27 @@
                                     <div class="card-body p-2">
                                         <div class="small text-truncate">@(string.IsNullOrWhiteSpace(image.value.Title) ? "Photo" :
                                                                             image.value.Title)</div>
-                                        <div class="small text-muted">Sort: @image.value.SorOrder</div>
-                                        @if (Model.CanManageFocusedListing)
-                                        {
-                                            <div class="d-flex gap-1 mt-1">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary edit-photo-button"
-                                                        data-listing-image-guid="@image.value.ListingImageGUID" data-title="@image.value.Title"
-                                                        data-sort-order="@image.value.SorOrder" data-image-url="@previewUrl">
-                                                    Edit Photo
-                                                </button>
-                                                <form method="post"
-                                                      asp-action="DeletePhoto"
-                                                      asp-route-listingGuid="@Model.ListingCard.ListingGUID"
-                                                      asp-route-listingImageGuid="@image.value.ListingImageGUID"
-                                                      onsubmit="return confirm('Delete this photo?');">
-                                                    @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                                </form>
-                                            </div>
-                                        }
+                                            <div class="small text-muted">Sort: @image.value.SorOrder</div>
+                                            @if (Model.CanManageFocusedListing)
+                                            {
+                                                <div class="d-flex gap-1 mt-1">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary edit-photo-button"
+                                                            data-listing-image-guid="@image.value.ListingImageGUID"
+                                                            data-title="@image.value.Title" data-sort-order="@image.value.SorOrder"
+                                                            data-image-url="@previewUrl">
+                                                        Edit Photo
+                                                    </button>
+                                                    <form method="post" asp-action="DeletePhoto"
+                                                          asp-route-listingGuid="@Model.ListingCard.ListingGUID"
+                                                          asp-route-listingImageGuid="@image.value.ListingImageGUID"
+                                                          onsubmit="return confirm('Delete this photo?');">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                                    </form>
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
-                                </div>
                                 </div>
                             }
                         </div>
@@ -151,15 +151,18 @@
         @if (Model.ListingImages.Any())
         {
             <div class="modal fade" id="listingPhotoViewerModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-xl modal-dialog-centered">
-                    <div class="modal-content">
+                <div class="modal-dialog modal-fullscreen">
+                    <div class="modal-content h-100">
                         <div class="modal-header">
                             <h5 class="modal-title">Listing Photo Viewer</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div id="viewerImageTitle" class="fw-semibold"></div>
+                        <div class="modal-body d-flex flex-column overflow-hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-2 flex-shrink-0">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div id="viewerImageTitle" class="fw-semibold"></div>
+                                    <span class="text-muted" title="drag to pan and scroll to zoom" aria-label="drag to pan and scroll to zoom">ⓘ</span>
+                                </div>
                                 <div class="btn-group">
                                     <button type="button" id="viewerPrev" class="btn btn-outline-secondary btn-sm">Prev</button>
                                     <button type="button" id="viewerZoomOut" class="btn btn-outline-secondary btn-sm">-</button>
@@ -169,12 +172,13 @@
                                     <button type="button" id="viewerNext" class="btn btn-outline-secondary btn-sm">Next</button>
                                 </div>
                             </div>
-                            <div class="border rounded bg-dark d-flex justify-content-center align-items-center overflow-auto"
-                                 style="min-height: 520px;">
-                                <img id="viewerMainImage" alt="Listing photo"
-                                      style="max-width: 100%; max-height: 500px; transform-origin: center center; transition: transform .15s ease; cursor: grab;" />
+                               <div class="border rounded bg-dark d-flex justify-content-center align-items-center overflow-hidden flex-grow-1"
+                                 style="min-height: 0;">
+                                  <img id="viewerMainImage" alt="Listing photo" title="drag to pan and scroll to zoom" aria-label="drag to pan and scroll to zoom" draggable="false"
+                                      style="width: 100%; height: 100%; object-fit: contain; transform-origin: center center; transition: transform .15s ease; cursor: grab; touch-action: none; user-select: none;" />
                             </div>
-                            <div class="mt-3 d-flex gap-2 overflow-auto pb-1" id="viewerThumbnailStrip">
+                               <div class="mt-2 d-flex flex-nowrap justify-content-center gap-2 overflow-auto pb-1 flex-shrink-0" id="viewerThumbnailStrip"
+                                 style="min-height: 84px;">
                                 @foreach (var image in Model.ListingImages.Select((value, index) => new { value, index }))
                                 {
                                     var thumbUrl = !string.IsNullOrWhiteSpace(image.value.ThumbnailURL) ? image.value.ThumbnailURL :
@@ -209,14 +213,16 @@
                     const viewerZoomReset = document.getElementById("viewerZoomReset");
                     const viewerThumbButtons = Array.from(document.querySelectorAll(".viewer-thumb"));
                     const triggerButtons = Array.from(document.querySelectorAll(".view-listing-photo"));
+                    const viewerViewport = viewerMainImage.parentElement;
 
                     let zoomScale = 1;
                     let selectedIndex = 0;
-                    let translateX = 0;
-                    let translateY = 0;
+                    let targetTranslateX = 0;
+                    let targetTranslateY = 0;
                     let isDragging = false;
-                    let dragStartX = 0;
-                    let dragStartY = 0;
+                    let lastPointerX = 0;
+                    let lastPointerY = 0;
+                    let rafPending = false;
 
                     const getViewerModal = () => {
                         if (!window.bootstrap || !window.bootstrap.Modal) {
@@ -226,9 +232,64 @@
                         return window.bootstrap.Modal.getOrCreateInstance(viewerModalElement);
                     };
 
-                    const applyZoom = () => {
-                        viewerMainImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${zoomScale})`;
+                    const getFittedImageSize = () => {
+                        const viewportWidth = Math.max(1, viewerViewport.clientWidth);
+                        const viewportHeight = Math.max(1, viewerViewport.clientHeight);
+                        const naturalWidth = Math.max(1, viewerMainImage.naturalWidth || 1);
+                        const naturalHeight = Math.max(1, viewerMainImage.naturalHeight || 1);
+                        const widthRatio = viewportWidth / naturalWidth;
+                        const heightRatio = viewportHeight / naturalHeight;
+                        const fitRatio = Math.min(widthRatio, heightRatio);
+
+                        return {
+                            viewportWidth,
+                            viewportHeight,
+                            fittedWidth: naturalWidth * fitRatio,
+                            fittedHeight: naturalHeight * fitRatio
+                        };
+                    };
+
+                    const clampTranslate = () => {
+                        const { viewportWidth, viewportHeight, fittedWidth, fittedHeight } = getFittedImageSize();
+                        const scaledWidth = fittedWidth * zoomScale;
+                        const scaledHeight = fittedHeight * zoomScale;
+                        const maxOffsetX = Math.max(0, (scaledWidth - viewportWidth) / 2);
+                        const maxOffsetY = Math.max(0, (scaledHeight - viewportHeight) / 2);
+
+                        targetTranslateX = Math.min(maxOffsetX, Math.max(-maxOffsetX, targetTranslateX));
+                        targetTranslateY = Math.min(maxOffsetY, Math.max(-maxOffsetY, targetTranslateY));
+                    };
+
+                    const renderTransform = () => {
+                        rafPending = false;
+                        viewerMainImage.style.transform = `translate(${targetTranslateX}px, ${targetTranslateY}px) scale(${zoomScale})`;
                         viewerZoomReset.textContent = `${Math.round(zoomScale * 100)}%`;
+                    };
+
+                    const scheduleRender = () => {
+                        if (rafPending) {
+                            return;
+                        }
+
+                        rafPending = true;
+                        requestAnimationFrame(renderTransform);
+                    };
+
+                    const applyZoom = () => {
+                        clampTranslate();
+                        scheduleRender();
+                    };
+
+                    const setZoom = (newZoom) => {
+                        zoomScale = Math.min(4, Math.max(0.2, newZoom));
+                        applyZoom();
+                    };
+
+                    const resetView = () => {
+                        zoomScale = 1;
+                        targetTranslateX = 0;
+                        targetTranslateY = 0;
+                        applyZoom();
                     };
 
                     const updateSelection = (index) => {
@@ -250,10 +311,7 @@
                         selectedIndex = index;
                         viewerMainImage.src = selected.dataset.imageUrl || "";
                         viewerImageTitle.textContent = selected.dataset.imageTitle || "Photo";
-                        zoomScale = 1;
-                        translateX = 0;
-                        translateY = 0;
-                        applyZoom();
+                        resetView();
 
                         viewerThumbButtons.forEach(button => {
                             const isActive = Number.parseInt(button.dataset.index, 10) === selectedIndex;
@@ -286,21 +344,14 @@
                     });
 
                     viewerZoomIn.addEventListener("click", () => {
-                        zoomScale = Math.min(4, zoomScale + 0.2);
-                        applyZoom();
+                        setZoom(zoomScale + 0.2);
                     });
 
                     viewerZoomOut.addEventListener("click", () => {
-                        zoomScale = Math.max(0.2, zoomScale - 0.2);
-                        applyZoom();
+                        setZoom(zoomScale - 0.2);
                     });
 
-                    viewerZoomReset.addEventListener("click", () => {
-                        zoomScale = 1;
-                        translateX = 0;
-                        translateY = 0;
-                        applyZoom();
-                    });
+                    viewerZoomReset.addEventListener("click", resetView);
 
                     viewerPrev.addEventListener("click", () => {
                         updateSelection(selectedIndex - 1);
@@ -310,18 +361,30 @@
                         updateSelection(selectedIndex + 1);
                     });
 
+                    viewerMainImage.addEventListener("load", resetView);
+
                     viewerMainImage.addEventListener("wheel", (event) => {
                         event.preventDefault();
-                        zoomScale = event.deltaY < 0
-                            ? Math.min(4, zoomScale + 0.1)
-                            : Math.max(0.2, zoomScale - 0.1);
-                        applyZoom();
+                        setZoom(zoomScale + (event.deltaY < 0 ? 0.1 : -0.1));
                     }, { passive: false });
 
+                    viewerMainImage.addEventListener("contextmenu", (event) => {
+                        event.preventDefault();
+                    });
+
                     viewerMainImage.addEventListener("pointerdown", (event) => {
+                        if (event.pointerType === "mouse" && event.button !== 0 && event.button !== 2) {
+                            return;
+                        }
+
+                        if (zoomScale <= 1) {
+                            return;
+                        }
+
+                        event.preventDefault();
                         isDragging = true;
-                        dragStartX = event.clientX - translateX;
-                        dragStartY = event.clientY - translateY;
+                        lastPointerX = event.clientX;
+                        lastPointerY = event.clientY;
                         viewerMainImage.style.cursor = "grabbing";
                         viewerMainImage.setPointerCapture(event.pointerId);
                     });
@@ -331,8 +394,13 @@
                             return;
                         }
 
-                        translateX = event.clientX - dragStartX;
-                        translateY = event.clientY - dragStartY;
+                        const deltaX = event.clientX - lastPointerX;
+                        const deltaY = event.clientY - lastPointerY;
+                        lastPointerX = event.clientX;
+                        lastPointerY = event.clientY;
+
+                        targetTranslateX += deltaX;
+                        targetTranslateY += deltaY;
                         applyZoom();
                     });
 
@@ -342,7 +410,7 @@
                         }
 
                         isDragging = false;
-                        viewerMainImage.style.cursor = "grab";
+                        viewerMainImage.style.cursor = zoomScale > 1 ? "grab" : "default";
                         if (typeof event.pointerId !== "undefined") {
                             viewerMainImage.releasePointerCapture(event.pointerId);
                         }
@@ -351,6 +419,8 @@
                     viewerMainImage.addEventListener("pointerup", stopDragging);
                     viewerMainImage.addEventListener("pointercancel", stopDragging);
                     viewerMainImage.addEventListener("pointerleave", stopDragging);
+
+                    window.addEventListener("resize", applyZoom);
 
                     if (viewerThumbButtons.length > 0) {
                         updateSelection(0);
@@ -446,14 +516,14 @@ else
         <input type="file" id="photoFileInput" class="d-none" accept="image/*" />
 
         <div class="modal fade" id="listingPhotoCropModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content h-100">
                     <div class="modal-header py-2 px-3">
                         <h5 class="modal-title">Clip Listing Photo</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body pt-2 pb-2 px-3">
-                        <div class="row g-2 mb-2">
+                    <div class="modal-body pt-2 pb-2 px-3 d-flex flex-column overflow-hidden">
+                        <div class="row g-2 mb-2 flex-shrink-0">
                             <div class="col-md-6">
                                 <label for="photoTitleEditor" class="form-label">Title</label>
                                 <input id="photoTitleEditor" type="text" class="form-control" maxlength="50" />
@@ -464,7 +534,7 @@ else
                                        value="0" />
                             </div>
                         </div>
-                        <div class="d-flex flex-wrap gap-2 align-items-center pb-2 mb-3">
+                        <div class="d-flex flex-wrap gap-2 align-items-center pb-2 mb-3 flex-shrink-0">
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <label for="cropAspectRatioSelect" class="form-label mb-0 text-nowrap">Aspect Ratio</label>
                                 <select id="cropAspectRatioSelect" class="form-select form-select-sm" style="min-width: 100px;">
@@ -521,10 +591,11 @@ else
                                 <button type="button" id="saveCroppedImageButton"
                                         class="btn btn-sm btn-primary mb-1 text-nowrap">Save Clipped Image</button>
                             </div>
-                            <div class="position-relative border rounded overflow-hidden bg-light" style="min-height: 420px;">
-                                <img id="cropperImage" alt="Image to crop" class="img-fluid w-100" />
-                                <canvas id="editCanvas" class="w-100 d-none"
-                                        style="touch-action: none; cursor: crosshair;"></canvas>
+                            <div class="position-relative border rounded overflow-hidden bg-light flex-grow-1"
+                                 style="min-height: 0;">
+                                <img id="cropperImage" alt="Image to crop" class="w-100 h-100" style="object-fit: contain;" />
+                                <canvas id="editCanvas" class="w-100 h-100 d-none"
+                                        style="touch-action: none; cursor: crosshair; width: 100%; height: 100%;"></canvas>
                             </div>
                         </div>
                     </div>
@@ -534,327 +605,107 @@ else
 
         @section Scripts {
             <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
-            <script>
-                (() => {
-                const addPhotoButton = document.getElementById("addPhotoButton");
-                const photoFileInput = document.getElementById("photoFileInput");
-                const photoUpsertForm = document.getElementById("photoUpsertForm");
-                if (!addPhotoButton || !photoFileInput || !photoUpsertForm) {
-                return;
-                }
-
-                const photoListingImageGuidInput = document.getElementById("photoListingImageGuid");
-                const photoTitleInput = document.getElementById("photoTitleInput");
-                const photoSortOrderInput = document.getElementById("photoSortOrderInput");
-                const photoCroppedDataInput = document.getElementById("photoCroppedDataInput");
-
-                const photoTitleEditor = document.getElementById("photoTitleEditor");
-                const photoSortOrderEditor = document.getElementById("photoSortOrderEditor");
-
-                const cropModalElement = document.getElementById("listingPhotoCropModal");
-                const cropperImage = document.getElementById("cropperImage");
-                const editCanvas = document.getElementById("editCanvas");
-                const editContext = editCanvas.getContext("2d");
-                const cropAspectRatioSelect = document.getElementById("cropAspectRatioSelect");
-                const editCropModeButton = document.getElementById("editCropModeButton");
-                const editPenModeButton = document.getElementById("editPenModeButton");
-                const editEraseModeButton = document.getElementById("editEraseModeButton");
-                const editTextModeButton = document.getElementById("editTextModeButton");
-                const editFontSelect = document.getElementById("editFontSelect");
-                const editFontSizeInput = document.getElementById("editFontSizeInput");
-                const editBrushSizeInput = document.getElementById("editBrushSizeInput");
-                const editColorInput = document.getElementById("editColorInput");
-                const applyEditsButton = document.getElementById("applyEditsButton");
-                const undoEditButton = document.getElementById("undoEditButton");
-                const redoEditButton = document.getElementById("redoEditButton");
-                const saveCroppedImageButton = document.getElementById("saveCroppedImageButton");
-                const cropModal = new bootstrap.Modal(cropModalElement);
-
-                let sourceImageDataUrl = "";
-                let workingImageDataUrl = "";
-                let cropper = null;
-                let currentAspectRatio = 1;
-                let activeEditTool = "crop";
-                let isDrawing = false;
-                let lastPoint = null;
-                let editHistory = [];
-                let redoHistory = [];
-
-                const getAspectRatio = (value) => {
-                const parts = (value || "").split(":");
-                if (parts.length !== 2) {
-                return 1;
-                }
-
-                const width = Number(parts[0]);
-                const height = Number(parts[1]);
-                if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-                return 1;
-                }
-
-                return width / height;
-                };
-
-                const getCanvasSize = (aspectRatio) => {
-                if (Math.abs(aspectRatio - (16 / 9)) < 0.001) {
-                return { width: 1280, height: 720 };
-                }
-
-                const base = 800;
-                if (aspectRatio >= 1) {
-                return {
-                width: base,
-                height: Math.round(base / aspectRatio)
-                };
-                }
-
+            <script>     (() => {         const addPhotoButton = document.getElementById("addPhotoButton");         const photoFileInput = document.getElementById("photoFileInput");         const photoUpsertForm = document.getElementById("photoUpsertForm");         if (!addPhotoButton || !photoFileInput || !photoUpsertForm) {             return;         }
+                const photoListingImageGuidInput = document.getElementById("photoListingImageGuid");         const photoTitleInput = document.getElementById("photoTitleInput");         const photoSortOrderInput = document.getElementById("photoSortOrderInput");         const photoCroppedDataInput = document.getElementById("photoCroppedDataInput");
+                const photoTitleEditor = document.getElementById("photoTitleEditor");         const photoSortOrderEditor = document.getElementById("photoSortOrderEditor");
+                const cropModalElement = document.getElementById("listingPhotoCropModal");         const cropperImage = document.getElementById("cropperImage");         const editCanvas = document.getElementById("editCanvas");         const editContext = editCanvas.getContext("2d");         const cropAspectRatioSelect = document.getElementById("cropAspectRatioSelect");         const editCropModeButton = document.getElementById("editCropModeButton");         const editPenModeButton = document.getElementById("editPenModeButton");         const editEraseModeButton = document.getElementById("editEraseModeButton");         const editTextModeButton = document.getElementById("editTextModeButton");         const editFontSelect = document.getElementById("editFontSelect");         const editFontSizeInput = document.getElementById("editFontSizeInput");         const editBrushSizeInput = document.getElementById("editBrushSizeInput");         const editColorInput = document.getElementById("editColorInput");         const applyEditsButton = document.getElementById("applyEditsButton");         const undoEditButton = document.getElementById("undoEditButton");         const redoEditButton = document.getElementById("redoEditButton");         const saveCroppedImageButton = document.getElementById("saveCroppedImageButton");         const cropModal = new bootstrap.Modal(cropModalElement);
+                let sourceImageDataUrl = "";         let workingImageDataUrl = "";         let cropper = null;         let currentAspectRatio = 1;         let activeEditTool = "crop";         let isDrawing = false;         let lastPoint = null;         let editHistory = [];         let redoHistory = [];
+                const getAspectRatio = (value) => {             const parts = (value || "").split(":");             if (parts.length !== 2) {
+                return 1;             }
+                const width = Number(parts[0]);             const height = Number(parts[1]);             if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+                return 1;             }
+                return width / height;         };
+                const getCanvasSize = (aspectRatio) => {             if (Math.abs(aspectRatio - (16 / 9)) < 0.001) {
+                return { width: 1280, height: 720 };             }
+                const base = 800;             if (aspectRatio >= 1) {
+                return {                     width: base,                     height: Math.round(base / aspectRatio)
+                };             }
                 return {
                 width: Math.round(base * aspectRatio),
-                height: base
-                };
-                };
-
-                const createCropper = () => {
-                cropper?.destroy();
-                cropper = new Cropper(cropperImage, {
+                height: base             };         };
+                const createCropper = () => {             cropper?.destroy();             cropper = new Cropper(cropperImage, {
                 aspectRatio: currentAspectRatio,
                 viewMode: 1,
                 autoCropArea: 1,
-                dragMode: "move"
-                });
-                };
-
-                const setToolButtonStyles = () => {
-                const entries = [
+                dragMode: "move"             });         };
+                const setToolButtonStyles = () => {             const entries = [
                 [editCropModeButton, "crop"],
                 [editPenModeButton, "pen"],
                 [editEraseModeButton, "erase"],
-                [editTextModeButton, "text"]
-                ];
-
+                [editTextModeButton, "text"]             ];
                 entries.forEach(([button, mode]) => {
                 const isActive = activeEditTool === mode;
                 button.classList.toggle("btn-primary", isActive);
-                button.classList.toggle("btn-outline-secondary", !isActive);
-                });
-                };
-
-                const getCanvasPoint = (event) => {
-                const rect = editCanvas.getBoundingClientRect();
-                const scaleX = editCanvas.width / rect.width;
-                const scaleY = editCanvas.height / rect.height;
-                return {
+                button.classList.toggle("btn-outline-secondary", !isActive);             });         };
+                const getCanvasPoint = (event) => {             const rect = editCanvas.getBoundingClientRect();             const scaleX = editCanvas.width / rect.width;             const scaleY = editCanvas.height / rect.height;             return {
                 x: (event.clientX - rect.left) * scaleX,
-                y: (event.clientY - rect.top) * scaleY
-                };
-                };
-
-                const drawStroke = (fromPoint, toPoint) => {
-                editContext.lineCap = "round";
-                editContext.lineJoin = "round";
-                const brushSize = Number.parseFloat(editBrushSizeInput.value);
-                editContext.lineWidth = Number.isFinite(brushSize) ? brushSize : 12;
-                editContext.globalCompositeOperation = activeEditTool === "erase" ? "destination-out" : "source-over";
-                editContext.strokeStyle = editColorInput.value || "#ff0000";
-                editContext.beginPath();
-                editContext.moveTo(fromPoint.x, fromPoint.y);
-                editContext.lineTo(toPoint.x, toPoint.y);
-                editContext.stroke();
-                editContext.globalCompositeOperation = "source-over";
-                };
-
-                const loadImageToCanvas = (imageDataUrl, onLoaded = null) => {
-                if (!imageDataUrl) {
-                return;
-                }
-
-                const image = new Image();
-                image.onload = () => {
+                y: (event.clientY - rect.top) * scaleY             };         };
+                const drawStroke = (fromPoint, toPoint) => {             editContext.lineCap = "round";             editContext.lineJoin = "round";             const brushSize = Number.parseFloat(editBrushSizeInput.value);             editContext.lineWidth = Number.isFinite(brushSize) ? brushSize : 12;             editContext.globalCompositeOperation = activeEditTool === "erase" ? "destination-out" : "source-over";             editContext.strokeStyle = editColorInput.value || "#ff0000";             editContext.beginPath();             editContext.moveTo(fromPoint.x, fromPoint.y);             editContext.lineTo(toPoint.x, toPoint.y);             editContext.stroke();             editContext.globalCompositeOperation = "source-over";         };
+                const loadImageToCanvas = (imageDataUrl, onLoaded = null) => {             if (!imageDataUrl) {
+                return;             }
+                const image = new Image();             image.onload = () => {
                 editCanvas.width = image.naturalWidth;
                 editCanvas.height = image.naturalHeight;
                 editContext.clearRect(0, 0, editCanvas.width, editCanvas.height);
                 editContext.drawImage(image, 0, 0, editCanvas.width, editCanvas.height);
-                if (typeof onLoaded === "function") {
-                onLoaded();
-                }
-                };
-                image.src = imageDataUrl;
-                };
-
-                const pushCanvasHistory = () => {
-                if (!editCanvas.width || !editCanvas.height) {
-                return;
-                }
-
-                const snapshot = editCanvas.toDataURL("image/png");
-                if (editHistory.length > 0 && editHistory[editHistory.length - 1] === snapshot) {
-                return;
-                }
-
-                editHistory.push(snapshot);
-                if (editHistory.length > 30) {
-                editHistory.shift();
-                }
-                };
-
-                const registerNewEdit = () => {
-                pushCanvasHistory();
-                redoHistory = [];
-                };
-
-                const undoCanvasEdit = () => {
-                if (editHistory.length <= 1) {
-                return;
-                }
-
-                redoHistory.push(editHistory[editHistory.length - 1]);
-                editHistory.pop();
-                const previousSnapshot = editHistory[editHistory.length - 1];
-                loadImageToCanvas(previousSnapshot);
-                };
-
-                const redoCanvasEdit = () => {
-                if (redoHistory.length === 0) {
-                return;
-                }
-
-                const nextSnapshot = redoHistory.pop();
-                if (!nextSnapshot) {
-                return;
-                }
-
-                editHistory.push(nextSnapshot);
-                loadImageToCanvas(nextSnapshot);
-                };
-
-                const showCropperImage = () => {
-                editCanvas.classList.add("d-none");
-                cropperImage.classList.remove("d-none");
-                cropperImage.src = workingImageDataUrl || sourceImageDataUrl;
-
+                if (typeof onLoaded === "function") {                     onLoaded();
+                }             };             image.src = imageDataUrl;         };
+                const pushCanvasHistory = () => {             if (!editCanvas.width || !editCanvas.height) {
+                return;             }
+                const snapshot = editCanvas.toDataURL("image/png");             if (editHistory.length > 0 && editHistory[editHistory.length - 1] === snapshot) {
+                return;             }
+                editHistory.push(snapshot);             if (editHistory.length > 30) {
+                editHistory.shift();             }         };
+                const registerNewEdit = () => {             pushCanvasHistory();             redoHistory = [];         };
+                const undoCanvasEdit = () => {             if (editHistory.length <= 1) {
+                return;             }
+                redoHistory.push(editHistory[editHistory.length - 1]);             editHistory.pop();             const previousSnapshot = editHistory[editHistory.length - 1];             loadImageToCanvas(previousSnapshot);         };
+                const redoCanvasEdit = () => {             if (redoHistory.length === 0) {
+                return;             }
+                const nextSnapshot = redoHistory.pop();             if (!nextSnapshot) {
+                return;             }
+                editHistory.push(nextSnapshot);             loadImageToCanvas(nextSnapshot);         };
+                const showCropperImage = () => {             editCanvas.classList.add("d-none");             cropperImage.classList.remove("d-none");             cropperImage.src = workingImageDataUrl || sourceImageDataUrl;
                 if (cropperImage.complete) {
-                createCropper();
-                } else {
-                cropperImage.addEventListener("load", () => createCropper(), { once: true });
-                }
-                };
-
-                const applyCanvasEdits = () => {
-                if (editCanvas.classList.contains("d-none")) {
-                return;
-                }
-
-                workingImageDataUrl = editCanvas.toDataURL("image/png");
-                sourceImageDataUrl = workingImageDataUrl;
-                };
-
-                const switchToTool = (tool) => {
-                activeEditTool = tool;
-                setToolButtonStyles();
-
+                createCropper();             } else {
+                cropperImage.addEventListener("load", () => createCropper(), { once: true });             }         };
+                const applyCanvasEdits = () => {             if (editCanvas.classList.contains("d-none")) {
+                return;             }
+                workingImageDataUrl = editCanvas.toDataURL("image/png");             sourceImageDataUrl = workingImageDataUrl;         };
+                const switchToTool = (tool) => {             activeEditTool = tool;             setToolButtonStyles();
                 if (tool === "crop") {
                 applyCanvasEdits();
                 showCropperImage();
-                return;
-                }
-
-                cropper?.destroy();
-                cropper = null;
-
-                cropperImage.classList.add("d-none");
-                editCanvas.classList.remove("d-none");
-                if (!editCanvas.width || !editCanvas.height) {
-                loadImageToCanvas(workingImageDataUrl || sourceImageDataUrl, () => {
-                editHistory = [];
-                redoHistory = [];
-                pushCanvasHistory();
-                });
-                }
-                };
-
-                const openEditor = (imageDataUrl, listingImageGuid, title, sortOrder) => {
-                sourceImageDataUrl = imageDataUrl || "";
-                workingImageDataUrl = sourceImageDataUrl;
-                photoListingImageGuidInput.value = listingImageGuid || "";
-                photoTitleEditor.value = title || "";
-                photoSortOrderEditor.value = sortOrder || "0";
-
-                activeEditTool = "crop";
-                setToolButtonStyles();
-                editHistory = [];
-                redoHistory = [];
-                editCanvas.width = 0;
-                editCanvas.height = 0;
-                cropperImage.src = sourceImageDataUrl;
-                cropModal.show();
-                };
-
-                addPhotoButton.addEventListener("click", () => {
-                photoListingImageGuidInput.value = "";
-                photoTitleEditor.value = "";
-                photoSortOrderEditor.value = String(@photoCount + 1);
-                photoFileInput.click();
-                });
-
-                photoFileInput.addEventListener("change", () => {
-                const file = photoFileInput.files?.[0];
-                if (!file) {
-                return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
+                return;             }
+                cropper?.destroy();             cropper = null;
+                cropperImage.classList.add("d-none");             editCanvas.classList.remove("d-none");             if (!editCanvas.width || !editCanvas.height) {
+                loadImageToCanvas(workingImageDataUrl || sourceImageDataUrl, () => {                     editHistory = [];                     redoHistory = [];                     pushCanvasHistory();
+                });             }         };
+                const openEditor = (imageDataUrl, listingImageGuid, title, sortOrder) => {             sourceImageDataUrl = imageDataUrl || "";             workingImageDataUrl = sourceImageDataUrl;             photoListingImageGuidInput.value = listingImageGuid || "";             photoTitleEditor.value = title || "";             photoSortOrderEditor.value = sortOrder || "0";
+                activeEditTool = "crop";             setToolButtonStyles();             editHistory = [];             redoHistory = [];             editCanvas.width = 0;             editCanvas.height = 0;             cropperImage.src = sourceImageDataUrl;             cropModal.show();         };
+                addPhotoButton.addEventListener("click", () => {             photoListingImageGuidInput.value = "";             photoTitleEditor.value = "";             photoSortOrderEditor.value = String(@photoCount + 1);             photoFileInput.click();         });
+                photoFileInput.addEventListener("change", () => {             const file = photoFileInput.files?.[0];             if (!file) {
+                return;             }
+                const reader = new FileReader();             reader.onload = (event) => {
                 const dataUrl = event.target?.result?.toString() || "";
-                openEditor(dataUrl, "", photoTitleEditor.value, photoSortOrderEditor.value);
-                };
-                reader.readAsDataURL(file);
-                });
-
-                document.querySelectorAll(".edit-photo-button").forEach((button) => {
-                button.addEventListener("click", () => {
+                openEditor(dataUrl, "", photoTitleEditor.value, photoSortOrderEditor.value);             };             reader.readAsDataURL(file);         });
+                document.querySelectorAll(".edit-photo-button").forEach((button) => {             button.addEventListener("click", () => {
                 const imageUrl = button.getAttribute("data-image-url") || "";
                 const listingImageGuid = button.getAttribute("data-listing-image-guid") || "";
                 const title = button.getAttribute("data-title") || "";
                 const sortOrder = button.getAttribute("data-sort-order") || "0";
-                openEditor(imageUrl, listingImageGuid, title, sortOrder);
-                });
-                });
-
-                cropModalElement.addEventListener("shown.bs.modal", () => {
-                if (!cropperImage.src) {
-                return;
-                }
-
+                openEditor(imageUrl, listingImageGuid, title, sortOrder);             });         });
+                cropModalElement.addEventListener("shown.bs.modal", () => {             if (!cropperImage.src) {
+                return;             }
                 if (activeEditTool === "crop") {
-                createCropper();
-                }
-                });
-
-                cropModalElement.addEventListener("hidden.bs.modal", () => {
-                cropper?.destroy();
-                cropper = null;
-                });
-
-                cropAspectRatioSelect.addEventListener("change", () => {
-                currentAspectRatio = getAspectRatio(cropAspectRatioSelect.value);
-                if (cropper) {
-                cropper.setAspectRatio(currentAspectRatio);
-                }
-                });
-
-                editCropModeButton.addEventListener("click", () => switchToTool("crop"));
-                editPenModeButton.addEventListener("click", () => switchToTool("pen"));
-                editEraseModeButton.addEventListener("click", () => switchToTool("erase"));
-                editTextModeButton.addEventListener("click", () => switchToTool("text"));
-                applyEditsButton.addEventListener("click", () => switchToTool("crop"));
-                undoEditButton.addEventListener("click", () => undoCanvasEdit());
-                redoEditButton.addEventListener("click", () => redoCanvasEdit());
-
-                editCanvas.addEventListener("pointerdown", (event) => {
-                if (activeEditTool === "text") {
+                createCropper();             }         });
+                cropModalElement.addEventListener("hidden.bs.modal", () => {             cropper?.destroy();             cropper = null;         });
+                cropAspectRatioSelect.addEventListener("change", () => {             currentAspectRatio = getAspectRatio(cropAspectRatioSelect.value);             if (cropper) {
+                cropper.setAspectRatio(currentAspectRatio);             }         });
+                editCropModeButton.addEventListener("click", () => switchToTool("crop"));         editPenModeButton.addEventListener("click", () => switchToTool("pen"));         editEraseModeButton.addEventListener("click", () => switchToTool("erase"));         editTextModeButton.addEventListener("click", () => switchToTool("text"));         applyEditsButton.addEventListener("click", () => switchToTool("crop"));         undoEditButton.addEventListener("click", () => undoCanvasEdit());         redoEditButton.addEventListener("click", () => redoCanvasEdit());
+                editCanvas.addEventListener("pointerdown", (event) => {             if (activeEditTool === "text") {
                 const textValue = prompt("Enter text to add:");
-                if (!textValue) {
-                return;
+                if (!textValue) {                     return;
                 }
 
                 const point = getCanvasPoint(event);
@@ -866,67 +717,29 @@ else
                 editContext.font = `${resolvedFontSize}px ${selectedFont}`;
                 editContext.fillText(textValue, point.x, point.y);
                 registerNewEdit();
-                return;
-                }
-
+                return;             }
                 if (activeEditTool !== "pen" && activeEditTool !== "erase") {
-                return;
-                }
-
-                isDrawing = true;
-                lastPoint = getCanvasPoint(event);
-                editCanvas.setPointerCapture(event.pointerId);
-                });
-
-                editCanvas.addEventListener("pointermove", (event) => {
-                if (!isDrawing || !lastPoint) {
-                return;
-                }
-
-                const nextPoint = getCanvasPoint(event);
-                drawStroke(lastPoint, nextPoint);
-                lastPoint = nextPoint;
-                });
-
-                const stopDrawing = (event) => {
-                if (isDrawing) {
+                return;             }
+                isDrawing = true;             lastPoint = getCanvasPoint(event);             editCanvas.setPointerCapture(event.pointerId);         });
+                editCanvas.addEventListener("pointermove", (event) => {             if (!isDrawing || !lastPoint) {
+                return;             }
+                const nextPoint = getCanvasPoint(event);             drawStroke(lastPoint, nextPoint);             lastPoint = nextPoint;         });
+                const stopDrawing = (event) => {             if (isDrawing) {
                 isDrawing = false;
                 lastPoint = null;
                 registerNewEdit();
-                if (typeof event.pointerId !== "undefined") {
-                editCanvas.releasePointerCapture(event.pointerId);
-                }
-                }
-                };
-
-                editCanvas.addEventListener("pointerup", stopDrawing);
-                editCanvas.addEventListener("pointerleave", stopDrawing);
-                editCanvas.addEventListener("pointercancel", stopDrawing);
-
-                saveCroppedImageButton.addEventListener("click", () => {
-                if (activeEditTool !== "crop") {
-                switchToTool("crop");
-                }
-
+                if (typeof event.pointerId !== "undefined") {                     editCanvas.releasePointerCapture(event.pointerId);
+                }             }         };
+                editCanvas.addEventListener("pointerup", stopDrawing);         editCanvas.addEventListener("pointerleave", stopDrawing);         editCanvas.addEventListener("pointercancel", stopDrawing);
+                saveCroppedImageButton.addEventListener("click", () => {             if (activeEditTool !== "crop") {
+                switchToTool("crop");             }
                 if (!cropper) {
-                return;
-                }
-
-                const canvasSize = getCanvasSize(currentAspectRatio);
-                const canvas = cropper.getCroppedCanvas({
+                return;             }
+                const canvasSize = getCanvasSize(currentAspectRatio);             const canvas = cropper.getCroppedCanvas({
                 width: canvasSize.width,
                 height: canvasSize.height,
-                imageSmoothingQuality: "high"
-                });
-
-                photoTitleInput.value = photoTitleEditor.value || "";
-                photoSortOrderInput.value = photoSortOrderEditor.value || "0";
-                photoCroppedDataInput.value = canvas.toDataURL("image/jpeg", 0.9);
-                cropModal.hide();
-                photoUpsertForm.submit();
-                });
-
-                setToolButtonStyles();
-                })();
+                imageSmoothingQuality: "high"             });
+                photoTitleInput.value = photoTitleEditor.value || "";             photoSortOrderInput.value = photoSortOrderEditor.value || "0";             photoCroppedDataInput.value = canvas.toDataURL("image/jpeg", 0.9);             cropModal.hide();             photoUpsertForm.submit();         });
+                setToolButtonStyles();     })();
             </script>
         }

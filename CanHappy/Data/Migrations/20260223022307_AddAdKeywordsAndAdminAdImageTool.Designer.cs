@@ -3,6 +3,7 @@ using System;
 using CanHappy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CanHappy.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260223022307_AddAdKeywordsAndAdminAdImageTool")]
+    partial class AddAdKeywordsAndAdminAdImageTool
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,13 +34,9 @@ namespace CanHappy.Data.Migrations
                     b.Property<bool>("ActiveInd")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("AdSizeId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AdStatusId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                    b.Property<string>("AdSize")
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("integer");
@@ -123,6 +122,13 @@ namespace CanHappy.Data.Migrations
                     b.Property<bool>("SampleInd")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Draft");
+
                     b.Property<int?>("SubcategoryId")
                         .HasColumnType("integer");
 
@@ -143,10 +149,6 @@ namespace CanHappy.Data.Migrations
 
                     b.HasKey("AdGUID");
 
-                    b.HasIndex("AdSizeId");
-
-                    b.HasIndex("AdStatusId");
-
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("CityId");
@@ -158,183 +160,6 @@ namespace CanHappy.Data.Migrations
                     b.HasIndex("CityId", "DeletedInd", "PublishDate");
 
                     b.ToTable("Ad", (string)null);
-                });
-
-            modelBuilder.Entity("CanHappy.Models.AdSize", b =>
-                {
-                    b.Property<int>("AdSizeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AdSizeId"));
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("DeletedInd")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.HasKey("AdSizeId");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("AdSize", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            AdSizeId = 1,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Medium Rectangle",
-                            Name = "300x250"
-                        },
-                        new
-                        {
-                            AdSizeId = 2,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Mobile Banner",
-                            Name = "320x50"
-                        },
-                        new
-                        {
-                            AdSizeId = 3,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Leaderboard",
-                            Name = "728x90"
-                        },
-                        new
-                        {
-                            AdSizeId = 4,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Social Share Image",
-                            Name = "1200x628"
-                        });
-                });
-
-            modelBuilder.Entity("CanHappy.Models.AdStatus", b =>
-                {
-                    b.Property<int>("AdStatusId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AdStatusId"));
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("DeletedInd")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.HasKey("AdStatusId");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("AdStatus", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            AdStatusId = 1,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Work in progress",
-                            Name = "Draft"
-                        },
-                        new
-                        {
-                            AdStatusId = 2,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Creative approved",
-                            Name = "Design finalized"
-                        },
-                        new
-                        {
-                            AdStatusId = 3,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Active and visible",
-                            Name = "Released to show"
-                        },
-                        new
-                        {
-                            AdStatusId = 4,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Temporarily inactive",
-                            Name = "Stopped from show"
-                        },
-                        new
-                        {
-                            AdStatusId = 5,
-                            CreatedBy = "system",
-                            CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DeletedInd = false,
-                            Description = "Permanently retired",
-                            Name = "Decommssioned"
-                        });
                 });
 
             modelBuilder.Entity("CanHappy.Models.Area", b =>
@@ -1154,17 +979,6 @@ namespace CanHappy.Data.Migrations
 
             modelBuilder.Entity("CanHappy.Models.Ad", b =>
                 {
-                    b.HasOne("CanHappy.Models.AdSize", "AdSizeOption")
-                        .WithMany()
-                        .HasForeignKey("AdSizeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("CanHappy.Models.AdStatus", "AdStatus")
-                        .WithMany()
-                        .HasForeignKey("AdStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("CanHappy.Models.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
@@ -1185,10 +999,6 @@ namespace CanHappy.Data.Migrations
                         .WithMany()
                         .HasForeignKey("SubcategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AdSizeOption");
-
-                    b.Navigation("AdStatus");
 
                     b.Navigation("Category");
 

@@ -9,43 +9,88 @@
     <a class="btn btn-primary" asp-action="CreateAd">Add Ad</a>
 </div>
 
-<table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Subject</th>
-            <th>City</th>
-            <th>Status</th>
-            <th>Price</th>
-            <th class="text-end">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Count == 0)
+@if (Model.Count == 0)
+{
+    <p class="text-muted">No ads found.</p>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var ad in Model)
         {
-            <tr>
-                <td colspan="5" class="text-muted">No ads found.</td>
-            </tr>
-        }
-        else
-        {
-            @foreach (var ad in Model)
-            {
-                <tr>
-                    <td>@ad.Subject</td>
-                    <td>@(ad.City?.Name ?? "-")</td>
-                    <td>@(string.IsNullOrWhiteSpace(ad.Status) ? "-" : ad.Status)</td>
-                    <td>@(ad.Price?.ToString("0.##") ?? "-")</td>
-                    <td class="text-end">
-                        <a class="btn btn-sm btn-outline-secondary" asp-action="EditAd" asp-route-id="@ad.AdGUID">Edit</a>
-                        <form asp-action="DeleteAd" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@ad.AdGUID" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger"
-                                    onclick="return confirm('Delete this ad?');">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        }
-    </tbody>
-</table>
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                            <div>
+                                <h5 class="card-title mb-1">@ad.Subject</h5>
+                                <div class="text-muted small">@(ad.Category?.Name ?? "-") / @(ad.Subcategory?.Name ?? "-")</div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="EditAd"
+                                   asp-route-id="@ad.AdGUID">Edit</a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <form asp-action="DeleteAd" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@ad.AdGUID" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Delete this ad?');">Delete</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(ad.ImageURL))
+                        {
+                            <div class="mt-3">
+                                <img src="@ad.ImageURL" alt="Ad image" class="img-thumbnail"
+                                     style="max-height: 120px; max-width: 120px;" />
+                            </div>
+                        }
+
+                        <hr />
+
+                        <div class="row small">
+                            <div class="col-md-3"><strong>Status:</strong> @(ad.AdStatus?.Name ?? "-")</div>
+                            <div class="col-md-3"><strong>Ad Size:</strong> @(ad.AdSizeOption?.Name ?? "-")</div>
+                            <div class="col-md-3"><strong>Price:</strong> @(ad.Price?.ToString("0.##") ?? "-")
+                                @(string.IsNullOrWhiteSpace(ad.CurrencyCode) ? string.Empty : ad.CurrencyCode)</div>
+                                <div class="col-md-3"><strong>Publish:</strong> @ad.PublishDate.ToString("yyyy-MM-dd HH:mm")</div>
+                                <div class="col-md-3 mt-2"><strong>Expiry:</strong> @(ad.ExpiryDate?.ToString("yyyy-MM-dd HH:mm") ??
+                                                            "-")</div>
+                                    <div class="col-md-3 mt-2"><strong>Location:</strong> @(ad.Province?.Name ?? "-") / @(ad.City?.Name
+                                                                ?? "-")</div>
+                                        <div class="col-md-3 mt-2"><strong>Postal:</strong> @(string.IsNullOrWhiteSpace(ad.PostalCode) ? "-"                  : ad.PostalCode)</div>
+                                        <div class="col-md-3 mt-2"><strong>Target URL:</strong>
+                                            @if (string.IsNullOrWhiteSpace(ad.TargetURL))
+                                            {
+                                                <text>-</text>
+                                            }
+                                            else
+                                            {
+                                                <a href="@ad.TargetURL" target="_blank" rel="noopener">Link</a>
+                                            }
+                                        </div>
+                                        <div class="col-md-12 mt-2"><strong>Description:</strong>
+                                            @(string.IsNullOrWhiteSpace(ad.Description) ? "-" : ad.Description)</div>
+                                            <div class="col-md-12 mt-2"><strong>Keywords:</strong> @(string.IsNullOrWhiteSpace(ad.KeyWords) ?
+                                                                        "-" : ad.KeyWords)</div>
+                                                <div class="col-md-4 mt-2"><strong>Contact:</strong> @(string.IsNullOrWhiteSpace(ad.ContactName) ?
+                                                                            "-" : ad.ContactName)</div>
+                                                    <div class="col-md-4 mt-2"><strong>Email:</strong> @(string.IsNullOrWhiteSpace(ad.ContactEmail) ?
+                                                                                "-" : ad.ContactEmail)</div>
+                                                        <div class="col-md-4 mt-2"><strong>Phone:</strong> @(string.IsNullOrWhiteSpace(ad.ContactPhone) ?
+                                                                                    "-" : ad.ContactPhone)</div>
+                                                            <div class="col-md-2 mt-2"><strong>Featured:</strong> @(ad.IsFeatured ? "Yes" : "No")</div>
+                                                            <div class="col-md-2 mt-2"><strong>Paid:</strong> @(ad.PaidInd ? "Yes" : "No")</div>
+                                                            <div class="col-md-2 mt-2"><strong>Active:</strong> @(ad.ActiveInd ? "Yes" : "No")</div>
+                                                            <div class="col-md-2 mt-2"><strong>Deleted:</strong> @(ad.DeletedInd ? "Yes" : "No")</div>
+                                                            <div class="col-md-2 mt-2"><strong>Sample:</strong> @(ad.SampleInd ? "Yes" : "No")</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }

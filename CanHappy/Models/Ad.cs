@@ -27,6 +27,9 @@ public class Ad
     [StringLength(200)]
     public string? Description { get; set; }
 
+    [StringLength(100)]
+    public string? KeyWords { get; set; }
+
     [StringLength(200)]
     public string? TargetURL { get; set; }
 
@@ -38,11 +41,9 @@ public class Ad
     [StringLength(10)]
     public string? CurrencyCode { get; set; }
 
-    [StringLength(20)]
-    public string Status { get; set; } = "Draft";
+    public int AdStatusId { get; set; } = 1;
 
-    [StringLength(15)]
-    public string? AdSize { get; set; }
+    public int? AdSizeId { get; set; }
 
     public bool IsFeatured { get; set; }
 
@@ -88,4 +89,8 @@ public class Ad
     public Province? Province { get; set; }
 
     public City? City { get; set; }
+
+    public AdStatus? AdStatus { get; set; }
+
+    public AdSize? AdSizeOption { get; set; }
 }

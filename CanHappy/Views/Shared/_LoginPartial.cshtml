@@ -10,45 +10,56 @@
                aria-expanded="false">Welcome, @User.Identity?.Name</a>
             <ul class="dropdown-menu dropdown-menu-end login-dropdown-menu">
                 <li>
-                    <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Manage Account</a>
-                </li>
-                <li>
-                    <a class="dropdown-item" asp-controller="MessagePage" asp-action="Inbox">Inbox</a>
-                </li>
-                <li>
-                    <a class="dropdown-item" asp-controller="MessagePage" asp-action="Sent">Sent</a>
-                </li>
-                <li>
-                    <form asp-area="Identity" asp-page="/Account/Logout"
-                          asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                        <button type="submit" class="dropdown-item">Logout</button>
-                    </form>
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                    <button id="theme-toggle" class="dropdown-item theme-toggle-btn" type="button">🌙 Theme</button>
-                </li>
-            </ul>
-        </li>
-    }
+                    <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Manage
+                        Account</a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" asp-controller="MessagePage" asp-action="Inbox">Inbox</a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" asp-controller="MessagePage" asp-action="Sent">Sent</a>
+                    </li>
+                    @if (User.IsInRole("RegisteredUser") || User.IsInRole("Admin") || User.IsInRole("Clerk"))
+                    {
+                        <li>
+                            <a class="dropdown-item" asp-controller="Admin" asp-action="Ads">Manage My Ads</a>
+                        </li>
+                    }
+                    <li>
+                        <form asp-area="Identity" asp-page="/Account/Logout"
+                              asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                            <button type="submit" class="dropdown-item">Logout</button>
+                        </form>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider" />
+                    </li>
+                    <li>
+                        <button id="theme-toggle" class="dropdown-item theme-toggle-btn" type="button">🌙 Theme</button>
+                    </li>
+                </ul>
+            </li>
+        }
     else
-    {
-        <li class="nav-item dropdown d-flex align-items-center">
-            <a class="nav-link text-dark pe-1" asp-area="Identity" asp-page="/Account/Login">Login</a>
-            <a class="nav-link dropdown-toggle text-dark ps-1" href="#" role="button" data-bs-toggle="dropdown"
-               aria-expanded="false" aria-label="Open login menu"></a>
-            <ul class="dropdown-menu dropdown-menu-end login-dropdown-menu">
-                <li>
-                    <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Login">Login</a>
-                </li>
-                <li>
-                    <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Register">Register</a>
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                    <button id="theme-toggle" class="dropdown-item theme-toggle-btn" type="button">🌙 Theme</button>
-                </li>
-            </ul>
-        </li>
-    }
-</ul>
+        {
+            <li class="nav-item dropdown d-flex align-items-center">
+                <a class="nav-link text-dark pe-1" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                <a class="nav-link dropdown-toggle text-dark ps-1" href="#" role="button" data-bs-toggle="dropdown"
+                   aria-expanded="false" aria-label="Open login menu"></a>
+                <ul class="dropdown-menu dropdown-menu-end login-dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Register">Register</a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider" />
+                    </li>
+                    <li>
+                        <button id="theme-toggle" class="dropdown-item theme-toggle-btn" type="button">🌙 Theme</button>
+                    </li>
+                </ul>
+            </li>
+        }
+    </ul>

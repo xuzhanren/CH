@@ -114,14 +114,14 @@
         </div>
 
         <div class="modal fade" id="thumbnailCropModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content h-100">
                     <div class="modal-header py-2 px-3">
                         <h5 class="modal-title">Clip Thumbnail Image</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body pt-2 pb-2 px-3">
-                        <div class="d-flex flex-wrap gap-2 align-items-center pb-2 mb-3">
+                    <div class="modal-body pt-2 pb-2 px-3 d-flex flex-column overflow-hidden">
+                        <div class="d-flex flex-wrap gap-2 align-items-center pb-2 mb-3 flex-shrink-0">
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <label for="cropAspectRatioSelect" class="form-label mb-0 text-nowrap">Aspect Ratio</label>
                                 <select id="cropAspectRatioSelect" class="form-select form-select-sm" style="min-width: 100px;">
@@ -142,25 +142,26 @@
                                     <button type="button" id="editTextModeButton"
                                             class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Type
                                         Text</button>
-                                    <div class="d-flex align-items-center gap-2 mb-1">
-                                        <label for="editFontSelect" class="form-label mb-0 text-nowrap">Font</label>
-                                        <select id="editFontSelect" class="form-select form-select-sm" style="min-width: 150px;">
-                                            <option value="Arial, sans-serif" selected>Arial</option>
-                                            <option value="'Segoe UI', sans-serif">Segoe UI</option>
-                                            <option value="Verdana, sans-serif">Verdana</option>
-                                            <option value="Tahoma, sans-serif">Tahoma</option>
-                                            <option value="Georgia, serif">Georgia</option>
-                                            <option value="'Times New Roman', serif">Times New Roman</option>
-                                            <option value="'Courier New', monospace">Courier New</option>
-                                        </select>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2 mb-1">
-                                        <label for="editFontSizeInput" class="form-label mb-0 text-nowrap">Font Size</label>
-                                        <input id="editFontSizeInput" type="number" class="form-control form-control-sm" min="8" max="120" step="1" value="24" style="width: 90px;" />
-                                    </div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <label for="editFontSelect" class="form-label mb-0 text-nowrap">Font</label>
+                                            <select id="editFontSelect" class="form-select form-select-sm" style="min-width: 150px;">
+                                                <option value="Arial, sans-serif" selected>Arial</option>
+                                                <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                                                <option value="Verdana, sans-serif">Verdana</option>
+                                                <option value="Tahoma, sans-serif">Tahoma</option>
+                                                <option value="Georgia, serif">Georgia</option>
+                                                <option value="'Times New Roman', serif">Times New Roman</option>
+                                                <option value="'Courier New', monospace">Courier New</option>
+                                            </select>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <label for="editFontSizeInput" class="form-label mb-0 text-nowrap">Font Size</label>
+                                            <input id="editFontSizeInput" type="number" class="form-control form-control-sm" min="8"
+                                                   max="120" step="1" value="24" style="width: 90px;" />
+                                        </div>
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <label for="editBrushSizeInput" class="form-label mb-0 text-nowrap">Brush Size</label>
-                                        <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="0" max="30" value="12"
+                                            <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="0" max="30" value="12"
                                                    style="width: 140px;" />
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -181,10 +182,10 @@
                                                     class="btn btn-sm btn-primary mb-1 text-nowrap">Save Clipped
                                                 Image</button>
                                             </div>
-                                            <div class="position-relative border rounded overflow-hidden bg-light" style="min-height: 420px;">
-                                                <img id="cropperImage" alt="Image to crop" class="img-fluid w-100" />
-                                                <canvas id="editCanvas" class="w-100 d-none"
-                                                        style="touch-action: none; cursor: crosshair;"></canvas>
+                                            <div class="position-relative border rounded overflow-hidden bg-light flex-grow-1" style="min-height: 0;">
+                                                <img id="cropperImage" alt="Image to crop" class="w-100 h-100" style="object-fit: contain;" />
+                                                <canvas id="editCanvas" class="w-100 h-100 d-none"
+                                                        style="touch-action: none; cursor: crosshair; width: 100%; height: 100%;"></canvas>
                                             </div>
                                         </div>
                                     </div>

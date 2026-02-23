@@ -13,6 +13,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<BuySellDetail> BuySellDetails => Set<BuySellDetail>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
     public DbSet<Ad> Ads => Set<Ad>();
+    public DbSet<AdSize> AdSizes => Set<AdSize>();
+    public DbSet<AdStatus> AdStatuses => Set<AdStatus>();
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Province> Provinces => Set<Province>();
     public DbSet<City> Cities => Set<City>();
@@ -126,6 +128,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.Description)
                 .HasMaxLength(200);
 
+            entity.Property(e => e.KeyWords)
+                .HasMaxLength(100);
+
             entity.Property(e => e.TargetURL)
                 .HasMaxLength(200);
 
@@ -135,12 +140,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.CurrencyCode)
                 .HasMaxLength(10);
 
-            entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .HasDefaultValue("Draft");
-
-            entity.Property(e => e.AdSize)
-                .HasMaxLength(15);
+            entity.Property(e => e.AdStatusId)
+                .HasDefaultValue(1);
 
             entity.Property(e => e.Price)
                 .HasPrecision(18, 2);
@@ -170,6 +171,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasIndex(e => e.CategoryId);
             entity.HasIndex(e => e.SubcategoryId);
             entity.HasIndex(e => e.ProvinceId);
+            entity.HasIndex(e => e.AdStatusId);
+            entity.HasIndex(e => e.AdSizeId);
             entity.HasIndex(e => new { e.CityId, e.DeletedInd, e.PublishDate });
 
             entity.HasOne(e => e.Category)
@@ -191,6 +194,175 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .WithMany()
                 .HasForeignKey(e => e.CityId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.AdStatus)
+                .WithMany()
+                .HasForeignKey(e => e.AdStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.AdSizeOption)
+                .WithMany()
+                .HasForeignKey(e => e.AdSizeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<AdSize>(entity =>
+        {
+            entity.ToTable("AdSize");
+            entity.HasKey(e => e.AdSizeId);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+
+            entity.HasData(
+                new AdSize
+                {
+                    AdSizeId = 1,
+                    Name = "300x250",
+                    Description = "Medium Rectangle",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                },
+                new AdSize
+                {
+                    AdSizeId = 2,
+                    Name = "320x50",
+                    Description = "Mobile Banner",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                },
+                new AdSize
+                {
+                    AdSizeId = 3,
+                    Name = "728x90",
+                    Description = "Leaderboard",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                },
+                new AdSize
+                {
+                    AdSizeId = 4,
+                    Name = "1200x628",
+                    Description = "Social Share Image",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                });
+        });
+
+        builder.Entity<AdStatus>(entity =>
+        {
+            entity.ToTable("AdStatus");
+            entity.HasKey(e => e.AdStatusId);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+
+            entity.HasData(
+                new AdStatus
+                {
+                    AdStatusId = 1,
+                    Name = "Draft",
+                    Description = "Work in progress",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                },
+                new AdStatus
+                {
+                    AdStatusId = 2,
+                    Name = "Design finalized",
+                    Description = "Creative approved",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                },
+                new AdStatus
+                {
+                    AdStatusId = 3,
+                    Name = "Released to show",
+                    Description = "Active and visible",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                },
+                new AdStatus
+                {
+                    AdStatusId = 4,
+                    Name = "Stopped from show",
+                    Description = "Temporarily inactive",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                },
+                new AdStatus
+                {
+                    AdStatusId = 5,
+                    Name = "Decommssioned",
+                    Description = "Permanently retired",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    ModifiedBy = null,
+                    CreatedDate = new DateTime(2026, 2, 22, 0, 0, 0, DateTimeKind.Utc),
+                    ModifiedDate = null
+                });
         });
 
         builder.Entity<Listing>(entity =>
