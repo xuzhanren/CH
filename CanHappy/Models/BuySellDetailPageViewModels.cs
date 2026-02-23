@@ -63,6 +63,8 @@ public class BuySellDetailIndexItemViewModel
     public bool NegotiablePriceInd { get; set; }
     public bool DeliveryAvailableInd { get; set; }
     public bool PickupAvailableInd { get; set; }
+    public string? PickupTime { get; set; }
+    public string? PickupLocation { get; set; }
     public string? WarrantyInfo { get; set; }
     public string? AdditionalDetails { get; set; }
 
@@ -99,6 +101,12 @@ public class BuySellDetailEditViewModel
     public bool NegotiablePriceInd { get; set; }
     public bool DeliveryAvailableInd { get; set; }
     public bool PickupAvailableInd { get; set; }
+
+    [StringLength(30)]
+    public string? PickupTime { get; set; }
+
+    [StringLength(50)]
+    public string? PickupLocation { get; set; }
 
     [StringLength(100)]
     public string? WarrantyInfo { get; set; }

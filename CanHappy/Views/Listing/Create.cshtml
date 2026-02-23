@@ -9,6 +9,28 @@
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
+<style>
+    .cropper-view-box {
+        outline-width: 2px !important;
+    }
+
+    .cropper-line.line-e,
+    .cropper-line.line-w {
+        width: 2px !important;
+    }
+
+    .cropper-line.line-n,
+    .cropper-line.line-s {
+        height: 2px !important;
+    }
+
+    .cropper-point {
+        width: 14px !important;
+        height: 14px !important;
+        border: 2px solid #fff !important;
+        opacity: 1 !important;
+    }
+</style>
 
 <h1>Create</h1>
 
@@ -125,11 +147,17 @@
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <label for="cropAspectRatioSelect" class="form-label mb-0 text-nowrap">Aspect Ratio</label>
                                 <select id="cropAspectRatioSelect" class="form-select form-select-sm" style="min-width: 100px;">
-                                    <option value="1:1" selected>1:1</option>
-                                    <option value="3:2">3:2</option>
+                                    <option value="3:2" selected>3:2</option>
+                                    <option value="1:1">1:1</option>
                                     <option value="4:3">4:3</option>
                                     <option value="16:9">16:9</option>
                                     <option value="9:16">9:16</option>
+                                    <option value="19:10">19:10</option>
+                                    <option value="6:5">6:5</option>
+                                    <option value="8:1">8:1</option>
+                                    <option value="32:5">32:5</option>
+                                    <option value="2:1">2:1</option>
+                                    <option value="custom">Custom</option>
                                 </select>
                             </div>
                             <button type="button" id="editCropModeButton" class="btn btn-sm btn-primary mb-1 text-nowrap">Crop
@@ -157,12 +185,13 @@
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <label for="editFontSizeInput" class="form-label mb-0 text-nowrap">Font Size</label>
                                             <input id="editFontSizeInput" type="number" class="form-control form-control-sm" min="8"
-                                                   max="120" step="1" value="24" style="width: 90px;" />
+                                                   max="120" step="1" value="26" style="width: 90px;" />
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <label for="editBrushSizeInput" class="form-label mb-0 text-nowrap">Brush Size</label>
-                                            <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="0" max="30" value="12"
+                                            <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="0" max="30" value="6"
                                                    style="width: 140px;" />
+                                            <span id="editBrushSizeValue" class="small text-muted text-nowrap">6</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <label for="editColorInput" class="form-label mb-0 text-nowrap">Color</label>
@@ -182,10 +211,11 @@
                                                     class="btn btn-sm btn-primary mb-1 text-nowrap">Save Clipped
                                                 Image</button>
                                             </div>
-                                            <div class="position-relative border rounded overflow-hidden bg-light flex-grow-1" style="min-height: 0;">
+                                            <div class="position-relative border rounded overflow-hidden bg-light flex-grow-1"
+                                                 style="min-height: 0; background-color: #e9ecef;">
                                                 <img id="cropperImage" alt="Image to crop" class="w-100 h-100" style="object-fit: contain;" />
-                                                <canvas id="editCanvas" class="w-100 h-100 d-none"
-                                                        style="touch-action: none; cursor: crosshair; width: 100%; height: 100%;"></canvas>
+                                                <canvas id="editCanvas" class="d-none"
+                                                        style="touch-action: none; cursor: crosshair; max-width: 100%; max-height: 100%; width: auto; height: auto; display: block; margin: auto;"></canvas>
                                             </div>
                                         </div>
                                     </div>
@@ -268,6 +298,7 @@
                                         const cropModalElement = document.getElementById("thumbnailCropModal");
                                         const cropperImage = document.getElementById("cropperImage");
                                         const editCanvas = document.getElementById("editCanvas");
+                                        const editCanvasContainer = editCanvas?.parentElement;
                                         const editContext = editCanvas.getContext("2d");
                                         const cropAspectRatioSelect = document.getElementById("cropAspectRatioSelect");
                                         const editCropModeButton = document.getElementById("editCropModeButton");
@@ -287,23 +318,29 @@
                                         let sourceImageDataUrl = "";
                                         let workingImageDataUrl = "";
                                         let cropper = null;
-                                        let currentAspectRatio = 1;
+                                        let currentAspectRatio = 3 / 2;
                                         let activeEditTool = "crop";
                                         let isDrawing = false;
                                         let lastPoint = null;
                                         let editHistory = [];
                                         let redoHistory = [];
+                                        const MAX_THUMBNAIL_BYTES = 50 * 1024;
+                                        const MAX_FULL_IMAGE_BYTES = 3 * 1024 * 1024;
 
                                         const getAspectRatio = (value) => {
+                                        if (value === "custom") {
+                                        return Number.NaN;
+                                        }
+
                                         const parts = (value || "").split(":");
                                         if (parts.length !== 2) {
-                                        return 1;
+                                        return 3 / 2;
                                         }
 
                                         const width = Number(parts[0]);
                                         const height = Number(parts[1]);
                                         if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-                                        return 1;
+                                        return 3 / 2;
                                         }
 
                                         return width / height;
@@ -367,7 +404,7 @@
                                         editContext.lineCap = "round";
                                         editContext.lineJoin = "round";
                                         const brushSize = Number.parseFloat(editBrushSizeInput.value);
-                                        editContext.lineWidth = Number.isFinite(brushSize) ? brushSize : 12;
+                                        editContext.lineWidth = Number.isFinite(brushSize) ? brushSize : 6;
                                         editContext.globalCompositeOperation = activeEditTool === "erase" ? "destination-out" : "source-over";
                                         editContext.strokeStyle = editColorInput.value || "#ff0000";
                                         editContext.beginPath();
@@ -375,6 +412,119 @@
                                         editContext.lineTo(toPoint.x, toPoint.y);
                                         editContext.stroke();
                                         editContext.globalCompositeOperation = "source-over";
+                                        };
+
+                                        const fitCanvasDisplaySize = () => {
+                                        if (!editCanvasContainer || !editCanvas.width || !editCanvas.height) {
+                                        return;
+                                        }
+
+                                        const containerWidth = Math.max(1, editCanvasContainer.clientWidth);
+                                        const containerHeight = Math.max(1, editCanvasContainer.clientHeight);
+                                        const widthRatio = containerWidth / editCanvas.width;
+                                        const heightRatio = containerHeight / editCanvas.height;
+                                        const fitRatio = Math.min(widthRatio, heightRatio);
+                                        const displayWidth = Math.max(1, Math.floor(editCanvas.width * fitRatio));
+                                        const displayHeight = Math.max(1, Math.floor(editCanvas.height * fitRatio));
+
+                                        editCanvas.style.width = `${displayWidth}px`;
+                                        editCanvas.style.height = `${displayHeight}px`;
+                                        };
+
+                                        const estimateDataUrlSize = (dataUrl) => {
+                                        const payload = (dataUrl || "").split(",")[1] || "";
+                                        return Math.ceil((payload.length * 3) / 4);
+                                        };
+
+                                        const buildThumbnailDataUrl = (sourceCanvas) => {
+                                        let thumbnailDataUrl = sourceCanvas.toDataURL("image/jpeg", 0.9);
+                                        if (estimateDataUrlSize(thumbnailDataUrl) <= MAX_THUMBNAIL_BYTES) {
+                                        return thumbnailDataUrl;
+                                        }
+
+                                        const thumbCanvas = document.createElement("canvas");
+                                        const thumbContext = thumbCanvas.getContext("2d");
+                                        if (!thumbContext || !sourceCanvas.width || !sourceCanvas.height) {
+                                        return thumbnailDataUrl;
+                                        }
+
+                                        let width = sourceCanvas.width;
+                                        let height = sourceCanvas.height;
+                                        const maxSide = 900;
+                                        const maxCurrentSide = Math.max(width, height);
+                                        if (maxCurrentSide > maxSide) {
+                                        const scale = maxSide / maxCurrentSide;
+                                        width = Math.max(1, Math.round(width * scale));
+                                        height = Math.max(1, Math.round(height * scale));
+                                        }
+
+                                        thumbCanvas.width = width;
+                                        thumbCanvas.height = height;
+
+                                        const render = () => {
+                                        thumbContext.clearRect(0, 0, width, height);
+                                        thumbContext.drawImage(sourceCanvas, 0, 0, width, height);
+                                        };
+
+                                        render();
+                                        let quality = 0.88;
+                                        thumbnailDataUrl = thumbCanvas.toDataURL("image/jpeg", quality);
+                                        let guard = 0;
+
+                                        while (estimateDataUrlSize(thumbnailDataUrl) > MAX_THUMBNAIL_BYTES && guard < 20) {
+                                        guard += 1;
+                                        if (quality > 0.45) {
+                                        quality -= 0.07;
+                                        } else {
+                                        width = Math.max(180, Math.round(width * 0.9));
+                                        height = Math.max(180, Math.round(height * 0.9));
+                                        thumbCanvas.width = width;
+                                        thumbCanvas.height = height;
+                                        }
+
+                                        render();
+                                        thumbnailDataUrl = thumbCanvas.toDataURL("image/jpeg", quality);
+                                        }
+
+                                        return thumbnailDataUrl;
+                                        };
+
+                                        const buildCroppedImageDataUrl = (sourceCanvas, maxBytes = MAX_FULL_IMAGE_BYTES) => {
+                                        let width = sourceCanvas.width;
+                                        let height = sourceCanvas.height;
+                                        let quality = 0.9;
+
+                                        const workCanvas = document.createElement("canvas");
+                                        const workContext = workCanvas.getContext("2d");
+                                        if (!workContext || !width || !height) {
+                                        return sourceCanvas.toDataURL("image/jpeg", quality);
+                                        }
+
+                                        const render = () => {
+                                        workCanvas.width = width;
+                                        workCanvas.height = height;
+                                        workContext.clearRect(0, 0, width, height);
+                                        workContext.drawImage(sourceCanvas, 0, 0, width, height);
+                                        };
+
+                                        render();
+                                        let dataUrl = workCanvas.toDataURL("image/jpeg", quality);
+                                        let guard = 0;
+
+                                        while (estimateDataUrlSize(dataUrl) > maxBytes && guard < 24) {
+                                        guard += 1;
+                                        if (quality > 0.45) {
+                                        quality -= 0.07;
+                                        } else {
+                                        width = Math.max(640, Math.round(width * 0.9));
+                                        height = Math.max(640, Math.round(height * 0.9));
+                                        }
+
+                                        render();
+                                        dataUrl = workCanvas.toDataURL("image/jpeg", quality);
+                                        }
+
+                                        return dataUrl;
                                         };
 
                                         const loadImageToCanvas = (imageDataUrl, onLoaded = null) => {
@@ -388,6 +538,7 @@
                                         editCanvas.height = image.naturalHeight;
                                         editContext.clearRect(0, 0, editCanvas.width, editCanvas.height);
                                         editContext.drawImage(image, 0, 0, editCanvas.width, editCanvas.height);
+                                        fitCanvasDisplaySize();
                                         if (typeof onLoaded === "function") {
                                         onLoaded();
                                         }
@@ -463,6 +614,7 @@
                                         };
 
                                         const switchToTool = (tool) => {
+                                        const previousTool = activeEditTool;
                                         activeEditTool = tool;
                                         setToolButtonStyles();
 
@@ -477,7 +629,7 @@
 
                                         cropperImage.classList.add("d-none");
                                         editCanvas.classList.remove("d-none");
-                                        if (!editCanvas.width || !editCanvas.height) {
+                                        if (previousTool === "crop" || !editCanvas.width || !editCanvas.height) {
                                         loadImageToCanvas(workingImageDataUrl || sourceImageDataUrl, () => {
                                         editHistory = [];
                                         redoHistory = [];
@@ -538,6 +690,14 @@
 
                                         if (activeEditTool === "crop") {
                                         createCropper();
+                                        } else {
+                                        fitCanvasDisplaySize();
+                                        }
+                                        });
+
+                                        window.addEventListener("resize", () => {
+                                        if (activeEditTool !== "crop" && !editCanvas.classList.contains("d-none")) {
+                                        fitCanvasDisplaySize();
                                         }
                                         });
 
@@ -623,17 +783,24 @@
                                         return;
                                         }
 
+                                        const canvas = Number.isFinite(currentAspectRatio)
+                                        ? (() => {
                                         const canvasSize = getCanvasSize(currentAspectRatio);
-                                        const canvas = cropper.getCroppedCanvas({
+                                        return cropper.getCroppedCanvas({
                                         width: canvasSize.width,
                                         height: canvasSize.height,
                                         imageSmoothingQuality: "high"
                                         });
+                                        })()
+                                        : cropper.getCroppedCanvas({ imageSmoothingQuality: "high" });
 
-                                        const croppedDataUrl = canvas.toDataURL("image/jpeg", 0.9);
-                                        croppedThumbnailDataInput.value = croppedDataUrl;
+                                        const thumbnailDataUrl = buildThumbnailDataUrl(canvas);
+                                        const normalizedThumbnailDataUrl = estimateDataUrlSize(thumbnailDataUrl) > MAX_FULL_IMAGE_BYTES
+                                        ? buildCroppedImageDataUrl(canvas)
+                                        : thumbnailDataUrl;
+                                        croppedThumbnailDataInput.value = normalizedThumbnailDataUrl;
                                         thumbnailUrlInput.value = "";
-                                        thumbnailPreview.src = croppedDataUrl;
+                                        thumbnailPreview.src = normalizedThumbnailDataUrl;
                                         thumbnailPreviewContainer.classList.remove("d-none");
                                         cropModal.hide();
                                         });
@@ -654,6 +821,22 @@
                                         });
 
                                         setToolButtonStyles();
+                                        })();
+                                    </script>
+                                    <script>
+                                        (() => {
+                                        const editBrushSizeInput = document.getElementById("editBrushSizeInput");
+                                        const editBrushSizeValue = document.getElementById("editBrushSizeValue");
+                                        if (!editBrushSizeInput || !editBrushSizeValue) {
+                                        return;
+                                        }
+
+                                        const syncBrushSizeValue = () => {
+                                        editBrushSizeValue.textContent = editBrushSizeInput.value;
+                                        };
+
+                                        editBrushSizeInput.addEventListener("input", syncBrushSizeValue);
+                                        syncBrushSizeValue();
                                         })();
                                     </script>
                                 }

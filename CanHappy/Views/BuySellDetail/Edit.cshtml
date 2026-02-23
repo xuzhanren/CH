@@ -4,6 +4,13 @@
     ViewData["Title"] = "Edit";
 }
 
+<style>
+    .form-label,
+    .form-check-label {
+        font-weight: 700;
+    }
+</style>
+
 <h1>Edit</h1>
 <h4>Buy/Sell Detail</h4>
 <hr />
@@ -18,15 +25,15 @@
             <h5 class="mt-2">Listing</h5>
             <div class="row g-2 mb-3">
                 <div class="col-md-6"><strong>Subject:</strong> @Model.Subject</div>
-                <div class="col-md-6"><strong>Description:</strong> @Model.Description</div>
-                <div class="col-md-3"><strong>CategoryId:</strong> @Model.CategoryId</div>
-                <div class="col-md-3"><strong>SubcategoryId:</strong> @Model.SubcategoryId</div>
-                <div class="col-md-3"><strong>ProvinceId:</strong> @Model.ProvinceId</div>
-                <div class="col-md-3"><strong>CityId:</strong> @Model.CityId</div>
+                <div class="col-md-6"><strong>Description:</strong>@Model.Description</div>
+                <div class="col-md-3"><strong>Category:</strong> @Model.CategoryId</div>
+                <div class="col-md-3"><strong>Subcategory:</strong> @Model.SubcategoryId</div>
+                <div class="col-md-3"><strong>Province:</strong> @Model.ProvinceId</div>
+                <div class="col-md-3"><strong>City:</strong> @Model.CityId</div>
                 <div class="col-md-3"><strong>Price:</strong> @Model.Price</div>
                 <div class="col-md-3"><strong>Brand:</strong> @Model.Brand</div>
                 <div class="col-md-3"><strong>Condition:</strong> @Model.Condition</div>
-                <div class="col-md-3"><strong>ManufactureYear:</strong> @Model.ManufactureYear</div>
+                <div class="col-md-3"><strong>Manufacture Year:</strong> @Model.ManufactureYear</div>
                 <div class="col-md-3"><strong>Model:</strong> @Model.ListingModel</div>
                 <div class="col-md-3"><strong>Quantity:</strong> @Model.Quantity</div>
             </div>
@@ -60,6 +67,18 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="PickupLocation" class="form-label"></label>
+                <input asp-for="PickupLocation" class="form-control" />
+                <span asp-validation-for="PickupLocation" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PickupTime" class="form-label"></label>
+                <input asp-for="PickupTime" class="form-control" />
+                <span asp-validation-for="PickupTime" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="WarrantyInfo" class="form-label"></label>
                 <input asp-for="WarrantyInfo" class="form-control" />
                 <span asp-validation-for="WarrantyInfo" class="text-danger"></span>
@@ -73,7 +92,7 @@
 
             <div class="d-flex gap-2">
                 <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                <a asp-action="Index" asp-route-listingGuid="@Model.ListingGUID" class="btn btn-outline-secondary">Back to List</a>
             </div>
         </form>
     </div>

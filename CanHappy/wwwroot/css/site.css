@@ -104,6 +104,10 @@ body {
   color: #e43ea2;
 }
 
+.compact-nav .top-subcategory-link.is-last-visited {
+  color: #e43ea2;
+}
+
 .compact-nav .top-category-link:hover,
 .compact-nav .top-category-link:focus {
   color: #fff;
@@ -222,6 +226,10 @@ html[data-bs-theme="dark"] .compact-nav .top-category-link {
 html[data-bs-theme="dark"] .compact-nav .top-category-link.is-last-visited {
   color: #e7c6ff;
   border-color: var(--bs-purple);
+}
+
+html[data-bs-theme="dark"] .compact-nav .top-subcategory-link.is-last-visited {
+  color: #e7c6ff;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {

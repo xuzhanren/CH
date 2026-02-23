@@ -102,6 +102,8 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                 NegotiablePriceInd = item.NegotiablePriceInd,
                 DeliveryAvailableInd = item.DeliveryAvailableInd,
                 PickupAvailableInd = item.PickupAvailableInd,
+                PickupTime = item.PickupTime,
+                PickupLocation = item.PickupLocation,
                 WarrantyInfo = item.WarrantyInfo,
                 AdditionalDetails = item.AdditionalDetails,
                 CanManage = canManageByRole || (hasUserGuid && item.Listing.UserId != Guid.Empty && item.Listing.UserId == currentUserId)
@@ -135,6 +137,8 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                     NegotiablePriceInd = focusDetail.NegotiablePriceInd,
                     DeliveryAvailableInd = focusDetail.DeliveryAvailableInd,
                     PickupAvailableInd = focusDetail.PickupAvailableInd,
+                    PickupTime = focusDetail.PickupTime,
+                    PickupLocation = focusDetail.PickupLocation,
                     WarrantyInfo = focusDetail.WarrantyInfo,
                     AdditionalDetails = focusDetail.AdditionalDetails
                 };
@@ -172,6 +176,33 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
+        if (listingGuid.HasValue)
+        {
+            var listing = await context.Listings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
+
+            if (listing is null)
+            {
+                return NotFound();
+            }
+
+            if (!CanManageListing(listing, currentUserId))
+            {
+                return Forbid();
+            }
+
+            var hasExisting = await context.BuySellDetails
+                .AsNoTracking()
+                .AnyAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
+
+            if (hasExisting)
+            {
+                TempData["MessageError"] = "The listing details already exist! Edit them if changes needed.";
+                return RedirectToAction(nameof(Index), new { listingGuid = listingGuid.Value });
+            }
+        }
+
         await PopulateListingSelectListAsync(currentUserId, listingGuid);
         return View("~/Views/BuySellDetail/Create.cshtml", new BuySellDetailEditViewModel
         {
@@ -182,7 +213,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
     [HttpPost("Create")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ListingGUID,BuySellModel,Material,NegotiablePriceInd,DeliveryAvailableInd,PickupAvailableInd,WarrantyInfo,AdditionalDetails")] BuySellDetailEditViewModel model)
+    public async Task<IActionResult> Create([Bind("ListingGUID,BuySellModel,Material,NegotiablePriceInd,DeliveryAvailableInd,PickupAvailableInd,PickupTime,PickupLocation,WarrantyInfo,AdditionalDetails")] BuySellDetailEditViewModel model)
     {
         if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
         {
@@ -223,6 +254,8 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             NegotiablePriceInd = model.NegotiablePriceInd,
             DeliveryAvailableInd = model.DeliveryAvailableInd,
             PickupAvailableInd = model.PickupAvailableInd,
+            PickupTime = model.PickupTime,
+            PickupLocation = model.PickupLocation,
             WarrantyInfo = model.WarrantyInfo,
             AdditionalDetails = model.AdditionalDetails,
             CreatedBy = User.Identity?.Name,
@@ -233,7 +266,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         context.BuySellDetails.Add(entity);
         await context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { listingGuid = model.ListingGUID });
     }
 
     [HttpGet("Edit/{id:guid}")]
@@ -266,7 +299,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
     [HttpPost("Edit/{id:guid}")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("BuySellDetailGUID,ListingGUID,BuySellModel,Material,NegotiablePriceInd,DeliveryAvailableInd,PickupAvailableInd,WarrantyInfo,AdditionalDetails")] BuySellDetailEditViewModel model)
+    public async Task<IActionResult> Edit(Guid id, [Bind("BuySellDetailGUID,ListingGUID,BuySellModel,Material,NegotiablePriceInd,DeliveryAvailableInd,PickupAvailableInd,PickupTime,PickupLocation,WarrantyInfo,AdditionalDetails")] BuySellDetailEditViewModel model)
     {
         if (model.BuySellDetailGUID != id)
         {
@@ -300,6 +333,8 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             invalidModel.NegotiablePriceInd = model.NegotiablePriceInd;
             invalidModel.DeliveryAvailableInd = model.DeliveryAvailableInd;
             invalidModel.PickupAvailableInd = model.PickupAvailableInd;
+            invalidModel.PickupTime = model.PickupTime;
+            invalidModel.PickupLocation = model.PickupLocation;
             invalidModel.WarrantyInfo = model.WarrantyInfo;
             invalidModel.AdditionalDetails = model.AdditionalDetails;
 
@@ -311,6 +346,8 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         entity.NegotiablePriceInd = model.NegotiablePriceInd;
         entity.DeliveryAvailableInd = model.DeliveryAvailableInd;
         entity.PickupAvailableInd = model.PickupAvailableInd;
+        entity.PickupTime = model.PickupTime;
+        entity.PickupLocation = model.PickupLocation;
         entity.WarrantyInfo = model.WarrantyInfo;
         entity.AdditionalDetails = model.AdditionalDetails;
         entity.ModifiedBY = User.Identity?.Name;
@@ -318,7 +355,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
 
         await context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { listingGuid = entity.ListingGUID });
     }
 
     [HttpGet("Delete/{id:guid}")]
@@ -382,7 +419,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
     [HttpPost("UpsertPhoto/{listingGuid:guid}")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpsertPhoto(Guid listingGuid, Guid? listingImageGuid, string? title, int? sorOrder, string? croppedImageData)
+    public async Task<IActionResult> UpsertPhoto(Guid listingGuid, Guid? listingImageGuid, string? title, int? sorOrder, string? croppedImageData, string? thumbnailImageData)
     {
         if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
         {
@@ -411,6 +448,15 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         {
             TempData["MessageError"] = "Invalid image data.";
             return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        var thumbnailPath = string.IsNullOrWhiteSpace(thumbnailImageData)
+            ? null
+            : await SaveListingImageFromDataUrlAsync(thumbnailImageData);
+
+        if (string.IsNullOrWhiteSpace(thumbnailPath))
+        {
+            thumbnailPath = imagePath;
         }
 
         ListingImage? listingImage = null;
@@ -442,7 +488,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
 
         listingImage.Title = string.IsNullOrWhiteSpace(title) ? null : title.Trim();
         listingImage.SorOrder = sorOrder.GetValueOrDefault(0);
-        listingImage.ThumbnailURL = imagePath;
+        listingImage.ThumbnailURL = thumbnailPath;
         listingImage.ImageURL = imagePath;
 
         await context.SaveChangesAsync();
@@ -509,6 +555,8 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             NegotiablePriceInd = detail.NegotiablePriceInd,
             DeliveryAvailableInd = detail.DeliveryAvailableInd,
             PickupAvailableInd = detail.PickupAvailableInd,
+            PickupTime = detail.PickupTime,
+            PickupLocation = detail.PickupLocation,
             WarrantyInfo = detail.WarrantyInfo,
             AdditionalDetails = detail.AdditionalDetails
         };

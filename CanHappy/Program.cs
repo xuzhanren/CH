@@ -1,5 +1,6 @@
 using System.Text;
 using CanHappy.Data;
+using CanHappy.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -61,7 +62,10 @@ authenticationBuilder.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, optio
     };
 });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.ModelMetadataDetailsProviders.Add(new SuffixTrimDisplayMetadataProvider());
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

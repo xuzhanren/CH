@@ -5,6 +5,7 @@ obj/
 out/
 **/out/
 wwwroot/ListImages
+wwwroot/ListingImages
 wwwroot/SampleImages
 # User-specific files
 *.user

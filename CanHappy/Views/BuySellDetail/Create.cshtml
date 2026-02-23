@@ -2,7 +2,15 @@
 
 @{
     ViewData["Title"] = "Create";
+    var hasListingContext = Model.ListingGUID != Guid.Empty;
 }
+
+<style>
+    .form-label,
+    .form-check-label {
+        font-weight: 700;
+    }
+</style>
 
 <h1>Create</h1>
 <h4>Buy/Sell Detail</h4>
@@ -13,13 +21,20 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <div class="mb-3">
-                <label asp-for="ListingGUID" class="form-label"></label>
-                <select asp-for="ListingGUID" class="form-select" asp-items="ViewBag.ListingGUID">
-                    <option value="">Select Listing</option>
-                </select>
-                <span asp-validation-for="ListingGUID" class="text-danger"></span>
-            </div>
+            @if (hasListingContext)
+            {
+                <input type="hidden" asp-for="ListingGUID" />
+            }
+            else
+            {
+                <div class="mb-3">
+                    <label asp-for="ListingGUID" class="form-label"></label>
+                    <select asp-for="ListingGUID" class="form-select" asp-items="ViewBag.ListingGUID">
+                        <option value="">Select Listing</option>
+                    </select>
+                    <span asp-validation-for="ListingGUID" class="text-danger"></span>
+                </div>
+            }
 
             <div class="mb-3">
                 <label asp-for="BuySellModel" class="form-label"></label>
@@ -49,6 +64,18 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="PickupLocation" class="form-label"></label>
+                <input asp-for="PickupLocation" class="form-control" />
+                <span asp-validation-for="PickupLocation" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PickupTime" class="form-label"></label>
+                <input asp-for="PickupTime" class="form-control" />
+                <span asp-validation-for="PickupTime" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="WarrantyInfo" class="form-label"></label>
                 <input asp-for="WarrantyInfo" class="form-control" />
                 <span asp-validation-for="WarrantyInfo" class="text-danger"></span>
@@ -62,7 +89,8 @@
 
             <div class="d-flex gap-2">
                 <input type="submit" value="Create" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                <a asp-action="Index" asp-route-listingGuid="@(hasListingContext? Model.ListingGUID: (Guid?)null)"
+                   class="btn btn-outline-secondary">Back to List</a>
             </div>
         </form>
     </div>
