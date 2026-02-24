@@ -1,0 +1,22 @@
+@model CanHappy.Models.ReviewReply
+
+@{
+    ViewData["Title"] = "Delete Reply";
+}
+
+<h1>Delete Reply</h1>
+<div class="alert alert-warning">Are you sure you want to delete this reply?</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <div><strong>Status:</strong> @Model.Status</div>
+        <div><strong>Reply Message:</strong> @Model.ReplyMessage</div>
+    </div>
+</div>
+
+<form asp-action="Delete" asp-route-id="@Model.ReviewReplyGUID" method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" asp-route-listingReviewGuid="@Model.ListingReviewGUID"
+       class="btn btn-outline-secondary">Cancel</a>
+</form>

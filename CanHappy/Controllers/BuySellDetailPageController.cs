@@ -35,6 +35,10 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
 
             var listing = await context.Listings
                 .AsNoTracking()
+                .Include(item => item.Category)
+                .Include(item => item.Subcategory)
+                .Include(item => item.Province)
+                .Include(item => item.City)
                 .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
 
             if (listing is null)
@@ -51,7 +55,15 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                 SubcategoryId = listing.SubcategoryId,
                 ProvinceId = listing.ProvinceId,
                 CityId = listing.CityId,
+                KeyWords = listing.KeyWords,
+                CategoryName = listing.Category?.Name,
+                SubcategoryName = listing.Subcategory?.Name,
+                ProvinceName = listing.Province?.Name,
+                CityName = listing.City?.Name,
+                PostalCode = listing.PostalCode,
                 Price = listing.Price,
+                DiscountPercent = listing.DiscountPercent,
+                DiscountEndDate = listing.DiscountEndDate,
                 Brand = listing.Brand,
                 Condition = listing.Condition,
                 ManufactureYear = listing.ManufactureYear,

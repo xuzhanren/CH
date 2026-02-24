@@ -10,6 +10,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Subcategory> Subcategories => Set<Subcategory>();
     public DbSet<Listing> Listings => Set<Listing>();
+    public DbSet<ListingReview> ListingReviews => Set<ListingReview>();
+    public DbSet<ListingReviewImage> ListingReviewImages => Set<ListingReviewImage>();
+    public DbSet<ReviewReply> ReviewReplies => Set<ReviewReply>();
     public DbSet<BuySellDetail> BuySellDetails => Set<BuySellDetail>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
     public DbSet<Ad> Ads => Set<Ad>();
@@ -386,6 +389,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.ThumbnailURL)
                 .HasMaxLength(200);
 
+            entity.Property(e => e.Rating)
+                .HasMaxLength(5)
+                .HasDefaultValue("3.5");
+
             entity.Property(e => e.Brand)
                 .HasMaxLength(50);
 
@@ -439,6 +446,109 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.City)
                 .WithMany()
                 .HasForeignKey(e => e.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ListingReview>(entity =>
+        {
+            entity.ToTable("ListingReview");
+            entity.HasKey(e => e.ListingReviewGUID);
+
+            entity.Property(e => e.Rating)
+                .HasPrecision(2, 1);
+
+            entity.Property(e => e.ReviewTitle)
+                .HasMaxLength(120);
+
+            entity.Property(e => e.ReviewMessage)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .HasDefaultValue(ReviewWorkflowStatus.Submitted);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID);
+            entity.HasIndex(e => new { e.ListingGUID, e.DeletedInd, e.CreatedDate });
+
+            entity.HasOne(e => e.Listing)
+                .WithMany(e => e.ListingReviews)
+                .HasForeignKey(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ListingReviewImage>(entity =>
+        {
+            entity.ToTable("ListingReviewImage");
+            entity.HasKey(e => e.ListingReviewImageGUID);
+
+            entity.Property(e => e.Title)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ThumbnailURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ImageURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.HasIndex(e => e.ListingReviewGUID);
+
+            entity.HasOne(e => e.ListingReview)
+                .WithMany(e => e.Images)
+                .HasForeignKey(e => e.ListingReviewGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ReviewReply>(entity =>
+        {
+            entity.ToTable("ReviewReply");
+            entity.HasKey(e => e.ReviewReplyGUID);
+
+            entity.Property(e => e.ReplyMessage)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .HasDefaultValue(ReviewWorkflowStatus.Submitted);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingReviewGUID);
+            entity.HasIndex(e => new { e.ListingReviewGUID, e.DeletedInd, e.CreatedDate });
+
+            entity.HasOne(e => e.ListingReview)
+                .WithMany(e => e.Replies)
+                .HasForeignKey(e => e.ListingReviewGUID)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

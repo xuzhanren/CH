@@ -1,0 +1,131 @@
+@model CanHappy.Models.ListingReview
+
+@{
+    ViewData["Title"] = "Edit Review";
+    var canManageStatus = ViewData["CanManageStatus"] is bool canManage && canManage;
+    var canManageDeletedInd = ViewData["CanManageDeletedInd"] is bool canManageDeleted && canManageDeleted;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
+
+<h1>Edit Review</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.ListingReviewGUID" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="ListingReviewGUID" />
+    <input type="hidden" asp-for="ListingGUID" />
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-4">
+            <label asp-for="Rating" class="form-label"></label>
+            <input asp-for="Rating" class="form-control" type="number" min="0" max="5" step="0.1" />
+            <span asp-validation-for="Rating" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Status" class="form-label"></label>
+            @if (canManageStatus)
+            {
+                <select asp-for="Status" class="form-select" asp-items="ViewBag.Statuses"></select>
+            }
+            else
+            {
+                <input asp-for="Status" class="form-control" readonly />
+            }
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check mb-2">
+                <input asp-for="VerifiedPurchaseInd" class="form-check-input" />
+                <label asp-for="VerifiedPurchaseInd" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+
+    @if (canManageDeletedInd)
+    {
+        <div class="mb-3">
+            <div class="form-check">
+                <input asp-for="DeletedInd" class="form-check-input" />
+                <label asp-for="DeletedInd" class="form-check-label"></label>
+            </div>
+            <span asp-validation-for="DeletedInd" class="text-danger"></span>
+        </div>
+    }
+
+    <div class="mb-3">
+        <label asp-for="ReviewTitle" class="form-label"></label>
+        <input asp-for="ReviewTitle" class="form-control" />
+        <span asp-validation-for="ReviewTitle" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ReviewMessage" class="form-label"></label>
+        <textarea asp-for="ReviewMessage" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="ReviewMessage" class="text-danger"></span>
+    </div>
+
+    <input type="hidden" id="reviewPhotosJson" name="reviewPhotosJson" />
+
+    <div class="mb-2">
+        <label class="form-label">Existing Photos</label>
+        @if (Model.Images.Any())
+        {
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var image in Model.Images.OrderBy(item => item.SortOrder).ThenBy(item => item.CreatedDate))
+                {
+                    var thumb = !string.IsNullOrWhiteSpace(image.ThumbnailURL) ? image.ThumbnailURL : image.ImageURL;
+                    var fullImage = !string.IsNullOrWhiteSpace(image.ImageURL) ? image.ImageURL : image.ThumbnailURL;
+                    <div class="border rounded p-1 existing-review-photo">
+                        <img src="@thumb" alt="Review image" class="existing-review-thumb"
+                             data-existing-guid="@image.ListingReviewImageGUID"   data-sort-order="@image.SortOrder"
+                             data-title="@image.Title" data-full-image-url="@fullImage"
+                             style="width:120px;height:90px;object-fit:contain;cursor:pointer;" />
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" name="deleteImageGuids"
+                                   value="@image.ListingReviewImageGUID" id="delete_@image.ListingReviewImageGUID" />
+                            <label class="form-check-label" for="delete_@image.ListingReviewImageGUID">Delete</label>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-muted">No photos.</div>
+        }
+    </div>
+
+    <div class="mb-2 d-flex align-items-center gap-2">
+        <label class="form-label mb-0">Add New Photos (up to total 4)</label>
+        <button type="button" id="addReviewPhotoButton" class="btn btn-sm btn-outline-primary">Add Photo</button>
+    </div>
+    <div id="reviewPhotoPreviewList" class="d-flex flex-wrap gap-2 mb-3"
+         data-existing-count="@Model.Images.Count(image => !image.DeletedInd)"></div>
+    <input type="file" id="reviewPhotoFileInput" class="d-none" accept="image/*" />
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Index" asp-route-listingGuid="@Model.ListingGUID" class="btn btn-outline-secondary">Back to
+            List</a>
+        </div>
+    </form>
+
+    <partial name="~/Views/ListingReview/_PhotoEditorModal.cshtml" />
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+        <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+        <script src="~/js/listingReviewPhotoEditor.js" asp-append-version="true"></script>
+        <script>
+            (() => {
+            window.initListingReviewPhotoEditor?.({
+            addButtonId: "addReviewPhotoButton",
+            fileInputId: "reviewPhotoFileInput",
+            previewListId: "reviewPhotoPreviewList",
+            photosJsonInputId: "reviewPhotosJson"
+            });
+            })();
+        </script>
+    }

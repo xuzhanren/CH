@@ -1,0 +1,55 @@
+@model IEnumerable<CanHappy.Models.ReviewReply>
+
+@{
+    ViewData["Title"] = "Review Replies";
+    var listingReviewGuid = ViewData["ListingReviewGUID"] as Guid?;
+    var canManageRole = ViewData["CanManageRole"] is bool value && value;
+    var currentUserId = ViewData["CurrentUserId"]?.ToString();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Review Replies</h1>
+    <a asp-action="Create" asp-route-listingReviewGuid="@listingReviewGuid" class="btn btn-primary">Create New</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No replies found.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th>Review</th>
+                    <th>Reply Message</th>
+                    <th>Status</th>
+                    <th>Created Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var canManage = canManageRole || (!string.IsNullOrWhiteSpace(currentUserId) && string.Equals(currentUserId,
+            item.CreatedBy, StringComparison.OrdinalIgnoreCase));
+                    <tr>
+                        <td>@item.ListingReview?.ReviewTitle</td>
+                        <td>@item.ReplyMessage</td>
+                        <td>@item.Status</td>
+                        <td>@item.CreatedDate</td>
+                        <td>
+                            @if (canManage)
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.ReviewReplyGUID">Edit</a>
+                                <span> | </span>
+                                <a asp-action="Delete" asp-route-id="@item.ReviewReplyGUID">Delete</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

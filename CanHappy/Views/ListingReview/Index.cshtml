@@ -1,0 +1,325 @@
+@model IEnumerable<CanHappy.Models.ListingReview>
+
+@{
+    ViewData["Title"] = "Listing Reviews";
+    var listingGuidFilter = ViewData["ListingGuidFilter"] as Guid?;
+    var currentUserId = ViewData["CurrentUserId"]?.ToString();
+    var canManageRole = ViewData["CanManageRole"] is bool value && value;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Listing Reviews</h1>
+    <a asp-action="Create" asp-route-listingGuid="@listingGuidFilter" class="btn btn-primary">Create New</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No reviews found.</div>
+}
+else
+{
+    @foreach (var review in Model)
+    {
+        var canManage = canManageRole || (!string.IsNullOrWhiteSpace(currentUserId) && string.Equals(currentUserId,
+        review.CreatedBy, StringComparison.OrdinalIgnoreCase));
+        var ratingValue = Math.Clamp((double)review.Rating, 0d, 5d);
+        var fullStars = (int)Math.Floor(ratingValue);
+        var halfStar = ratingValue - fullStars >= 0.5d;
+        var stars = new string('★', fullStars) + (halfStar ? "½" : string.Empty) + new string('☆', Math.Max(0, 5 - fullStars -
+(halfStar ? 1 : 0)));
+        <div class="card shadow-sm mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@(review.Listing?.Subject ?? "Listing")</strong>
+                    <span class="ms-2 text-muted">Rating: @review.Rating.ToString("0.0")</span>
+                    <span class="ms-1 text-warning">@stars</span>
+                </div>
+                <div>
+                    @if (canManage)
+                    {
+                        <a asp-action="Edit" asp-route-id="@review.ListingReviewGUID">Edit</a>
+                        <span> | </span>
+                        <a asp-action="Delete" asp-route-id="@review.ListingReviewGUID">Delete</a>
+                        <span> | </span>
+                    }
+                    <a asp-controller="ReviewReply" asp-action="Create"
+                       asp-route-listingReviewGuid="@review.ListingReviewGUID">Reply</a>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrWhiteSpace(review.ReviewTitle))
+                {
+                    <h5 class="card-title">@review.ReviewTitle</h5>
+                }
+                <p class="card-text mb-2">@review.ReviewMessage</p>
+                <div class="small text-muted mb-2">Status: @review.Status | Created: @review.CreatedDate</div>
+
+                @if (review.Images.Any())
+                {
+                    <div class="d-flex flex-wrap gap-2 mb-3 review-image-group">
+                        @foreach (var image in review.Images.OrderBy(item => item.SortOrder).ThenBy(item => item.CreatedDate))
+                        {
+                            var thumb = !string.IsNullOrWhiteSpace(image.ThumbnailURL) ? image.ThumbnailURL : image.ImageURL;
+                            var full = !string.IsNullOrWhiteSpace(image.ImageURL) ? image.ImageURL : image.ThumbnailURL;
+                            <button type="button" class="btn p-0 border rounded d-inline-block p-1 review-thumb"
+                                    data-group-id="@review.ListingReviewGUID" data-image-url="@full"
+                                    data-image-title="@(review.ReviewTitle ?? "Review image")">
+                                <img src="@thumb" alt="Review image" style="width: 120px; height: 90px; object-fit: contain;" />
+                            </button>
+                        }
+                    </div>
+                }
+
+                @if (review.Replies.Any())
+                {
+                    <h6>Replies</h6>
+                    <div class="list-group">
+                        @foreach (var reply in review.Replies.OrderBy(item => item.CreatedDate))
+                        {
+                            var canManageReply = canManageRole || (!string.IsNullOrWhiteSpace(currentUserId) &&
+                            string.Equals(currentUserId, reply.CreatedBy, StringComparison.OrdinalIgnoreCase));
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div>@reply.ReplyMessage</div>
+                                        <div class="small text-muted">Status: @reply.Status | Created: @reply.CreatedDate</div>
+                                    </div>
+                                    @if (canManageReply)
+                                    {
+                                        <div>
+                                            <a asp-controller="ReviewReply" asp-action="Edit" asp-route-id="@reply.ReviewReplyGUID">Edit</a>
+                                            <span> | </span>
+                                            <a asp-controller="ReviewReply" asp-action="Delete"
+                                               asp-route-id="@reply.ReviewReplyGUID">Delete</a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+<div class="modal fade" id="reviewImageViewerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content h-100">
+            <div class="modal-header">
+                <h5 class="modal-title">Review Photo Viewer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex flex-column overflow-hidden">
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-shrink-0">
+                    <div id="reviewViewerImageTitle" class="fw-semibold"></div>
+                    <div class="btn-group">
+                        <button type="button" id="reviewViewerPrev"
+                                class="btn btn-outline-secondary btn-sm">Prev</button>
+                        <button type="button" id="reviewViewerZoomOut"
+                                class="btn btn-outline-secondary btn-sm">-</button>
+                        <button type="button" id="reviewViewerZoomReset"
+                                class="btn btn-outline-secondary btn-sm">100%</button>
+                        <button type="button" id="reviewViewerZoomIn"
+                                class="btn btn-outline-secondary btn-sm">+</button>
+                        <button type="button" id="reviewViewerNext"
+                                class="btn btn-outline-secondary btn-sm">Next</button>
+                    </div>
+                </div>
+                <div class="border rounded d-flex justify-content-center align-items-center overflow-hidden flex-grow-1"
+                     style="min-height: 0; background-color: #e9ecef;">
+                    <img id="reviewViewerMainImage" alt="Review photo" draggable="false"
+                         style="width: 100%; height: 100%; object-fit: contain; transform-origin: center center; transition: transform .15s ease; cursor: grab; touch-action: none; user-select: none;" />
+                </div>
+                <div class="mt-2 d-flex flex-nowrap justify-content-center gap-2 overflow-auto pb-1 flex-shrink-0"
+                     id="reviewViewerThumbnailStrip" style="min-height: 84px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+            (() => {
+                const viewerModalElement = document.getElementById("reviewImageViewerModal");
+                if (!viewerModalElement) {
+                    return;
+                }
+
+                const viewerMainImage = document.getElementById("reviewViewerMainImage");
+                const viewerImageTitle = document.getElementById("reviewViewerImageTitle");
+                const viewerPrev = document.getElementById("reviewViewerPrev");
+                const viewerNext = document.getElementById("reviewViewerNext");
+                const viewerZoomIn = document.getElementById("reviewViewerZoomIn");
+                const viewerZoomOut = document.getElementById("reviewViewerZoomOut");
+                const viewerZoomReset = document.getElementById("reviewViewerZoomReset");
+                const viewerThumbStrip = document.getElementById("reviewViewerThumbnailStrip");
+
+                let activeItems = [];
+                let selectedIndex = 0;
+                let zoomScale = 1;
+                let targetTranslateX = 0;
+                let targetTranslateY = 0;
+                let isDragging = false;
+                let lastPointerX = 0;
+                let lastPointerY = 0;
+
+                const getViewerModal = () => window.bootstrap?.Modal?.getOrCreateInstance(viewerModalElement);
+                const viewerViewport = viewerMainImage.parentElement;
+
+                const getFittedImageSize = () => {
+                    const viewportWidth = Math.max(1, viewerViewport.clientWidth);
+                    const viewportHeight = Math.max(1, viewerViewport.clientHeight);
+                    const naturalWidth = Math.max(1, viewerMainImage.naturalWidth || 1);
+                    const naturalHeight = Math.max(1, viewerMainImage.naturalHeight || 1);
+                    const fitRatio = Math.min(viewportWidth / naturalWidth, viewportHeight / naturalHeight);
+                    return { viewportWidth, viewportHeight, fittedWidth: naturalWidth * fitRatio, fittedHeight: naturalHeight * fitRatio };
+                };
+
+                const clampTranslate = () => {
+                    const { viewportWidth, viewportHeight, fittedWidth, fittedHeight } = getFittedImageSize();
+                    const scaledWidth = fittedWidth * zoomScale;
+                    const scaledHeight = fittedHeight * zoomScale;
+                    const maxOffsetX = Math.max(0, (scaledWidth - viewportWidth) / 2);
+                    const maxOffsetY = Math.max(0, (scaledHeight - viewportHeight) / 2);
+                    targetTranslateX = Math.min(maxOffsetX, Math.max(-maxOffsetX, targetTranslateX));
+                    targetTranslateY = Math.min(maxOffsetY, Math.max(-maxOffsetY, targetTranslateY));
+                };
+
+                const applyZoom = () => {
+                    clampTranslate();
+                    viewerMainImage.style.transform = `translate(${targetTranslateX}px, ${targetTranslateY}px) scale(${zoomScale})`;
+                    viewerZoomReset.textContent = `${Math.round(zoomScale * 100)}%`;
+                };
+
+                const resetView = () => {
+                    zoomScale = 1;
+                    targetTranslateX = 0;
+                    targetTranslateY = 0;
+                    applyZoom();
+                };
+
+                const renderThumbStrip = () => {
+                    viewerThumbStrip.innerHTML = "";
+                    activeItems.forEach((item, index) => {
+                        const button = document.createElement("button");
+                        button.type = "button";
+                        button.className = "btn p-0 border viewer-thumb";
+                        button.style.minWidth = "90px";
+                        button.innerHTML = `<img src="${item.thumbUrl}" alt="Thumbnail ${index}" style="width: 90px; height: 70px; object-fit: contain; background-color: #f8f9fa;" />`;
+                        button.addEventListener("click", () => updateSelection(index));
+                        viewerThumbStrip.appendChild(button);
+                    });
+                };
+
+                const updateSelection = (index) => {
+                    if (activeItems.length === 0) {
+                        return;
+                    }
+                    if (index < 0) {
+                        index = activeItems.length - 1;
+                    } else if (index >= activeItems.length) {
+                        index = 0;
+                    }
+
+                    selectedIndex = index;
+                    const selected = activeItems[index];
+                    viewerMainImage.src = selected.fullUrl;
+                    viewerImageTitle.textContent = selected.title || "Review image";
+                    resetView();
+
+                    Array.from(viewerThumbStrip.querySelectorAll(".viewer-thumb")).forEach((button, buttonIndex) => {
+                        button.classList.toggle("border-primary", buttonIndex === selectedIndex);
+                        button.classList.toggle("border-2", buttonIndex === selectedIndex);
+                    });
+                };
+
+                document.querySelectorAll(".review-thumb").forEach((button) => {
+                    button.addEventListener("click", () => {
+                        const groupId = button.getAttribute("data-group-id");
+                        if (!groupId) {
+                            return;
+                        }
+
+                        const groupButtons = Array.from(document.querySelectorAll(`.review-thumb[data-group-id="${groupId}"]`));
+                        activeItems = groupButtons.map((itemButton) => {
+                            const imageElement = itemButton.querySelector("img");
+                            const thumbUrl = imageElement?.getAttribute("src") || itemButton.getAttribute("data-image-url") || "";
+                            return {
+                                fullUrl: itemButton.getAttribute("data-image-url") || thumbUrl,
+                                thumbUrl,
+                                title: itemButton.getAttribute("data-image-title") || "Review image"
+                            };
+                        });
+
+                        renderThumbStrip();
+                        const index = groupButtons.indexOf(button);
+                        updateSelection(index >= 0 ? index : 0);
+                        getViewerModal()?.show();
+                    });
+                });
+
+                viewerZoomIn.addEventListener("click", () => {
+                    zoomScale = Math.min(10, zoomScale + 0.2);
+                    applyZoom();
+                });
+
+                viewerZoomOut.addEventListener("click", () => {
+                    zoomScale = Math.max(0.2, zoomScale - 0.2);
+                    applyZoom();
+                });
+
+                viewerZoomReset.addEventListener("click", resetView);
+                viewerPrev.addEventListener("click", () => updateSelection(selectedIndex - 1));
+                viewerNext.addEventListener("click", () => updateSelection(selectedIndex + 1));
+                viewerMainImage.addEventListener("load", resetView);
+
+                viewerMainImage.addEventListener("wheel", (event) => {
+                    event.preventDefault();
+                    zoomScale = Math.min(10, Math.max(0.2, zoomScale + (event.deltaY < 0 ? 0.1 : -0.1)));
+                    applyZoom();
+                }, { passive: false });
+
+                viewerMainImage.addEventListener("pointerdown", (event) => {
+                    if (zoomScale <= 1) {
+                        return;
+                    }
+                    event.preventDefault();
+                    isDragging = true;
+                    lastPointerX = event.clientX;
+                    lastPointerY = event.clientY;
+                    viewerMainImage.style.cursor = "grabbing";
+                    viewerMainImage.setPointerCapture(event.pointerId);
+                });
+
+                viewerMainImage.addEventListener("pointermove", (event) => {
+                    if (!isDragging) {
+                        return;
+                    }
+                    const deltaX = event.clientX - lastPointerX;
+                    const deltaY = event.clientY - lastPointerY;
+                    lastPointerX = event.clientX;
+                    lastPointerY = event.clientY;
+                    targetTranslateX += deltaX;
+                    targetTranslateY += deltaY;
+                    applyZoom();
+                });
+
+                const stopDragging = (event) => {
+                    if (!isDragging) {
+                        return;
+                    }
+                    isDragging = false;
+                    viewerMainImage.style.cursor = zoomScale > 1 ? "grab" : "default";
+                    if (typeof event.pointerId !== "undefined") {
+                        viewerMainImage.releasePointerCapture(event.pointerId);
+                    }
+                };
+
+                viewerMainImage.addEventListener("pointerup", stopDragging);
+                viewerMainImage.addEventListener("pointercancel", stopDragging);
+                viewerMainImage.addEventListener("pointerleave", stopDragging);
+                window.addEventListener("resize", applyZoom);
+            })();
+    </script>
+}

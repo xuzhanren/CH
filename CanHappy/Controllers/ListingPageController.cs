@@ -76,6 +76,18 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             .OrderByDescending(listing => listing.CreatedDate)
             .ToListAsync();
 
+        var listingIds = listings.Select(item => item.ListingGUID).ToList();
+        var reviewCounts = listingIds.Count == 0
+            ? new Dictionary<Guid, int>()
+            : await context.ListingReviews
+                .AsNoTracking()
+                .Where(item => listingIds.Contains(item.ListingGUID) && !item.DeletedInd)
+                .GroupBy(item => item.ListingGUID)
+                .Select(group => new { ListingGUID = group.Key, Count = group.Count() })
+                .ToDictionaryAsync(item => item.ListingGUID, item => item.Count);
+
+        ViewData["ReviewCountByListing"] = reviewCounts;
+
         return View("~/Views/Listing/Index.cshtml", listings);
     }
 
@@ -99,6 +111,12 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             return NotFound();
         }
 
+        var reviewCount = await context.ListingReviews
+            .AsNoTracking()
+            .CountAsync(item => item.ListingGUID == listing.ListingGUID && !item.DeletedInd);
+
+        ViewData["ReviewCount"] = reviewCount;
+
         return View("~/Views/Listing/Details.cshtml", listing);
     }
 
@@ -111,7 +129,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
+    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
     {
         if (!ModelState.IsValid)
         {
@@ -168,7 +186,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? categoryName, string? subcategoryName)
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? categoryName, string? subcategoryName)
     {
         if (id != listing.ListingGUID)
         {
@@ -206,6 +224,11 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             existingListing.PostalCode = listing.PostalCode;
             existingListing.Price = listing.Price;
             existingListing.DiscountPercent = listing.DiscountPercent;
+            existingListing.DiscountBeginDate = listing.DiscountBeginDate;
+            existingListing.DiscountEndDate = listing.DiscountEndDate;
+            existingListing.Brand = listing.Brand;
+            existingListing.Model = listing.Model;
+            existingListing.Condition = listing.Condition;
             existingListing.ThumbnailURL = listing.ThumbnailURL;
             existingListing.ModifiedDate = CanHappy.Common.EasternTime.Now;
 

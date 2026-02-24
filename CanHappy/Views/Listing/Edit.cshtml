@@ -66,11 +66,6 @@
                 <span asp-validation-for="KeyWords" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="PostalCode" class="form-label"></label>
-                <input asp-for="PostalCode" class="form-control" />
-                <span asp-validation-for="PostalCode" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
                 <label asp-for="Price" class="form-label"></label>
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
@@ -79,6 +74,31 @@
                 <label asp-for="DiscountPercent" class="form-label"></label>
                 <input asp-for="DiscountPercent" class="form-control" />
                 <span asp-validation-for="DiscountPercent" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DiscountBeginDate" class="form-label"></label>
+                <input asp-for="DiscountBeginDate" type="date" class="form-control" />
+                <span asp-validation-for="DiscountBeginDate" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DiscountEndDate" class="form-label"></label>
+                <input asp-for="DiscountEndDate" type="date" class="form-control" />
+                <span asp-validation-for="DiscountEndDate" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Brand" class="form-label"></label>
+                <input asp-for="Brand" class="form-control" />
+                <span asp-validation-for="Brand" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Model" class="form-label"></label>
+                <input asp-for="Model" class="form-control" />
+                <span asp-validation-for="Model" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Condition" class="form-label"></label>
+                <input asp-for="Condition" class="form-control" />
+                <span asp-validation-for="Condition" class="text-danger"></span>
             </div>
             <div class="mb-3">
                 <label class="form-label">Thumbnail Image</label>
@@ -124,6 +144,11 @@
                             <option value="">Select City</option>
                         </select>
                         <span asp-validation-for="CityId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="PostalCode" class="form-label"></label>
+                        <input asp-for="PostalCode" class="form-control" />
+                        <span asp-validation-for="PostalCode" class="text-danger"></span>
                     </div>
                     <input type="hidden" asp-for="ViewCount" />
                     <input type="hidden" asp-for="ClickCount" />

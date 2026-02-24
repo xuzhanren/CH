@@ -118,17 +118,67 @@
                 <div class="row g-2">
                     <div class="col-md-6"><strong>Subject:</strong> @Model.ListingCard.Subject</div>
                     <div class="col-md-6"><strong>Description:</strong>@Model.ListingCard.Description</div>
-                    <div class="col-md-4"><strong>Category:</strong> @Model.ListingCard.CategoryId</div>
-                    <div class="col-md-4"><strong>Subcategory:</strong> @Model.ListingCard.SubcategoryId</div>
-                    <div class="col-md-4"><strong>Province:</strong> @Model.ListingCard.ProvinceId</div>
-                    <div class="col-md-4"><strong>City:</strong> @Model.ListingCard.CityId</div>
                     <div class="col-md-4"><strong>Price:</strong> @Model.ListingCard.Price</div>
+                    <div class="col-md-4"><strong>Quantity:</strong> @Model.ListingCard.Quantity</div>
+                    <div class="col-md-4"><strong>Discount Percent:</strong> @Model.ListingCard.DiscountPercent</div>
+                    <div class="col-md-4"><strong>Sales Ending:</strong> @Model.ListingCard.DiscountEndDate</div>
+                    <div class="col-md-4"><strong>Category:</strong> @Model.ListingCard.CategoryName</div>
+                    <div class="col-md-4"><strong>Subcategory:</strong> @Model.ListingCard.SubcategoryName</div>
+                    <div class="col-md-4"><strong>Province:</strong> @Model.ListingCard.ProvinceName</div>
+                    <div class="col-md-4"><strong>City:</strong> @Model.ListingCard.CityName</div>
+                    <div class="col-md-4">
+                        <strong>Postal Code:</strong> @Model.ListingCard.PostalCode
+                        @if (!string.IsNullOrWhiteSpace(Model.ListingCard.PostalCode))
+                        {
+                            <a href="#" class="ms-2 open-google-map" data-postal-code="@Model.ListingCard.PostalCode">Google map</a>
+                        }
+                    </div>
+                    <div class="col-md-4"><strong>KeyWords:</strong> @Model.ListingCard.KeyWords</div>
                     <div class="col-md-4"><strong>Brand:</strong> @Model.ListingCard.Brand</div>
                     <div class="col-md-4"><strong>Condition:</strong> @Model.ListingCard.Condition</div>
                     <div class="col-md-4"><strong>Manufacture Year:</strong> @Model.ListingCard.ManufactureYear</div>
                     <div class="col-md-4"><strong>Model:</strong> @Model.ListingCard.Model</div>
-                    <div class="col-md-4"><strong>Quantity:</strong> @Model.ListingCard.Quantity</div>
                 </div>
+
+                <div class="modal fade" id="postalCodeMapModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Google map</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-0">
+                                <iframe id="postalCodeMapFrame" title="Google map by postal code"
+                                        style="width:100%;height:500px;border:0;" loading="lazy"
+                                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                            (() => {
+                                const mapModalElement = document.getElementById("postalCodeMapModal");
+                                const mapFrame = document.getElementById("postalCodeMapFrame");
+
+                                if (!mapModalElement || !mapFrame) {
+                                    return;
+                                }
+
+                                document.querySelectorAll(".open-google-map").forEach((link) => {
+                                    link.addEventListener("click", (event) => {
+                                        event.preventDefault();
+                                        const postalCode = link.getAttribute("data-postal-code");
+                                        if (!postalCode) {
+                                            return;
+                                        }
+
+                                        mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(postalCode)}&output=embed`;
+                                        bootstrap.Modal.getOrCreateInstance(mapModalElement).show();
+                                    });
+                                });
+                            })();
+                </script>
             </div>
         </div>
 

@@ -1,0 +1,94 @@
+<div class="modal fade" id="reviewPhotoCropModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content h-100">
+            <div class="modal-header py-2 px-3">
+                <h5 class="modal-title">Clip Review Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2 pb-2 px-3 d-flex flex-column overflow-hidden">
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-2 flex-shrink-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="photoTitleEditor" class="form-label mb-0 text-nowrap">Title</label>
+                        <input id="photoTitleEditor" type="text" class="form-control form-control-sm" maxlength="100"
+                               style="width: 300px;" />
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="photoSortOrderEditor" class="form-label mb-0 text-nowrap">Sort Order</label>
+                        <input id="photoSortOrderEditor" type="number" class="form-control form-control-sm" min="0"
+                               max="999" step="1" value="0" style="width: 110px;" />
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 align-items-center pb-2 mb-3 flex-shrink-0">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <label for="cropAspectRatioSelect" class="form-label mb-0 text-nowrap">Aspect Ratio</label>
+                        <select id="cropAspectRatioSelect" class="form-select form-select-sm" style="min-width: 100px;">
+                            <option value="3:2" selected>3:2</option>
+                            <option value="1:1">1:1</option>
+                            <option value="4:3">4:3</option>
+                            <option value="16:9">16:9</option>
+                            <option value="9:16">9:16</option>
+                            <option value="19:10">19:10</option>
+                            <option value="6:5">6:5</option>
+                            <option value="8:1">8:1</option>
+                            <option value="32:5">32:5</option>
+                            <option value="2:1">2:1</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <button type="button" id="editCropModeButton" class="btn btn-sm btn-primary mb-1 text-nowrap">Crop
+                        Mode</button>
+                        <button type="button" id="editPenModeButton"
+                                class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Free Draw Pen</button>
+                        <button type="button" id="editEraseModeButton"
+                                class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Erase</button>
+                        <button type="button" id="editTextModeButton"
+                                class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Type Text</button>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <label for="editFontSelect" class="form-label mb-0 text-nowrap">Font</label>
+                            <select id="editFontSelect" class="form-select form-select-sm" style="min-width: 150px;">
+                                <option value="Arial, sans-serif" selected>Arial</option>
+                                <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                                <option value="Verdana, sans-serif">Verdana</option>
+                                <option value="Tahoma, sans-serif">Tahoma</option>
+                                <option value="Georgia, serif">Georgia</option>
+                                <option value="'Times New Roman', serif">Times New Roman</option>
+                                <option value="'Courier New', monospace">Courier New</option>
+                            </select>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <label for="editFontSizeInput" class="form-label mb-0 text-nowrap">Font Size</label>
+                            <input id="editFontSizeInput" type="number" class="form-control form-control-sm" min="8"
+                                   max="120" step="1" value="26" style="width: 90px;" />
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <label for="editBrushSizeInput" class="form-label mb-0 text-nowrap">Brush Size</label>
+                            <input id="editBrushSizeInput" type="range" class="form-range mb-0" min="0" max="30" value="6"
+                                   style="width: 140px;" />
+                            <span id="editBrushSizeValue" class="small text-muted text-nowrap">6</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <label for="editColorInput" class="form-label mb-0 text-nowrap">Color</label>
+                            <input id="editColorInput" type="color" class="form-control form-control-color"
+                                   value="#ff0000" />
+                        </div>
+                        <button type="button" id="applyEditsButton"
+                                class="btn btn-sm btn-outline-primary mb-1 text-nowrap">Apply Edits</button>
+                        <button type="button" id="undoEditButton"
+                                class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Undo</button>
+                        <button type="button" id="redoEditButton"
+                                class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Redo</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mb-1 text-nowrap"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" id="saveCroppedImageButton"
+                                class="btn btn-sm btn-primary mb-1 text-nowrap">Save Clipped Image</button>
+                    </div>
+                    <div class="position-relative border rounded overflow-hidden bg-light flex-grow-1"
+                         style="min-height: 0; background-color: #e9ecef;">
+                        <img id="cropperImage" alt="Image to crop" class="w-100 h-100" style="object-fit: contain;" />
+                        <canvas id="editCanvas" class="d-none"
+                                style="touch-action: none; cursor: crosshair; max-width: 100%; max-height: 100%; width: auto; height: auto; display: block; margin: auto;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

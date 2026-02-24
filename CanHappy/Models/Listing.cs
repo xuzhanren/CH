@@ -31,6 +31,9 @@ public class Listing
     [StringLength(200)]
     public string? ThumbnailURL { get; set; }
 
+    [StringLength(5)]
+    public string Rating { get; set; } = "3.5";
+
     [StringLength(50)]
     public string? Brand { get; set; }
 
@@ -81,4 +84,6 @@ public class Listing
     public City? City { get; set; }
 
     public BuySellDetail? BuySellDetail { get; set; }
+
+    public List<ListingReview> ListingReviews { get; set; } = [];
 }

@@ -22,7 +22,15 @@ public class BuySellDetailListingCardViewModel
     public int SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
+    public string? KeyWords { get; set; }
+    public string? CategoryName { get; set; }
+    public string? SubcategoryName { get; set; }
+    public string? ProvinceName { get; set; }
+    public string? CityName { get; set; }
+    public string? PostalCode { get; set; }
     public decimal? Price { get; set; }
+    public decimal DiscountPercent { get; set; }
+    public DateTime? DiscountEndDate { get; set; }
     public string? Brand { get; set; }
     public string Condition { get; set; } = "Used";
     public int? ManufactureYear { get; set; }
