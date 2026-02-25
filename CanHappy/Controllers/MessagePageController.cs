@@ -1,6 +1,7 @@
 using CanHappy.Data;
 using CanHappy.Models;
 using CanHappy.Models.Messaging;
+using CanHappy.Services.Email;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,11 @@ namespace CanHappy.Controllers;
 
 [Authorize]
 [Route("Messages")]
-public class MessagePageController(ApplicationDbContext context, UserManager<IdentityUser> userManager) : Controller
+public class MessagePageController(
+    ApplicationDbContext context,
+    UserManager<IdentityUser> userManager,
+    IMessageNotificationEmailSender messageNotificationEmailSender,
+    ILogger<MessagePageController> logger) : Controller
 {
     [HttpGet("")]
     [HttpGet("Inbox")]
@@ -194,6 +199,52 @@ public class MessagePageController(ApplicationDbContext context, UserManager<Ide
 
         context.UserMessages.Add(message);
         await context.SaveChangesAsync();
+
+        try
+        {
+            var senderUser = await userManager.FindByIdAsync(currentUserId.ToString());
+            var sellerUser = await userManager.FindByIdAsync(listing.UserId.ToString());
+
+            if (!string.IsNullOrWhiteSpace(sellerUser?.Email))
+            {
+                var listingUrl = Url.Action(
+                    "Details",
+                    "ListingPage",
+                    new { id = listing.ListingGUID },
+                    Request.Scheme) ?? $"{Request.Scheme}://{Request.Host}/Listing/Details/{listing.ListingGUID}";
+
+                var sellerInboxUrl = Url.Action(
+                    nameof(Inbox),
+                    "MessagePage",
+                    null,
+                    Request.Scheme) ?? $"{Request.Scheme}://{Request.Host}/Messages/Inbox";
+
+                var senderEmail = senderUser?.Email;
+                if (string.IsNullOrWhiteSpace(senderEmail))
+                {
+                    senderEmail = User.Identity?.Name ?? "(sender email unavailable)";
+                }
+
+                await messageNotificationEmailSender.SendSellerMessageNotificationAsync(
+                    sellerUser.Email,
+                    sellerUser.UserName ?? sellerUser.Email,
+                    senderEmail,
+                    senderUser?.UserName ?? senderEmail,
+                    listing.Subject,
+                    effectiveSubject,
+                    message.Body,
+                    listingUrl,
+                    sellerInboxUrl);
+            }
+            else
+            {
+                logger.LogInformation("Seller email is not available for user {SellerUserId}; skipped message notification email.", listing.UserId);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send seller notification email for listing {ListingId}.", listing.ListingGUID);
+        }
 
         TempData["MessageSuccess"] = "Message sent to seller.";
         return RedirectAfterSend(returnUrl, listingId);

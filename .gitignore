@@ -7,6 +7,10 @@ out/
 wwwroot/ListImages
 wwwroot/ListingImages
 wwwroot/SampleImages
+artifacts/build
+artifacts/
+*.dll
+*.jpg
 # User-specific files
 *.user
 *.suo
