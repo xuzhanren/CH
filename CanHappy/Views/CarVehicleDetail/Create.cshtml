@@ -1,0 +1,84 @@
+@model CanHappy.Models.CarVehicleDetailEditViewModel
+
+@{
+    ViewData["Title"] = "Create";
+    var hasListingContext = Model.ListingGUID != Guid.Empty;
+}
+
+<style>
+    .form-label,
+    .form-check-label {
+        font-weight: 700;
+    }
+</style>
+
+<h1>Create</h1>
+<h4>Car/Vehicle Detail</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            @if (hasListingContext)
+            {
+                <input type="hidden" asp-for="ListingGUID" />
+            }
+            else
+            {
+                <div class="mb-3">
+                    <label asp-for="ListingGUID" class="form-label"></label>
+                    <select asp-for="ListingGUID" class="form-select" asp-items="ViewBag.ListingGUID">
+                        <option value="">Select Listing</option>
+                    </select>
+                    <span asp-validation-for="ListingGUID" class="text-danger"></span>
+                </div>
+            }
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-4"><label asp-for="Kilometers" class="form-label"></label><input asp-for="Kilometers" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="Doors" class="form-label"></label><input asp-for="Doors" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="Seats" class="form-label"></label><input asp-for="Seats" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="BodyStyle" class="form-label"></label><input asp-for="BodyStyle" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="Engine" class="form-label"></label><input asp-for="Engine" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="Transmission" class="form-label"></label><input asp-for="Transmission" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="FuelType" class="form-label"></label><input asp-for="FuelType" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="Drivetrain" class="form-label"></label><input asp-for="Drivetrain" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="SellerType" class="form-label"></label><input asp-for="SellerType" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="ExteriorColor" class="form-label"></label><input asp-for="ExteriorColor" class="form-control" /></div>
+                <div class="col-md-4"><label asp-for="InteriorColor" class="form-label"></label><input asp-for="InteriorColor" class="form-control" /></div>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-4 form-check"><input asp-for="LeatherSeatsInd" class="form-check-input" /><label asp-for="LeatherSeatsInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="BackupCameraInd" class="form-check-input" /><label asp-for="BackupCameraInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="AlloyWheelsInd" class="form-check-input" /><label asp-for="AlloyWheelsInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="BluetoothInd" class="form-check-input" /><label asp-for="BluetoothInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="HeatedSeatsInd" class="form-check-input" /><label asp-for="HeatedSeatsInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="CarPlayInd" class="form-check-input" /><label asp-for="CarPlayInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="AndroidAutoInd" class="form-check-input" /><label asp-for="AndroidAutoInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="NavigationMapInd" class="form-check-input" /><label asp-for="NavigationMapInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="RemoteStartInd" class="form-check-input" /><label asp-for="RemoteStartInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="SunroofInd" class="form-check-input" /><label asp-for="SunroofInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="MoonroofInd" class="form-check-input" /><label asp-for="MoonroofInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="BlindSpotMonitoringInd" class="form-check-input" /><label asp-for="BlindSpotMonitoringInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="LaneTrackingInd" class="form-check-input" /><label asp-for="LaneTrackingInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="AdaptiveCruiseInd" class="form-check-input" /><label asp-for="AdaptiveCruiseInd" class="form-check-label"></label></div>
+                <div class="col-md-4 form-check"><input asp-for="AssistedParkingCameraInd" class="form-check-input" /><label asp-for="AssistedParkingCameraInd" class="form-check-label"></label></div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" asp-route-listingGuid="@(hasListingContext? Model.ListingGUID: (Guid?)null)"
+                   class="btn btn-outline-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

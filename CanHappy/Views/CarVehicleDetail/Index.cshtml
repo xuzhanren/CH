@@ -1,8 +1,8 @@
-@model CanHappy.Models.BuySellDetailIndexPageViewModel
+@model CanHappy.Models.CarVehicleDetailIndexPageViewModel
 @using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Buy/Sell Details";
+    ViewData["Title"] = "Car/Vehicle Details";
     var listingGuid = Model.ListingGUIDFilter;
     var currentUserIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var isCurrentUserGuid = Guid.TryParse(currentUserIdText, out var currentUserId);
@@ -40,7 +40,7 @@
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="mb-0">Buy/Sell Details</h1>
+    <h1 class="mb-0">Car/Vehicle Details</h1>
     <a asp-action="Create" asp-route-listingGuid="@listingGuid" class="btn btn-primary">Create New</a>
 </div>
 
@@ -68,8 +68,8 @@
             <strong>Listing</strong>
             <div class="d-flex align-items-center gap-2">
                 <a href="#" class="btn btn-link btn-sm p-0 send-message-link" data-message-modal-id="@messageModalId"
-                       data-listing-guid="@Model.ListingCard.ListingGUID.ToString("N")"
-                       data-is-owner="@isOwnerListing.ToString().ToLowerInvariant()" data-notice-id="@ownListingNoticeId">
+                   data-listing-guid="@Model.ListingCard.ListingGUID.ToString("N")"
+                   data-is-owner="@isOwnerListing.ToString().ToLowerInvariant()" data-notice-id="@ownListingNoticeId">
                     Mesasage seller
                 </a>
                 <span id="@ownListingNoticeId" class="small text-muted d-none">You cannot message your own listing.</span>
@@ -223,8 +223,7 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                                     <button type="submit" class="btn btn-primary">Send</button>
                                 </div>
                             </form>
@@ -233,42 +232,42 @@
                 </div>
 
                 <script>
-                            (() => {
-                                const link = document.querySelector(".send-message-link");
-                                if (!link) {
-                                    return;
-                                }
+                    (() => {
+                        const link = document.querySelector(".send-message-link");
+                        if (!link) {
+                            return;
+                        }
 
-                                link.addEventListener("click", (event) => {
-                                    event.preventDefault();
+                        link.addEventListener("click", (event) => {
+                            event.preventDefault();
 
-                                    const isOwner = link.getAttribute("data-is-owner") === "true";
-                                    if (isOwner) {
-                                        const noticeId = link.getAttribute("data-notice-id");
-                                        const notice = noticeId ? document.getElementById(noticeId) : null;
-                                        notice?.classList.remove("d-none");
-                                        return;
-                                    }
+                            const isOwner = link.getAttribute("data-is-owner") === "true";
+                            if (isOwner) {
+                                const noticeId = link.getAttribute("data-notice-id");
+                                const notice = noticeId ? document.getElementById(noticeId) : null;
+                                notice?.classList.remove("d-none");
+                                return;
+                            }
 
-                                    const modalId = link.getAttribute("data-message-modal-id");
-                                    const modalElement = modalId ? document.getElementById(modalId) : null;
-                                    if (!modalElement) {
-                                        return;
-                                    }
+                            const modalId = link.getAttribute("data-message-modal-id");
+                            const modalElement = modalId ? document.getElementById(modalId) : null;
+                            if (!modalElement) {
+                                return;
+                            }
 
-                                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
-                                });
-                            })();
+                            bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                        });
+                    })();
                 </script>
             </div>
         </div>
 
         <div class="card shadow-sm mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <strong>Buy/Sell Detail</strong>
+                <strong>Car/Vehicle Details</strong>
                 @if (Model.CanManageFocusedListing)
                 {
-                    @if (Model.HasExistingFocusDetail && Model.FocusDetail?.BuySellDetailGUID is Guid focusDetailId)
+                    @if (Model.HasExistingFocusDetail && Model.FocusDetail?.CarVehicleDetailGUID is Guid focusDetailId)
                     {
                         <span>
                             <a asp-action="Edit" asp-route-id="@focusDetailId">Edit</a>
@@ -285,28 +284,41 @@
             <div class="card-body">
                 @if (Model.FocusDetail is null)
                 {
-                    <div class="text-muted">No Buy/Sell detail found.</div>
+                    <div class="text-muted">No Car/Vehicle detail found.</div>
                 }
                 else
                 {
                     <div class="row g-2">
-                        <div class="col-lg-4 col-md-6"><strong>Model:</strong> @Model.FocusDetail.BuySellModel</div>
-                        <div class="col-lg-4 col-md-6"><strong>Material:</strong> @Model.FocusDetail.Material</div>
-                        <div class="col-lg-4 col-md-6"><strong>Negotiable Price:</strong> @Model.FocusDetail.NegotiablePriceInd
-                        </div>
-                        <div class="col-lg-4 col-md-6"><strong>Delivery Available:</strong>
-                            @Model.FocusDetail.DeliveryAvailableInd</div>
-                            <div class="col-lg-4 col-md-6"><strong>Pickup Available:</strong> @Model.FocusDetail.PickupAvailableInd
-                            </div>
-                            <div class="col-lg-4 col-md-6"><strong>Pickup Location:</strong> @Model.FocusDetail.PickupLocation</div>
-                            <div class="col-lg-4 col-md-6"><strong>Pickup Time:</strong> @Model.FocusDetail.PickupTime</div>
-                            <div class="col-lg-4 col-md-6"><strong>WarrantyInfo:</strong> @Model.FocusDetail.WarrantyInfo</div>
-                            <div class="col-lg-4 col-md-6"><strong>AdditionalDetails:</strong> @Model.FocusDetail.AdditionalDetails
-                            </div>
-                        </div>
-                    }
-                </div>
+                        <div class="col-lg-3 col-md-4"><strong>Kilometers:</strong> @Model.FocusDetail.Kilometers</div>
+                        <div class="col-lg-3 col-md-4"><strong>Doors:</strong> @Model.FocusDetail.Doors</div>
+                        <div class="col-lg-3 col-md-4"><strong>Seats:</strong> @Model.FocusDetail.Seats</div>
+                        <div class="col-lg-3 col-md-4"><strong>Body Style:</strong> @Model.FocusDetail.BodyStyle</div>
+                        <div class="col-lg-3 col-md-4"><strong>Engine:</strong> @Model.FocusDetail.Engine</div>
+                        <div class="col-lg-3 col-md-4"><strong>Exterior Color:</strong> @Model.FocusDetail.ExteriorColor</div>
+                        <div class="col-lg-3 col-md-4"><strong>Interior Color:</strong> @Model.FocusDetail.InteriorColor</div>
+                        <div class="col-lg-3 col-md-4"><strong>Transmission:</strong> @Model.FocusDetail.Transmission</div>
+                        <div class="col-lg-3 col-md-4"><strong>Drivetrain:</strong> @Model.FocusDetail.Drivetrain</div>
+                        <div class="col-lg-3 col-md-4"><strong>Fuel Type:</strong> @Model.FocusDetail.FuelType</div>
+                        <div class="col-lg-3 col-md-4"><strong>Seller Type:</strong> @Model.FocusDetail.SellerType</div>
+                        <div class="col-lg-3 col-md-4"><strong>Leather Seats:</strong> @Model.FocusDetail.LeatherSeatsInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Backup Camera:</strong> @Model.FocusDetail.BackupCameraInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Alloy Wheels:</strong> @Model.FocusDetail.AlloyWheelsInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Bluetooth:</strong> @Model.FocusDetail.BluetoothInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Heated Seats:</strong> @Model.FocusDetail.HeatedSeatsInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>CarPlay:</strong> @Model.FocusDetail.CarPlayInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Android Auto:</strong> @Model.FocusDetail.AndroidAutoInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Navigation Map:</strong> @Model.FocusDetail.NavigationMapInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Remote Start:</strong> @Model.FocusDetail.RemoteStartInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Sunroof:</strong> @Model.FocusDetail.SunroofInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Moonroof:</strong> @Model.FocusDetail.MoonroofInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Blind Spot Monitoring:</strong> @Model.FocusDetail.BlindSpotMonitoringInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Lane Tracking:</strong> @Model.FocusDetail.LaneTrackingInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Adaptive Cruise:</strong> @Model.FocusDetail.AdaptiveCruiseInd</div>
+                        <div class="col-lg-3 col-md-4"><strong>Assisted Parking Camera:</strong> @Model.FocusDetail.AssistedParkingCameraInd</div>
+                    </div>
+                }
             </div>
+        </div>
 
             @if (Model.ListingImages.Any())
             {
@@ -595,7 +607,7 @@ else
         {
             @if (!Model.Items.Any())
             {
-                <div class="alert alert-info">No Buy/Sell details found.</div>
+                <div class="alert alert-info">No Car/Vehicle details found.</div>
             }
             else
             {
@@ -615,15 +627,15 @@ else
                                 <th>Manufacture Year</th>
                                 <th>Listing Model</th>
                                 <th>Quantity</th>
-                                <th>Detail Model</th>
-                                <th>Material</th>
-                                <th>Negotiable Price</th>
-                                <th>Delivery Available</th>
-                                <th>Pickup Available</th>
-                                <th>Pickup Location</th>
-                                <th>Pickup Time</th>
-                                <th>WarrantyInfo</th>
-                                <th>AdditionalDetails</th>
+                                <th>Kilometers</th>
+                                <th>Doors</th>
+                                <th>Seats</th>
+                                <th>Body Style</th>
+                                <th>Engine</th>
+                                <th>Transmission</th>
+                                <th>Fuel Type</th>
+                                <th>Drivetrain</th>
+                                <th>Seller Type</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -643,21 +655,21 @@ else
                                     <td>@item.ManufactureYear</td>
                                     <td>@item.ListingModel</td>
                                     <td>@item.Quantity</td>
-                                    <td>@item.BuySellModel</td>
-                                    <td>@item.Material</td>
-                                    <td>@item.NegotiablePriceInd</td>
-                                    <td>@item.DeliveryAvailableInd</td>
-                                    <td>@item.PickupAvailableInd</td>
-                                    <td>@item.PickupLocation</td>
-                                    <td>@item.PickupTime</td>
-                                    <td>@item.WarrantyInfo</td>
-                                    <td>@item.AdditionalDetails</td>
+                                    <td>@item.Kilometers</td>
+                                    <td>@item.Doors</td>
+                                    <td>@item.Seats</td>
+                                    <td>@item.BodyStyle</td>
+                                    <td>@item.Engine</td>
+                                    <td>@item.Transmission</td>
+                                    <td>@item.FuelType</td>
+                                    <td>@item.Drivetrain</td>
+                                    <td>@item.SellerType</td>
                                     <td>
                                         @if (item.CanManage)
                                         {
-                                            <a asp-action="Edit" asp-route-id="@item.BuySellDetailGUID">Edit</a>
+                                            <a asp-action="Edit" asp-route-id="@item.CarVehicleDetailGUID">Edit</a>
                                             <span> | </span>
-                                            <a asp-action="Delete" asp-route-id="@item.BuySellDetailGUID">Delete</a>
+                                            <a asp-action="Delete" asp-route-id="@item.CarVehicleDetailGUID">Delete</a>
                                         }
                                     </td>
                                 </tr>

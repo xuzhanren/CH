@@ -8,24 +8,31 @@ using System.Security.Claims;
 
 namespace CanHappy.Controllers;
 
-[Route("BuySellDetail")]
-public class BuySellDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
+[Route("CarVehicleDetail")]
+public class CarVehicleDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
 {
+    private const string CarVehicleCategoryName = "Car & Vehicle";
+
     [HttpGet("")]
     public async Task<IActionResult> Index(Guid? listingGuid)
     {
         var hasUserGuid = TryGetCurrentUserGuid(out var currentUserId);
         var canManageByRole = User.IsInRole("Admin") || User.IsInRole("Clerk");
 
-        var model = new BuySellDetailIndexPageViewModel
+        var model = new CarVehicleDetailIndexPageViewModel
         {
             ListingGUIDFilter = listingGuid
         };
 
-        var query = context.BuySellDetails
+        var query = context.CarVehicleDetails
             .AsNoTracking()
             .Include(item => item.Listing)
-            .Where(item => !item.DeletedInd && item.Listing != null && !item.Listing.DeletedInd)
+            .ThenInclude(listing => listing!.Category)
+            .Where(item => !item.DeletedInd
+                && item.Listing != null
+                && !item.Listing.DeletedInd
+                && item.Listing.Category != null
+                && item.Listing.Category.Name == CarVehicleCategoryName)
             .AsQueryable();
 
         if (listingGuid.HasValue)
@@ -44,6 +51,11 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             if (listing is null)
             {
                 return NotFound();
+            }
+
+            if (!string.Equals(listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction("Index", "ListingPage", new { focusListingId = listing.ListingGUID });
             }
 
             model.ListingCard = new BuySellDetailListingCardViewModel
@@ -94,9 +106,9 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
 
         model.Items = await query
             .OrderByDescending(item => item.CreatedDate)
-            .Select(item => new BuySellDetailIndexItemViewModel
+            .Select(item => new CarVehicleDetailIndexItemViewModel
             {
-                BuySellDetailGUID = item.BuySellDetailGUID,
+                CarVehicleDetailGUID = item.CarVehicleDetailGUID,
                 ListingGUID = item.ListingGUID,
                 Subject = item.Listing!.Subject,
                 Description = item.Listing.Description,
@@ -110,15 +122,32 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                 ManufactureYear = item.Listing.ManufactureYear,
                 ListingModel = item.Listing.Model,
                 Quantity = item.Listing.Quantity,
-                BuySellModel = item.Model,
-                Material = item.Material,
-                NegotiablePriceInd = item.NegotiablePriceInd,
-                DeliveryAvailableInd = item.DeliveryAvailableInd,
-                PickupAvailableInd = item.PickupAvailableInd,
-                PickupTime = item.PickupTime,
-                PickupLocation = item.PickupLocation,
-                WarrantyInfo = item.WarrantyInfo,
-                AdditionalDetails = item.AdditionalDetails,
+                Kilometers = item.Kilometers,
+                Doors = item.Doors,
+                Seats = item.Seats,
+                BodyStyle = item.BodyStyle,
+                Engine = item.Engine,
+                ExteriorColor = item.ExteriorColor,
+                InteriorColor = item.InteriorColor,
+                Transmission = item.Transmission,
+                Drivetrain = item.Drivetrain,
+                FuelType = item.FuelType,
+                SellerType = item.SellerType,
+                LeatherSeatsInd = item.LeatherSeatsInd,
+                BackupCameraInd = item.BackupCameraInd,
+                AlloyWheelsInd = item.AlloyWheelsInd,
+                BluetoothInd = item.BluetoothInd,
+                HeatedSeatsInd = item.HeatedSeatsInd,
+                CarPlayInd = item.CarPlayInd,
+                AndroidAutoInd = item.AndroidAutoInd,
+                NavigationMapInd = item.NavigationMapInd,
+                RemoteStartInd = item.RemoteStartInd,
+                SunroofInd = item.SunroofInd,
+                MoonroofInd = item.MoonroofInd,
+                BlindSpotMonitoringInd = item.BlindSpotMonitoringInd,
+                LaneTrackingInd = item.LaneTrackingInd,
+                AdaptiveCruiseInd = item.AdaptiveCruiseInd,
+                AssistedParkingCameraInd = item.AssistedParkingCameraInd,
                 CanManage = canManageByRole || (hasUserGuid && item.Listing.UserId != Guid.Empty && item.Listing.UserId == currentUserId)
             })
             .ToListAsync();
@@ -129,9 +158,9 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             if (focusDetail is not null)
             {
                 model.HasExistingFocusDetail = true;
-                model.FocusDetail = new BuySellDetailEditViewModel
+                model.FocusDetail = new CarVehicleDetailEditViewModel
                 {
-                    BuySellDetailGUID = focusDetail.BuySellDetailGUID,
+                    CarVehicleDetailGUID = focusDetail.CarVehicleDetailGUID,
                     ListingGUID = focusDetail.ListingGUID,
                     Subject = focusDetail.Subject,
                     Description = focusDetail.Description,
@@ -145,20 +174,37 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                     ManufactureYear = focusDetail.ManufactureYear,
                     ListingModel = focusDetail.ListingModel,
                     Quantity = focusDetail.Quantity,
-                    BuySellModel = focusDetail.BuySellModel,
-                    Material = focusDetail.Material,
-                    NegotiablePriceInd = focusDetail.NegotiablePriceInd,
-                    DeliveryAvailableInd = focusDetail.DeliveryAvailableInd,
-                    PickupAvailableInd = focusDetail.PickupAvailableInd,
-                    PickupTime = focusDetail.PickupTime,
-                    PickupLocation = focusDetail.PickupLocation,
-                    WarrantyInfo = focusDetail.WarrantyInfo,
-                    AdditionalDetails = focusDetail.AdditionalDetails
+                    Kilometers = focusDetail.Kilometers,
+                    Doors = focusDetail.Doors,
+                    Seats = focusDetail.Seats,
+                    BodyStyle = focusDetail.BodyStyle,
+                    Engine = focusDetail.Engine,
+                    ExteriorColor = focusDetail.ExteriorColor,
+                    InteriorColor = focusDetail.InteriorColor,
+                    Transmission = focusDetail.Transmission,
+                    Drivetrain = focusDetail.Drivetrain,
+                    FuelType = focusDetail.FuelType,
+                    SellerType = focusDetail.SellerType,
+                    LeatherSeatsInd = focusDetail.LeatherSeatsInd,
+                    BackupCameraInd = focusDetail.BackupCameraInd,
+                    AlloyWheelsInd = focusDetail.AlloyWheelsInd,
+                    BluetoothInd = focusDetail.BluetoothInd,
+                    HeatedSeatsInd = focusDetail.HeatedSeatsInd,
+                    CarPlayInd = focusDetail.CarPlayInd,
+                    AndroidAutoInd = focusDetail.AndroidAutoInd,
+                    NavigationMapInd = focusDetail.NavigationMapInd,
+                    RemoteStartInd = focusDetail.RemoteStartInd,
+                    SunroofInd = focusDetail.SunroofInd,
+                    MoonroofInd = focusDetail.MoonroofInd,
+                    BlindSpotMonitoringInd = focusDetail.BlindSpotMonitoringInd,
+                    LaneTrackingInd = focusDetail.LaneTrackingInd,
+                    AdaptiveCruiseInd = focusDetail.AdaptiveCruiseInd,
+                    AssistedParkingCameraInd = focusDetail.AssistedParkingCameraInd
                 };
             }
             else
             {
-                model.FocusDetail = new BuySellDetailEditViewModel
+                model.FocusDetail = new CarVehicleDetailEditViewModel
                 {
                     ListingGUID = model.ListingCard.ListingGUID,
                     Subject = model.ListingCard.Subject,
@@ -177,7 +223,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             }
         }
 
-        return View("~/Views/BuySellDetail/Index.cshtml", model);
+        return View("~/Views/CarVehicleDetail/Index.cshtml", model);
     }
 
     [HttpGet("Create")]
@@ -193,6 +239,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         {
             var listing = await context.Listings
                 .AsNoTracking()
+                .Include(item => item.Category)
                 .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
 
             if (listing is null)
@@ -200,12 +247,17 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                 return NotFound();
             }
 
+            if (!string.Equals(listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
             if (!CanManageListing(listing, currentUserId))
             {
                 return Forbid();
             }
 
-            var hasExisting = await context.BuySellDetails
+            var hasExisting = await context.CarVehicleDetails
                 .AsNoTracking()
                 .AnyAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
 
@@ -217,7 +269,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         }
 
         await PopulateListingSelectListAsync(currentUserId, listingGuid);
-        return View("~/Views/BuySellDetail/Create.cshtml", new BuySellDetailEditViewModel
+        return View("~/Views/CarVehicleDetail/Create.cshtml", new CarVehicleDetailEditViewModel
         {
             ListingGUID = listingGuid ?? Guid.Empty
         });
@@ -226,7 +278,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
     [HttpPost("Create")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ListingGUID,BuySellModel,Material,NegotiablePriceInd,DeliveryAvailableInd,PickupAvailableInd,PickupTime,PickupLocation,WarrantyInfo,AdditionalDetails")] BuySellDetailEditViewModel model)
+    public async Task<IActionResult> Create([Bind("ListingGUID,Kilometers,Doors,Seats,BodyStyle,Engine,ExteriorColor,InteriorColor,Transmission,Drivetrain,FuelType,SellerType,LeatherSeatsInd,BackupCameraInd,AlloyWheelsInd,BluetoothInd,HeatedSeatsInd,CarPlayInd,AndroidAutoInd,NavigationMapInd,RemoteStartInd,SunroofInd,MoonroofInd,BlindSpotMonitoringInd,LaneTrackingInd,AdaptiveCruiseInd,AssistedParkingCameraInd")] CarVehicleDetailEditViewModel model)
     {
         if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
         {
@@ -235,48 +287,73 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
 
         var listing = await context.Listings
             .AsNoTracking()
+            .Include(item => item.Category)
             .FirstOrDefaultAsync(item => item.ListingGUID == model.ListingGUID && !item.DeletedInd);
 
         if (listing is null)
         {
             ModelState.AddModelError(nameof(model.ListingGUID), "Listing not found.");
         }
-        else if (!CanManageListing(listing, currentUserId))
+        else
         {
-            return Forbid();
+            if (!string.Equals(listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError(nameof(model.ListingGUID), "Listing category must be Car & Vehicle.");
+            }
+            else if (!CanManageListing(listing, currentUserId))
+            {
+                return Forbid();
+            }
         }
 
-        var hasExisting = await context.BuySellDetails.AnyAsync(item => item.ListingGUID == model.ListingGUID && !item.DeletedInd);
+        var hasExisting = await context.CarVehicleDetails.AnyAsync(item => item.ListingGUID == model.ListingGUID && !item.DeletedInd);
         if (hasExisting)
         {
-            ModelState.AddModelError(nameof(model.ListingGUID), "This listing already has Buy/Sell details.");
+            ModelState.AddModelError(nameof(model.ListingGUID), "This listing already has Car/Vehicle details.");
         }
 
         if (!ModelState.IsValid)
         {
             await PopulateListingSelectListAsync(currentUserId, model.ListingGUID);
-            return View("~/Views/BuySellDetail/Create.cshtml", model);
+            return View("~/Views/CarVehicleDetail/Create.cshtml", model);
         }
 
-        var entity = new BuySellDetail
+        var entity = new CarVehicleDetail
         {
-            BuySellDetailGUID = Guid.NewGuid(),
+            CarVehicleDetailGUID = Guid.NewGuid(),
             ListingGUID = model.ListingGUID,
-            Model = model.BuySellModel,
-            Material = model.Material,
-            NegotiablePriceInd = model.NegotiablePriceInd,
-            DeliveryAvailableInd = model.DeliveryAvailableInd,
-            PickupAvailableInd = model.PickupAvailableInd,
-            PickupTime = model.PickupTime,
-            PickupLocation = model.PickupLocation,
-            WarrantyInfo = model.WarrantyInfo,
-            AdditionalDetails = model.AdditionalDetails,
+            Kilometers = model.Kilometers,
+            Doors = model.Doors,
+            Seats = model.Seats,
+            BodyStyle = model.BodyStyle,
+            Engine = model.Engine,
+            ExteriorColor = model.ExteriorColor,
+            InteriorColor = model.InteriorColor,
+            Transmission = model.Transmission,
+            Drivetrain = model.Drivetrain,
+            FuelType = model.FuelType,
+            SellerType = model.SellerType,
+            LeatherSeatsInd = model.LeatherSeatsInd,
+            BackupCameraInd = model.BackupCameraInd,
+            AlloyWheelsInd = model.AlloyWheelsInd,
+            BluetoothInd = model.BluetoothInd,
+            HeatedSeatsInd = model.HeatedSeatsInd,
+            CarPlayInd = model.CarPlayInd,
+            AndroidAutoInd = model.AndroidAutoInd,
+            NavigationMapInd = model.NavigationMapInd,
+            RemoteStartInd = model.RemoteStartInd,
+            SunroofInd = model.SunroofInd,
+            MoonroofInd = model.MoonroofInd,
+            BlindSpotMonitoringInd = model.BlindSpotMonitoringInd,
+            LaneTrackingInd = model.LaneTrackingInd,
+            AdaptiveCruiseInd = model.AdaptiveCruiseInd,
+            AssistedParkingCameraInd = model.AssistedParkingCameraInd,
             CreatedBy = User.Identity?.Name,
             CreatedDate = CanHappy.Common.EasternTime.Now,
             DeletedInd = false
         };
 
-        context.BuySellDetails.Add(entity);
+        context.CarVehicleDetails.Add(entity);
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index), new { listingGuid = model.ListingGUID });
@@ -291,13 +368,19 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
-        var entity = await context.BuySellDetails
+        var entity = await context.CarVehicleDetails
             .Include(item => item.Listing)
-            .FirstOrDefaultAsync(item => item.BuySellDetailGUID == id && !item.DeletedInd);
+            .ThenInclude(listing => listing!.Category)
+            .FirstOrDefaultAsync(item => item.CarVehicleDetailGUID == id && !item.DeletedInd);
 
         if (entity is null || entity.Listing is null)
         {
             return NotFound();
+        }
+
+        if (!string.Equals(entity.Listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
         }
 
         if (!CanManageListing(entity.Listing, currentUserId))
@@ -306,15 +389,15 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         }
 
         var model = ToEditViewModel(entity, entity.Listing);
-        return View("~/Views/BuySellDetail/Edit.cshtml", model);
+        return View("~/Views/CarVehicleDetail/Edit.cshtml", model);
     }
 
     [HttpPost("Edit/{id:guid}")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("BuySellDetailGUID,ListingGUID,BuySellModel,Material,NegotiablePriceInd,DeliveryAvailableInd,PickupAvailableInd,PickupTime,PickupLocation,WarrantyInfo,AdditionalDetails")] BuySellDetailEditViewModel model)
+    public async Task<IActionResult> Edit(Guid id, [Bind("CarVehicleDetailGUID,ListingGUID,Kilometers,Doors,Seats,BodyStyle,Engine,ExteriorColor,InteriorColor,Transmission,Drivetrain,FuelType,SellerType,LeatherSeatsInd,BackupCameraInd,AlloyWheelsInd,BluetoothInd,HeatedSeatsInd,CarPlayInd,AndroidAutoInd,NavigationMapInd,RemoteStartInd,SunroofInd,MoonroofInd,BlindSpotMonitoringInd,LaneTrackingInd,AdaptiveCruiseInd,AssistedParkingCameraInd")] CarVehicleDetailEditViewModel model)
     {
-        if (model.BuySellDetailGUID != id)
+        if (model.CarVehicleDetailGUID != id)
         {
             return NotFound();
         }
@@ -324,13 +407,19 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
-        var entity = await context.BuySellDetails
+        var entity = await context.CarVehicleDetails
             .Include(item => item.Listing)
-            .FirstOrDefaultAsync(item => item.BuySellDetailGUID == id && !item.DeletedInd);
+            .ThenInclude(listing => listing!.Category)
+            .FirstOrDefaultAsync(item => item.CarVehicleDetailGUID == id && !item.DeletedInd);
 
         if (entity is null || entity.Listing is null)
         {
             return NotFound();
+        }
+
+        if (!string.Equals(entity.Listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
         }
 
         if (!CanManageListing(entity.Listing, currentUserId))
@@ -341,29 +430,63 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         if (!ModelState.IsValid)
         {
             var invalidModel = ToEditViewModel(entity, entity.Listing);
-            invalidModel.BuySellModel = model.BuySellModel;
-            invalidModel.Material = model.Material;
-            invalidModel.NegotiablePriceInd = model.NegotiablePriceInd;
-            invalidModel.DeliveryAvailableInd = model.DeliveryAvailableInd;
-            invalidModel.PickupAvailableInd = model.PickupAvailableInd;
-            invalidModel.PickupTime = model.PickupTime;
-            invalidModel.PickupLocation = model.PickupLocation;
-            invalidModel.WarrantyInfo = model.WarrantyInfo;
-            invalidModel.AdditionalDetails = model.AdditionalDetails;
+            invalidModel.Kilometers = model.Kilometers;
+            invalidModel.Doors = model.Doors;
+            invalidModel.Seats = model.Seats;
+            invalidModel.BodyStyle = model.BodyStyle;
+            invalidModel.Engine = model.Engine;
+            invalidModel.ExteriorColor = model.ExteriorColor;
+            invalidModel.InteriorColor = model.InteriorColor;
+            invalidModel.Transmission = model.Transmission;
+            invalidModel.Drivetrain = model.Drivetrain;
+            invalidModel.FuelType = model.FuelType;
+            invalidModel.SellerType = model.SellerType;
+            invalidModel.LeatherSeatsInd = model.LeatherSeatsInd;
+            invalidModel.BackupCameraInd = model.BackupCameraInd;
+            invalidModel.AlloyWheelsInd = model.AlloyWheelsInd;
+            invalidModel.BluetoothInd = model.BluetoothInd;
+            invalidModel.HeatedSeatsInd = model.HeatedSeatsInd;
+            invalidModel.CarPlayInd = model.CarPlayInd;
+            invalidModel.AndroidAutoInd = model.AndroidAutoInd;
+            invalidModel.NavigationMapInd = model.NavigationMapInd;
+            invalidModel.RemoteStartInd = model.RemoteStartInd;
+            invalidModel.SunroofInd = model.SunroofInd;
+            invalidModel.MoonroofInd = model.MoonroofInd;
+            invalidModel.BlindSpotMonitoringInd = model.BlindSpotMonitoringInd;
+            invalidModel.LaneTrackingInd = model.LaneTrackingInd;
+            invalidModel.AdaptiveCruiseInd = model.AdaptiveCruiseInd;
+            invalidModel.AssistedParkingCameraInd = model.AssistedParkingCameraInd;
 
-            return View("~/Views/BuySellDetail/Edit.cshtml", invalidModel);
+            return View("~/Views/CarVehicleDetail/Edit.cshtml", invalidModel);
         }
 
-        entity.Model = model.BuySellModel;
-        entity.Material = model.Material;
-        entity.NegotiablePriceInd = model.NegotiablePriceInd;
-        entity.DeliveryAvailableInd = model.DeliveryAvailableInd;
-        entity.PickupAvailableInd = model.PickupAvailableInd;
-        entity.PickupTime = model.PickupTime;
-        entity.PickupLocation = model.PickupLocation;
-        entity.WarrantyInfo = model.WarrantyInfo;
-        entity.AdditionalDetails = model.AdditionalDetails;
-        entity.ModifiedBY = User.Identity?.Name;
+        entity.Kilometers = model.Kilometers;
+        entity.Doors = model.Doors;
+        entity.Seats = model.Seats;
+        entity.BodyStyle = model.BodyStyle;
+        entity.Engine = model.Engine;
+        entity.ExteriorColor = model.ExteriorColor;
+        entity.InteriorColor = model.InteriorColor;
+        entity.Transmission = model.Transmission;
+        entity.Drivetrain = model.Drivetrain;
+        entity.FuelType = model.FuelType;
+        entity.SellerType = model.SellerType;
+        entity.LeatherSeatsInd = model.LeatherSeatsInd;
+        entity.BackupCameraInd = model.BackupCameraInd;
+        entity.AlloyWheelsInd = model.AlloyWheelsInd;
+        entity.BluetoothInd = model.BluetoothInd;
+        entity.HeatedSeatsInd = model.HeatedSeatsInd;
+        entity.CarPlayInd = model.CarPlayInd;
+        entity.AndroidAutoInd = model.AndroidAutoInd;
+        entity.NavigationMapInd = model.NavigationMapInd;
+        entity.RemoteStartInd = model.RemoteStartInd;
+        entity.SunroofInd = model.SunroofInd;
+        entity.MoonroofInd = model.MoonroofInd;
+        entity.BlindSpotMonitoringInd = model.BlindSpotMonitoringInd;
+        entity.LaneTrackingInd = model.LaneTrackingInd;
+        entity.AdaptiveCruiseInd = model.AdaptiveCruiseInd;
+        entity.AssistedParkingCameraInd = model.AssistedParkingCameraInd;
+        entity.ModifiedBy = User.Identity?.Name;
         entity.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
@@ -380,14 +503,20 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
-        var entity = await context.BuySellDetails
+        var entity = await context.CarVehicleDetails
             .AsNoTracking()
             .Include(item => item.Listing)
-            .FirstOrDefaultAsync(item => item.BuySellDetailGUID == id && !item.DeletedInd);
+            .ThenInclude(listing => listing!.Category)
+            .FirstOrDefaultAsync(item => item.CarVehicleDetailGUID == id && !item.DeletedInd);
 
         if (entity is null || entity.Listing is null)
         {
             return NotFound();
+        }
+
+        if (!string.Equals(entity.Listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
         }
 
         if (!CanManageListing(entity.Listing, currentUserId))
@@ -396,7 +525,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         }
 
         var model = ToEditViewModel(entity, entity.Listing);
-        return View("~/Views/BuySellDetail/Delete.cshtml", model);
+        return View("~/Views/CarVehicleDetail/Delete.cshtml", model);
     }
 
     [HttpPost("Delete/{id:guid}"), ActionName("Delete")]
@@ -409,13 +538,19 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
-        var entity = await context.BuySellDetails
+        var entity = await context.CarVehicleDetails
             .Include(item => item.Listing)
-            .FirstOrDefaultAsync(item => item.BuySellDetailGUID == id && !item.DeletedInd);
+            .ThenInclude(listing => listing!.Category)
+            .FirstOrDefaultAsync(item => item.CarVehicleDetailGUID == id && !item.DeletedInd);
 
         if (entity is null || entity.Listing is null)
         {
             return NotFound();
+        }
+
+        if (!string.Equals(entity.Listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
         }
 
         if (!CanManageListing(entity.Listing, currentUserId))
@@ -423,7 +558,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
-        context.BuySellDetails.Remove(entity);
+        context.CarVehicleDetails.Remove(entity);
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index));
@@ -439,10 +574,17 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
-        var listing = await context.Listings.FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+        var listing = await context.Listings
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
         if (listing is null)
         {
             return NotFound();
+        }
+
+        if (!string.Equals(listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
         }
 
         if (!CanManageListing(listing, currentUserId))
@@ -520,10 +662,17 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
-        var listing = await context.Listings.FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+        var listing = await context.Listings
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
         if (listing is null)
         {
             return NotFound();
+        }
+
+        if (!string.Equals(listing.Category?.Name, CarVehicleCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
         }
 
         if (!CanManageListing(listing, currentUserId))
@@ -545,11 +694,11 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         return RedirectToAction(nameof(Index), new { listingGuid });
     }
 
-    private BuySellDetailEditViewModel ToEditViewModel(BuySellDetail detail, Listing listing)
+    private CarVehicleDetailEditViewModel ToEditViewModel(CarVehicleDetail detail, Listing listing)
     {
-        return new BuySellDetailEditViewModel
+        return new CarVehicleDetailEditViewModel
         {
-            BuySellDetailGUID = detail.BuySellDetailGUID,
+            CarVehicleDetailGUID = detail.CarVehicleDetailGUID,
             ListingGUID = listing.ListingGUID,
             Subject = listing.Subject,
             Description = listing.Description,
@@ -563,15 +712,32 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             ManufactureYear = listing.ManufactureYear,
             ListingModel = listing.Model,
             Quantity = listing.Quantity,
-            BuySellModel = detail.Model,
-            Material = detail.Material,
-            NegotiablePriceInd = detail.NegotiablePriceInd,
-            DeliveryAvailableInd = detail.DeliveryAvailableInd,
-            PickupAvailableInd = detail.PickupAvailableInd,
-            PickupTime = detail.PickupTime,
-            PickupLocation = detail.PickupLocation,
-            WarrantyInfo = detail.WarrantyInfo,
-            AdditionalDetails = detail.AdditionalDetails
+            Kilometers = detail.Kilometers,
+            Doors = detail.Doors,
+            Seats = detail.Seats,
+            BodyStyle = detail.BodyStyle,
+            Engine = detail.Engine,
+            ExteriorColor = detail.ExteriorColor,
+            InteriorColor = detail.InteriorColor,
+            Transmission = detail.Transmission,
+            Drivetrain = detail.Drivetrain,
+            FuelType = detail.FuelType,
+            SellerType = detail.SellerType,
+            LeatherSeatsInd = detail.LeatherSeatsInd,
+            BackupCameraInd = detail.BackupCameraInd,
+            AlloyWheelsInd = detail.AlloyWheelsInd,
+            BluetoothInd = detail.BluetoothInd,
+            HeatedSeatsInd = detail.HeatedSeatsInd,
+            CarPlayInd = detail.CarPlayInd,
+            AndroidAutoInd = detail.AndroidAutoInd,
+            NavigationMapInd = detail.NavigationMapInd,
+            RemoteStartInd = detail.RemoteStartInd,
+            SunroofInd = detail.SunroofInd,
+            MoonroofInd = detail.MoonroofInd,
+            BlindSpotMonitoringInd = detail.BlindSpotMonitoringInd,
+            LaneTrackingInd = detail.LaneTrackingInd,
+            AdaptiveCruiseInd = detail.AdaptiveCruiseInd,
+            AssistedParkingCameraInd = detail.AssistedParkingCameraInd
         };
     }
 
@@ -598,8 +764,10 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
 
         var query = context.Listings
             .AsNoTracking()
+            .Include(item => item.Category)
             .Where(listing => !listing.DeletedInd)
-            .Where(listing => !context.BuySellDetails.Any(detail => detail.ListingGUID == listing.ListingGUID && !detail.DeletedInd));
+            .Where(listing => listing.Category != null && listing.Category.Name == CarVehicleCategoryName)
+            .Where(listing => !context.CarVehicleDetails.Any(detail => detail.ListingGUID == listing.ListingGUID && !detail.DeletedInd));
 
         if (!isPrivileged)
         {
@@ -659,4 +827,3 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         return relativePath;
     }
 }
-

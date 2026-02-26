@@ -43,7 +43,16 @@ else
                 @{
                     var listingCardId = $"listing-card-{item.ListingGUID:N}";
                     var isBuySellCategory = string.Equals(item.Category?.Name, "Buy & Sell", StringComparison.OrdinalIgnoreCase);
+                    var isCarVehicleCategory = string.Equals(item.Category?.Name, "Car & Vehicle",
+                    StringComparison.OrdinalIgnoreCase);
                     var buySellDetailsUrl = Url.Action("Index", "BuySellDetailPage", new { listingGuid = item.ListingGUID }) ?? "#";
+                    var carVehicleDetailsUrl = Url.Action("Index", "CarVehicleDetailPage", new { listingGuid = item.ListingGUID })
+                    ?? "#";
+                    var listingDetailsUrl = isBuySellCategory
+                    ? buySellDetailsUrl
+                    : isCarVehicleCategory
+                    ? carVehicleDetailsUrl
+                    : Url.Action("Details", "ListingPage", new { id = item.ListingGUID }) ?? "#";
                     var reviewCount = reviewCountByListing.TryGetValue(item.ListingGUID, out var count) ? count : 0;
                     var ratingText = string.IsNullOrWhiteSpace(item.Rating) ? "3.5" : item.Rating;
                     var ratingValue = double.TryParse(ratingText, out var parsedRating) ? Math.Clamp(parsedRating, 0d, 5d) : 3.5d;
@@ -71,7 +80,14 @@ else
                             <div class="mb-3">
                                 @if (isBuySellCategory)
                                 {
-                                    <a href="@buySellDetailsUrl">
+                                    <a href="@listingDetailsUrl">
+                                        <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
+                                             style="max-height: 220px;" />
+                                    </a>
+                                }
+                                else if (isCarVehicleCategory)
+                                {
+                                    <a href="@listingDetailsUrl">
                                         <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
                                              style="max-height: 220px;" />
                                     </a>
@@ -144,9 +160,9 @@ else
                             Message seller
                         </a>
                         <span> | </span>
-                        @if (isBuySellCategory)
+                        @if (isBuySellCategory || isCarVehicleCategory)
                         {
-                            <a href="@buySellDetailsUrl" class="@actionLinkClass">Details</a>
+                            <a href="@listingDetailsUrl" class="@actionLinkClass">Details</a>
                         }
                         else
                         {
@@ -220,135 +236,135 @@ else
 
     @section Scripts {
         <script>
-                            (() => {
-                                const isAuthenticated = @isAuthenticated.ToString().ToLowerInvariant();
-                                const loginUrl = "@loginPageUrl";
-                                const focusListingKey = "@focusListingKey";
+            (() => {
+                const isAuthenticated = @isAuthenticated.ToString().ToLowerInvariant();
+                const loginUrl = "@loginPageUrl";
+                const focusListingKey = "@focusListingKey";
 
-                                const scrollToFocusedListing = (listingKey) => {
-                                    if (!listingKey) {
-                                        return;
-                                    }
+                const scrollToFocusedListing = (listingKey) => {
+                    if (!listingKey) {
+                        return;
+                    }
 
-                                    const card = document.getElementById(`listing-card-${listingKey}`);
-                                    if (!card) {
-                                        return;
-                                    }
+                    const card = document.getElementById(`listing-card-${listingKey}`);
+                    if (!card) {
+                        return;
+                    }
 
-                                    card.scrollIntoView({ behavior: "smooth", block: "center" });
-                                };
-                                const isOwnerListing = (listingGuid) => {
-                                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
-                                    if (!link) {
-                                        return false;
-                                    }
+                    card.scrollIntoView({ behavior: "smooth", block: "center" });
+                };
+                const isOwnerListing = (listingGuid) => {
+                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
+                    if (!link) {
+                        return false;
+                    }
 
-                                    return link.getAttribute("data-is-owner") === "true";
-                                };
+                    return link.getAttribute("data-is-owner") === "true";
+                };
 
-                                const showOwnListingNotice = (listingGuid) => {
-                                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
-                                    if (!link) {
-                                        return;
-                                    }
+                const showOwnListingNotice = (listingGuid) => {
+                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
+                    if (!link) {
+                        return;
+                    }
 
-                                    const noticeId = link.getAttribute("data-notice-id");
-                                    if (!noticeId) {
-                                        return;
-                                    }
+                    const noticeId = link.getAttribute("data-notice-id");
+                    if (!noticeId) {
+                        return;
+                    }
 
-                                    const notice = document.getElementById(noticeId);
-                                    if (!notice) {
-                                        return;
-                                    }
+                    const notice = document.getElementById(noticeId);
+                    if (!notice) {
+                        return;
+                    }
 
-                                    notice.classList.remove("d-none");
-                                };
+                    notice.classList.remove("d-none");
+                };
 
-                                const openMessageModal = (listingGuid) => {
-                                    if (!listingGuid) {
-                                        return;
-                                    }
+                const openMessageModal = (listingGuid) => {
+                    if (!listingGuid) {
+                        return;
+                    }
 
-                                    if (isOwnerListing(listingGuid)) {
-                                        showOwnListingNotice(listingGuid);
-                                        return;
-                                    }
+                    if (isOwnerListing(listingGuid)) {
+                        showOwnListingNotice(listingGuid);
+                        return;
+                    }
 
-                                    const modalElement = document.getElementById(`sendMessageModal_${listingGuid}`);
-                                    if (!modalElement) {
-                                        return;
-                                    }
+                    const modalElement = document.getElementById(`sendMessageModal_${listingGuid}`);
+                    if (!modalElement) {
+                        return;
+                    }
 
-                                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
-                                };
+                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                };
 
-                                const mapModalElement = document.getElementById("postalCodeMapModal");
-                                const mapFrame = document.getElementById("postalCodeMapFrame");
+                const mapModalElement = document.getElementById("postalCodeMapModal");
+                const mapFrame = document.getElementById("postalCodeMapFrame");
 
-                                const openPostalMapModal = (postalCode) => {
-                                    if (!mapModalElement || !mapFrame || !postalCode) {
-                                        return;
-                                    }
+                const openPostalMapModal = (postalCode) => {
+                    if (!mapModalElement || !mapFrame || !postalCode) {
+                        return;
+                    }
 
-                                    mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(postalCode)}&output=embed`;
-                                    bootstrap.Modal.getOrCreateInstance(mapModalElement).show();
-                                };
+                    mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(postalCode)}&output=embed`;
+                    bootstrap.Modal.getOrCreateInstance(mapModalElement).show();
+                };
 
-                                document.querySelectorAll(".open-google-map").forEach((link) => {
-                                    link.addEventListener("click", (event) => {
-                                        event.preventDefault();
-                                        const postalCode = link.getAttribute("data-postal-code");
-                                        if (!postalCode) {
-                                            return;
-                                        }
+                document.querySelectorAll(".open-google-map").forEach((link) => {
+                    link.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        const postalCode = link.getAttribute("data-postal-code");
+                        if (!postalCode) {
+                            return;
+                        }
 
-                                        openPostalMapModal(postalCode);
-                                    });
-                                });
+                        openPostalMapModal(postalCode);
+                    });
+                });
 
-                                document.querySelectorAll(".send-message-link").forEach((link) => {
-                                    link.addEventListener("click", (event) => {
-                                        event.preventDefault();
+                document.querySelectorAll(".send-message-link").forEach((link) => {
+                    link.addEventListener("click", (event) => {
+                        event.preventDefault();
 
-                                        const listingGuid = link.getAttribute("data-listing-guid");
-                                        if (!listingGuid) {
-                                            return;
-                                        }
+                        const listingGuid = link.getAttribute("data-listing-guid");
+                        if (!listingGuid) {
+                            return;
+                        }
 
-                                        if (isAuthenticated) {
-                                            openMessageModal(listingGuid);
-                                            return;
-                                        }
+                        if (isAuthenticated) {
+                            openMessageModal(listingGuid);
+                            return;
+                        }
 
-                                        const currentUrl = new URL(window.location.href);
-                                        currentUrl.searchParams.set("openMessageFor", listingGuid);
-                                        const returnUrl = `${currentUrl.pathname}${currentUrl.search}`;
-                                        const separator = loginUrl.includes("?") ? "&" : "?";
-                                        window.location.href = `${loginUrl}${separator}returnUrl=${encodeURIComponent(returnUrl)}`;
-                                    });
-                                });
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set("openMessageFor", listingGuid);
+                        const returnUrl = `${currentUrl.pathname}${currentUrl.search}`;
+                        const separator = loginUrl.includes("?") ? "&" : "?";
+                        window.location.href = `${loginUrl}${separator}returnUrl=${encodeURIComponent(returnUrl)}`;
+                    });
+                });
 
-                                if (isAuthenticated) {
-                                    const pageUrl = new URL(window.location.href);
-                                    const listingToOpen = pageUrl.searchParams.get("openMessageFor");
-                                    if (listingToOpen) {
-                                        openMessageModal(listingToOpen);
-                                        pageUrl.searchParams.delete("openMessageFor");
-                                        const cleanQuery = pageUrl.searchParams.toString();
-                                        const cleanUrl = `${pageUrl.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${pageUrl.hash}`;
-                                        window.history.replaceState({}, "", cleanUrl);
-                                    }
-                                }
+                if (isAuthenticated) {
+                    const pageUrl = new URL(window.location.href);
+                    const listingToOpen = pageUrl.searchParams.get("openMessageFor");
+                    if (listingToOpen) {
+                        openMessageModal(listingToOpen);
+                        pageUrl.searchParams.delete("openMessageFor");
+                        const cleanQuery = pageUrl.searchParams.toString();
+                        const cleanUrl = `${pageUrl.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${pageUrl.hash}`;
+                        window.history.replaceState({}, "", cleanUrl);
+                    }
+                }
 
-                                if (focusListingKey) {
-                                    scrollToFocusedListing(focusListingKey);
-                                }
+                if (focusListingKey) {
+                    scrollToFocusedListing(focusListingKey);
+                }
 
-                                if (window.location.hash && window.location.hash.startsWith("#listing-card-")) {
-                                    const listingFromHash = window.location.hash.substring("#listing-card-".length);
-                                    scrollToFocusedListing(listingFromHash);
-                                }
-                            })();
+                if (window.location.hash && window.location.hash.startsWith("#listing-card-")) {
+                    const listingFromHash = window.location.hash.substring("#listing-card-".length);
+                    scrollToFocusedListing(listingFromHash);
+                }
+            })();
         </script>
     }

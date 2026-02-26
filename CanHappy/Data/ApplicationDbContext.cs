@@ -14,6 +14,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ListingReviewImage> ListingReviewImages => Set<ListingReviewImage>();
     public DbSet<ReviewReply> ReviewReplies => Set<ReviewReply>();
     public DbSet<BuySellDetail> BuySellDetails => Set<BuySellDetail>();
+    public DbSet<CarVehicleDetail> CarVehicleDetails => Set<CarVehicleDetail>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
     public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<AdSize> AdSizes => Set<AdSize>();
@@ -621,6 +622,101 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.Listing)
                 .WithOne(e => e.BuySellDetail)
                 .HasForeignKey<BuySellDetail>(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<CarVehicleDetail>(entity =>
+        {
+            entity.ToTable("CarVehicleDetail");
+            entity.HasKey(e => e.CarVehicleDetailGUID);
+
+            entity.Property(e => e.BodyStyle)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.Engine)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.ExteriorColor)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.InteriorColor)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.Transmission)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.Drivetrain)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.FuelType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.SellerType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.LeatherSeatsInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.BackupCameraInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.AlloyWheelsInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.BluetoothInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.HeatedSeatsInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CarPlayInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.AndroidAutoInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.NavigationMapInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.RemoteStartInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.SunroofInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.MoonroofInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.BlindSpotMonitoringInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.LaneTrackingInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.AdaptiveCruiseInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.AssistedParkingCameraInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID)
+                .IsUnique();
+
+            entity.HasOne(e => e.Listing)
+                .WithOne(e => e.CarVehicleDetail)
+                .HasForeignKey<CarVehicleDetail>(e => e.ListingGUID)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
