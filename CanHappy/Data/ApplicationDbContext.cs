@@ -15,6 +15,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ReviewReply> ReviewReplies => Set<ReviewReply>();
     public DbSet<BuySellDetail> BuySellDetails => Set<BuySellDetail>();
     public DbSet<CarVehicleDetail> CarVehicleDetails => Set<CarVehicleDetail>();
+    public DbSet<HomeRentalDetail> HomeRentalDetails => Set<HomeRentalDetail>();
+    public DbSet<PropertyType> PropertyTypes => Set<PropertyType>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
     public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<AdSize> AdSizes => Set<AdSize>();
@@ -717,6 +719,153 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.Listing)
                 .WithOne(e => e.CarVehicleDetail)
                 .HasForeignKey<CarVehicleDetail>(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<PropertyType>(entity =>
+        {
+            entity.ToTable("PropertyType");
+            entity.HasKey(e => e.PropertyTypeId);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+
+            entity.HasData(
+                new PropertyType
+                {
+                    PropertyTypeId = 1,
+                    Name = "House",
+                    Description = "Detached or semi-detached house",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new PropertyType
+                {
+                    PropertyTypeId = 2,
+                    Name = "Bungalow",
+                    Description = "Single-storey bungalow",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new PropertyType
+                {
+                    PropertyTypeId = 3,
+                    Name = "Apartment/Condo",
+                    Description = "Apartment or condominium unit",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new PropertyType
+                {
+                    PropertyTypeId = 4,
+                    Name = "Townhouse",
+                    Description = "Townhouse",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new PropertyType
+                {
+                    PropertyTypeId = 5,
+                    Name = "Duplex",
+                    Description = "Duplex",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new PropertyType
+                {
+                    PropertyTypeId = 6,
+                    Name = "Room",
+                    Description = "Single room",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new PropertyType
+                {
+                    PropertyTypeId = 7,
+                    Name = "Storage",
+                    Description = "Storage space",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new PropertyType
+                {
+                    PropertyTypeId = 8,
+                    Name = "ParkingSpot",
+                    Description = "Dedicated parking spot",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                });
+        });
+
+        builder.Entity<HomeRentalDetail>(entity =>
+        {
+            entity.ToTable("HomeRentalDetail");
+            entity.HasKey(e => e.HomeRentalDetailGUID);
+
+            entity.Property(e => e.PreferredRentalTerm)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.AdditionalInfo)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.SharedWashroomInd)
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID)
+                .IsUnique();
+
+            entity.HasOne(e => e.Listing)
+                .WithOne(e => e.HomeRentalDetail)
+                .HasForeignKey<HomeRentalDetail>(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.PropertyType)
+                .WithMany()
+                .HasForeignKey(e => e.PropertyTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.RentalPropertyType)
+                .WithMany()
+                .HasForeignKey(e => e.RentalPropertyTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

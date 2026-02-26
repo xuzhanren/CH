@@ -87,5 +87,7 @@ public class Listing
 
     public CarVehicleDetail? CarVehicleDetail { get; set; }
 
+    public HomeRentalDetail? HomeRentalDetail { get; set; }
+
     public List<ListingReview> ListingReviews { get; set; } = [];
 }
