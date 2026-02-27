@@ -129,7 +129,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
+    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
     {
         if (!ModelState.IsValid)
         {
@@ -186,7 +186,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? categoryName, string? subcategoryName)
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? categoryName, string? subcategoryName)
     {
         if (id != listing.ListingGUID)
         {
@@ -222,6 +222,9 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             existingListing.ProvinceId = listing.ProvinceId;
             existingListing.CityId = listing.CityId;
             existingListing.PostalCode = listing.PostalCode;
+            existingListing.ContactPhone = listing.ContactPhone;
+            existingListing.ContactName = listing.ContactName;
+            existingListing.ShowContactInd = listing.ShowContactInd;
             existingListing.Price = listing.Price;
             existingListing.DiscountPercent = listing.DiscountPercent;
             existingListing.DiscountBeginDate = listing.DiscountBeginDate;

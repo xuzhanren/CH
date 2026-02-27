@@ -3,6 +3,7 @@ using System;
 using CanHappy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CanHappy.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227040803_AddListingContactAndEstateType")]
+    partial class AddListingContactAndEstateType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -773,229 +776,6 @@ namespace CanHappy.Data.Migrations
                     b.HasKey("CountryId");
 
                     b.ToTable("Country", (string)null);
-                });
-
-            modelBuilder.Entity("CanHappy.Models.EstateRoom", b =>
-                {
-                    b.Property<Guid>("EstateRoomGUID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("DeletedInd")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<Guid>("EstateSaleDetailGUID")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ImageURL")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("OnFloorNumber")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("RoomName")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("RoomSizeFtxFt")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<int>("SortOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("ThumbnailURL")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("EstateRoomGUID");
-
-                    b.HasIndex("EstateSaleDetailGUID");
-
-                    b.ToTable("EstateRoom", (string)null);
-                });
-
-            modelBuilder.Entity("CanHappy.Models.EstateSaleDetail", b =>
-                {
-                    b.Property<Guid>("EstateSaleDetailGUID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AdditionalInfo")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<decimal?>("AnuualPropertyTax")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<string>("AppliancesIncluded")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("BasementFinishedInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("Baths")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Bedrooms")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("CloseToBusInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("CloseToDaycareInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("CloseToSchoolInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("CloseToShoppingCenterInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("CommunityName")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("CoolingType")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("DeletedInd")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<int>("EstitateTypeId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ExternalStructures")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("FoundationType")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<bool>("FurnishedInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("HasBasementInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("HasFireplaceInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("HeatingType")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("HydroType")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("LandDimensionWxD")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("LandSizeSqFt")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("ListingGUID")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("NumberOfStoreys")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ParkingSpots")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ParkingType")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<bool>("PriceNegotiableInd")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("RentalEquipment")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("SewerType")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<bool>("SoldByOwnerInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("SquareFeet")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Washrooms")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("WaterFrontInd")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("WaterType")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<int>("YearBuilt")
-                        .HasColumnType("integer");
-
-                    b.HasKey("EstateSaleDetailGUID");
-
-                    b.HasIndex("EstitateTypeId");
-
-                    b.HasIndex("ListingGUID")
-                        .IsUnique();
-
-                    b.ToTable("EstateSaleDetail", (string)null);
                 });
 
             modelBuilder.Entity("CanHappy.Models.EstateType", b =>
@@ -2163,36 +1943,6 @@ namespace CanHappy.Data.Migrations
                     b.Navigation("Province");
                 });
 
-            modelBuilder.Entity("CanHappy.Models.EstateRoom", b =>
-                {
-                    b.HasOne("CanHappy.Models.EstateSaleDetail", "EstateSaleDetail")
-                        .WithMany("EstateRooms")
-                        .HasForeignKey("EstateSaleDetailGUID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("EstateSaleDetail");
-                });
-
-            modelBuilder.Entity("CanHappy.Models.EstateSaleDetail", b =>
-                {
-                    b.HasOne("CanHappy.Models.EstateType", "EstateType")
-                        .WithMany()
-                        .HasForeignKey("EstitateTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CanHappy.Models.Listing", "Listing")
-                        .WithOne("EstateSaleDetail")
-                        .HasForeignKey("CanHappy.Models.EstateSaleDetail", "ListingGUID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("EstateType");
-
-                    b.Navigation("Listing");
-                });
-
             modelBuilder.Entity("CanHappy.Models.HomeRentalDetail", b =>
                 {
                     b.HasOne("CanHappy.Models.Listing", "Listing")
@@ -2393,18 +2143,11 @@ namespace CanHappy.Data.Migrations
                     b.Navigation("Provinces");
                 });
 
-            modelBuilder.Entity("CanHappy.Models.EstateSaleDetail", b =>
-                {
-                    b.Navigation("EstateRooms");
-                });
-
             modelBuilder.Entity("CanHappy.Models.Listing", b =>
                 {
                     b.Navigation("BuySellDetail");
 
                     b.Navigation("CarVehicleDetail");
-
-                    b.Navigation("EstateSaleDetail");
 
                     b.Navigation("HomeRentalDetail");
 

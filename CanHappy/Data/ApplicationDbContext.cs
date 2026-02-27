@@ -16,7 +16,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<BuySellDetail> BuySellDetails => Set<BuySellDetail>();
     public DbSet<CarVehicleDetail> CarVehicleDetails => Set<CarVehicleDetail>();
     public DbSet<HomeRentalDetail> HomeRentalDetails => Set<HomeRentalDetail>();
+    public DbSet<EstateSaleDetail> EstateSaleDetails => Set<EstateSaleDetail>();
+    public DbSet<EstateRoom> EstateRooms => Set<EstateRoom>();
     public DbSet<PropertyType> PropertyTypes => Set<PropertyType>();
+    public DbSet<EstateType> EstateTypes => Set<EstateType>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
     public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<AdSize> AdSizes => Set<AdSize>();
@@ -388,6 +391,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             entity.Property(e => e.PostalCode)
                 .HasMaxLength(15);
+
+            entity.Property(e => e.ContactPhone)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.ContactName)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.ShowContactInd)
+                .HasDefaultValue(false);
 
             entity.Property(e => e.ThumbnailURL)
                 .HasMaxLength(200);
@@ -824,6 +836,117 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 });
         });
 
+        builder.Entity<EstateType>(entity =>
+        {
+            entity.ToTable("EstateType");
+            entity.HasKey(e => e.EstitateTypeId);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+
+            entity.HasData(
+                new EstateType
+                {
+                    EstitateTypeId = 1,
+                    Name = "House",
+                    Description = "House",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new EstateType
+                {
+                    EstitateTypeId = 2,
+                    Name = "Bungalow",
+                    Description = "Bungalow",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new EstateType
+                {
+                    EstitateTypeId = 3,
+                    Name = "Townhouse",
+                    Description = "Townhouse",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new EstateType
+                {
+                    EstitateTypeId = 4,
+                    Name = "Apartment/Condo",
+                    Description = "Apartment/Condo",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new EstateType
+                {
+                    EstitateTypeId = 5,
+                    Name = "Duplex",
+                    Description = "Duplex",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new EstateType
+                {
+                    EstitateTypeId = 6,
+                    Name = "Land",
+                    Description = "Land",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new EstateType
+                {
+                    EstitateTypeId = 7,
+                    Name = "Commerical/Office Space",
+                    Description = "Commerical/Office Space",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new EstateType
+                {
+                    EstitateTypeId = 8,
+                    Name = "Parking",
+                    Description = "Parking",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new EstateType
+                {
+                    EstitateTypeId = 9,
+                    Name = "Storage",
+                    Description = "Storage",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 2, 26, 0, 0, 0, DateTimeKind.Utc)
+                });
+        });
+
         builder.Entity<HomeRentalDetail>(entity =>
         {
             entity.ToTable("HomeRentalDetail");
@@ -866,6 +989,125 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.RentalPropertyType)
                 .WithMany()
                 .HasForeignKey(e => e.RentalPropertyTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<EstateSaleDetail>(entity =>
+        {
+            entity.ToTable("EstateSaleDetail");
+            entity.HasKey(e => e.EstateSaleDetailGUID);
+
+            entity.Property(e => e.Address)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.LandDimensionWxD)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ParkingType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.FoundationType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.HydroType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.WaterType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.SewerType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.ExternalStructures)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CoolingType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.HeatingType)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.AppliancesIncluded)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.RentalEquipment)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CommunityName)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.AdditionalInfo)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.AnuualPropertyTax)
+                .HasPrecision(18, 2);
+
+            entity.Property(e => e.PriceNegotiableInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID)
+                .IsUnique();
+
+            entity.HasOne(e => e.Listing)
+                .WithOne(e => e.EstateSaleDetail)
+                .HasForeignKey<EstateSaleDetail>(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.EstateType)
+                .WithMany()
+                .HasForeignKey(e => e.EstitateTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<EstateRoom>(entity =>
+        {
+            entity.ToTable("EstateRoom");
+            entity.HasKey(e => e.EstateRoomGUID);
+
+            entity.Property(e => e.RoomName)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.RoomSizeFtxFt)
+                .HasMaxLength(30);
+
+            entity.Property(e => e.SortOrder)
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.ThumbnailURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ImageURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.EstateSaleDetailGUID);
+
+            entity.HasOne(e => e.EstateSaleDetail)
+                .WithMany(e => e.EstateRooms)
+                .HasForeignKey(e => e.EstateSaleDetailGUID)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

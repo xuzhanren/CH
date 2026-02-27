@@ -70,6 +70,9 @@ public class ListingController(ApplicationDbContext context) : ControllerBase
         listing.ProvinceId = updatedListing.ProvinceId;
         listing.CityId = updatedListing.CityId;
         listing.PostalCode = updatedListing.PostalCode;
+        listing.ContactPhone = updatedListing.ContactPhone;
+        listing.ContactName = updatedListing.ContactName;
+        listing.ShowContactInd = updatedListing.ShowContactInd;
         listing.ViewCount = updatedListing.ViewCount;
         listing.ClickCount = updatedListing.ClickCount;
         listing.SampleInd = updatedListing.SampleInd;

@@ -28,6 +28,14 @@ public class Listing
     [StringLength(15)]
     public string? PostalCode { get; set; }
 
+    [StringLength(30)]
+    public string? ContactPhone { get; set; }
+
+    [StringLength(30)]
+    public string? ContactName { get; set; }
+
+    public bool ShowContactInd { get; set; }
+
     [StringLength(200)]
     public string? ThumbnailURL { get; set; }
 
@@ -88,6 +96,8 @@ public class Listing
     public CarVehicleDetail? CarVehicleDetail { get; set; }
 
     public HomeRentalDetail? HomeRentalDetail { get; set; }
+
+    public EstateSaleDetail? EstateSaleDetail { get; set; }
 
     public List<ListingReview> ListingReviews { get; set; } = [];
 }

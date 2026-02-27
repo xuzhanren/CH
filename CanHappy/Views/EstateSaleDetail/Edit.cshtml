@@ -1,0 +1,129 @@
+@model CanHappy.Models.EstateSaleDetailEditViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<style>
+    .form-label,
+    .form-check-label {
+        font-weight: 700;
+    }
+</style>
+
+<h1>Edit</h1>
+<h4>Estate Sale Detail</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Edit" asp-route-id="@Model.EstateSaleDetailGUID">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="EstateSaleDetailGUID" />
+            <input type="hidden" asp-for="ListingGUID" />
+
+            <h5 class="mt-2">Listing</h5>
+            <div class="row g-2 mb-3">
+                <div class="col-md-6"><strong>Subject:</strong> @Model.Subject</div>
+                <div class="col-md-6"><strong>Description:</strong> @Model.Description</div>
+                <div class="col-md-3"><strong>Category:</strong> @Model.CategoryId</div>
+                <div class="col-md-3"><strong>Subcategory:</strong> @Model.SubcategoryId</div>
+                <div class="col-md-3"><strong>Province:</strong> @Model.ProvinceId</div>
+                <div class="col-md-3"><strong>City:</strong> @Model.CityId</div>
+                <div class="col-md-3"><strong>Price:</strong> @Model.Price</div>
+                <div class="col-md-3"><strong>Model:</strong> @Model.ListingModel</div>
+                <div class="col-md-3"><strong>Quantity:</strong> @Model.Quantity</div>
+            </div>
+
+            <h5>Estate Sale Detail</h5>
+            <div class="row g-2 mb-3">
+                <div class="col-md-4"><label asp-for="Address" class="form-label"></label><input asp-for="Address"
+                                                                                                     class="form-control" /></div>
+                    <div class="col-md-4"><label asp-for="EstitateTypeId" class="form-label"></label><select
+                        asp-for="EstitateTypeId" asp-items="ViewBag.EstitateTypeId" class="form-select"></select></div>
+                        <div class="col-md-4"><label asp-for="YearBuilt" class="form-label"></label><input asp-for="YearBuilt"
+                                                                                                               class="form-control" /></div>
+                            <div class="col-md-3"><label asp-for="SquareFeet" class="form-label"></label><input asp-for="SquareFeet"
+                                                                                                                    class="form-control" /></div>
+                                <div class="col-md-3"><label asp-for="LandSizeSqFt" class="form-label"></label><input
+                                    asp-for="LandSizeSqFt" class="form-control" /></div>
+                                    <div class="col-md-3"><label asp-for="LandDimensionWxD" class="form-label"></label><input
+                                        asp-for="LandDimensionWxD" class="form-control" /></div>
+                                        <div class="col-md-3"><label asp-for="NumberOfStoreys" class="form-label"></label><input
+                                            asp-for="NumberOfStoreys" class="form-control" /></div>
+                                            <div class="col-md-3"><label asp-for="AnuualPropertyTax" class="form-label"></label><input
+                                                asp-for="AnuualPropertyTax" class="form-control" /></div>
+                                                <div class="col-md-3"><label asp-for="Bedrooms" class="form-label"></label><input asp-for="Bedrooms"
+                                                                                                                                      class="form-control" /></div>
+                                                    <div class="col-md-3"><label asp-for="Washrooms" class="form-label"></label><input asp-for="Washrooms"
+                                                                                                                                           class="form-control" /></div>
+                                                        <div class="col-md-3"><label asp-for="Baths" class="form-label"></label><input asp-for="Baths"
+                                                                                                                                           class="form-control" /></div>
+                                                            <div class="col-md-3"><label asp-for="ParkingSpots" class="form-label"></label><input
+                                                                asp-for="ParkingSpots" class="form-control" /></div>
+                                                                <div class="col-md-3"><label asp-for="ParkingType" class="form-label"></label><input
+                                                                    asp-for="ParkingType" class="form-control" /></div>
+                                                                    <div class="col-md-3"><label asp-for="FoundationType" class="form-label"></label><input
+                                                                        asp-for="FoundationType" class="form-control" /></div>
+                                                                        <div class="col-md-3"><label asp-for="HydroType" class="form-label"></label><input asp-for="HydroType"
+                                                                                                                                                               class="form-control" /></div>
+                                                                            <div class="col-md-3"><label asp-for="WaterType" class="form-label"></label><input asp-for="WaterType"
+                                                                                                                                                                   class="form-control" /></div>
+                                                                                <div class="col-md-3"><label asp-for="SewerType" class="form-label"></label><input asp-for="SewerType"
+                                                                                                                                                                       class="form-control" /></div>
+                                                                                    <div class="col-md-3"><label asp-for="ExternalStructures" class="form-label"></label><input
+                                                                                        asp-for="ExternalStructures" class="form-control" /></div>
+                                                                                        <div class="col-md-3"><label asp-for="CoolingType" class="form-label"></label><input
+                                                                                            asp-for="CoolingType" class="form-control" /></div>
+                                                                                            <div class="col-md-3"><label asp-for="HeatingType" class="form-label"></label><input
+                                                                                                asp-for="HeatingType" class="form-control" /></div>
+                                                                                                <div class="col-md-3"><label asp-for="AppliancesIncluded" class="form-label"></label><input
+                                                                                                    asp-for="AppliancesIncluded" class="form-control" /></div>
+                                                                                                    <div class="col-md-3"><label asp-for="RentalEquipment" class="form-label"></label><input
+                                                                                                        asp-for="RentalEquipment" class="form-control" /></div>
+                                                                                                        <div class="col-md-3"><label asp-for="CommunityName" class="form-label"></label><input
+                                                                                                            asp-for="CommunityName" class="form-control" /></div>
+                                                                                                            <div class="col-12"><label asp-for="AdditionalInfo" class="form-label"></label><textarea
+                                                                                                                asp-for="AdditionalInfo" class="form-control" rows="3"></textarea></div>
+                                                                                                            </div>
+
+                                                                                                            <div class="row g-2 mb-3">
+                                                                                                                <div class="col-md-3 form-check"><input asp-for="PriceNegotiableInd" class="form-check-input" /><label
+                                                                                                                    asp-for="PriceNegotiableInd" class="form-check-label"></label></div>
+                                                                                                                    <div class="col-md-3 form-check"><input asp-for="WaterFrontInd" class="form-check-input" /><label
+                                                                                                                        asp-for="WaterFrontInd" class="form-check-label"></label></div>
+                                                                                                                        <div class="col-md-3 form-check"><input asp-for="SoldByOwnerInd" class="form-check-input" /><label
+                                                                                                                            asp-for="SoldByOwnerInd" class="form-check-label"></label></div>
+                                                                                                                            <div class="col-md-3 form-check"><input asp-for="HasBasementInd" class="form-check-input" /><label
+                                                                                                                                asp-for="HasBasementInd" class="form-check-label"></label></div>
+                                                                                                                                <div class="col-md-3 form-check"><input asp-for="BasementFinishedInd" class="form-check-input" /><label
+                                                                                                                                    asp-for="BasementFinishedInd" class="form-check-label"></label></div>
+                                                                                                                                    <div class="col-md-3 form-check"><input asp-for="CloseToSchoolInd" class="form-check-input" /><label
+                                                                                                                                        asp-for="CloseToSchoolInd" class="form-check-label"></label></div>
+                                                                                                                                        <div class="col-md-3 form-check"><input asp-for="CloseToDaycareInd" class="form-check-input" /><label
+                                                                                                                                            asp-for="CloseToDaycareInd" class="form-check-label"></label></div>
+                                                                                                                                            <div class="col-md-3 form-check"><input asp-for="CloseToBusInd" class="form-check-input" /><label
+                                                                                                                                                asp-for="CloseToBusInd" class="form-check-label"></label></div>
+                                                                                                                                                <div class="col-md-3 form-check"><input asp-for="CloseToShoppingCenterInd"
+                                                                                                                                                                                            class="form-check-input" /><label asp-for="CloseToShoppingCenterInd"
+                                                                                                                                                                                      class="form-check-label"></label></div>
+                                                                                                                                                    <div class="col-md-3 form-check"><input asp-for="FurnishedInd" class="form-check-input" /><label
+                                                                                                                                                        asp-for="FurnishedInd" class="form-check-label"></label></div>
+                                                                                                                                                        <div class="col-md-3 form-check"><input asp-for="HasFireplaceInd" class="form-check-input" /><label
+                                                                                                                                                            asp-for="HasFireplaceInd" class="form-check-label"></label></div>
+                                                                                                                                                        </div>
+
+                                                                                                                                                        <div class="d-flex gap-2">
+                                                                                                                                                            <input type="submit" value="Save" class="btn btn-primary" />
+                                                                                                                                                            <a asp-action="Index" asp-route-listingGuid="@Model.ListingGUID" class="btn btn-outline-secondary">Back
+                                                                                                                                                                to List</a>
+                                                                                                                                                            </div>
+                                                                                                                                                        </form>
+                                                                                                                                                    </div>
+                                                                                                                                                </div>
+
+                                                                                                                                                @section Scripts {
+                                                                                                                                                    @{
+                                                                                                                                                        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+                                                                                                                                                    }
+                                                                                                                                                }
