@@ -3,6 +3,7 @@ using System;
 using CanHappy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CanHappy.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227235930_AddListingVideoEntity")]
+    partial class AddListingVideoEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1125,77 +1128,6 @@ namespace CanHappy.Data.Migrations
                             Description = "Storage",
                             Name = "Storage"
                         });
-                });
-
-            modelBuilder.Entity("CanHappy.Models.FavoriteListing", b =>
-                {
-                    b.Property<Guid>("FavoriteListingGUID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("DeletedInd")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<Guid>("ListingGUID")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ListingSubject")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("");
-
-                    b.Property<string>("ListingURL")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasDefaultValue("");
-
-                    b.Property<string>("ModifiedBy")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<int>("SortOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("FavoriteListingGUID");
-
-                    b.HasIndex("ListingGUID");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId", "DeletedInd", "CreatedDate");
-
-                    b.ToTable("FavoriteListing", (string)null);
                 });
 
             modelBuilder.Entity("CanHappy.Models.HomeRentalDetail", b =>
@@ -2338,17 +2270,6 @@ namespace CanHappy.Data.Migrations
                     b.Navigation("Listing");
                 });
 
-            modelBuilder.Entity("CanHappy.Models.FavoriteListing", b =>
-                {
-                    b.HasOne("CanHappy.Models.Listing", "Listing")
-                        .WithMany("FavoriteListings")
-                        .HasForeignKey("ListingGUID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Listing");
-                });
-
             modelBuilder.Entity("CanHappy.Models.HomeRentalDetail", b =>
                 {
                     b.HasOne("CanHappy.Models.Listing", "Listing")
@@ -2572,8 +2493,6 @@ namespace CanHappy.Data.Migrations
                     b.Navigation("CarVehicleDetail");
 
                     b.Navigation("EstateSaleDetail");
-
-                    b.Navigation("FavoriteListings");
 
                     b.Navigation("HomeRentalDetail");
 

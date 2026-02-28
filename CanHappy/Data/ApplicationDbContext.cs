@@ -21,6 +21,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<PropertyType> PropertyTypes => Set<PropertyType>();
     public DbSet<EstateType> EstateTypes => Set<EstateType>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
+    public DbSet<ListingVideo> ListingVideos => Set<ListingVideo>();
+    public DbSet<FavoriteListing> FavoriteListings => Set<FavoriteListing>();
     public DbSet<Ad> Ads => Set<Ad>();
     public DbSet<AdSize> AdSizes => Set<AdSize>();
     public DbSet<AdStatus> AdStatuses => Set<AdStatus>();
@@ -590,7 +592,97 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasIndex(e => e.ListingGUID);
 
             entity.HasOne(e => e.Listing)
-                .WithMany()
+                .WithMany(listing => listing.ListingImages)
+                .HasForeignKey(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ListingVideo>(entity =>
+        {
+            entity.ToTable("ListingVideo");
+            entity.HasKey(e => e.ListingVideoGUID);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasDefaultValue(string.Empty);
+
+            entity.Property(e => e.SortOrder)
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.VideoSize)
+                .HasMaxLength(30)
+                .HasDefaultValue(string.Empty);
+
+            entity.Property(e => e.ThumbnailURL)
+                .HasMaxLength(200)
+                .HasDefaultValue(string.Empty);
+
+            entity.Property(e => e.VideoURL)
+                .HasMaxLength(200)
+                .HasDefaultValue(string.Empty);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.ModifiedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID);
+
+            entity.HasOne(e => e.Listing)
+                .WithMany(listing => listing.ListingVideos)
+                .HasForeignKey(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<FavoriteListing>(entity =>
+        {
+            entity.ToTable("FavoriteListing");
+            entity.HasKey(e => e.FavoriteListingGUID);
+
+            entity.Property(e => e.ListingURL)
+                .HasMaxLength(200)
+                .HasDefaultValue(string.Empty);
+
+            entity.Property(e => e.ListingSubject)
+                .HasMaxLength(50)
+                .HasDefaultValue(string.Empty);
+
+            entity.Property(e => e.SortOrder)
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50)
+                .HasDefaultValue(string.Empty);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50)
+                .HasDefaultValue(string.Empty);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(e => e.ModifiedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.UserId, e.DeletedInd, e.CreatedDate });
+
+            entity.HasOne(e => e.Listing)
+                .WithMany(listing => listing.FavoriteListings)
                 .HasForeignKey(e => e.ListingGUID)
                 .OnDelete(DeleteBehavior.Restrict);
         });

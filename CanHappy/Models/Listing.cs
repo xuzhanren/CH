@@ -99,5 +99,11 @@ public class Listing
 
     public EstateSaleDetail? EstateSaleDetail { get; set; }
 
+    public List<ListingImage> ListingImages { get; set; } = [];
+
+    public List<ListingVideo> ListingVideos { get; set; } = [];
+
+    public List<FavoriteListing> FavoriteListings { get; set; } = [];
+
     public List<ListingReview> ListingReviews { get; set; } = [];
 }

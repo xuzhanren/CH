@@ -19,6 +19,9 @@
                     <li>
                         <a class="dropdown-item" asp-controller="MessagePage" asp-action="Sent">Sent</a>
                     </li>
+                    <li>
+                        <a class="dropdown-item" asp-controller="FavoriteListing" asp-action="Index">My favorites</a>
+                    </li>
                     @if (User.IsInRole("RegisteredUser") || User.IsInRole("Admin") || User.IsInRole("Clerk"))
                     {
                         <li>

@@ -12,6 +12,7 @@ namespace CanHappy.Controllers;
 public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
 {
     private const string EstateSaleCategoryName = "Estate Sale";
+    private const long MaxVideoBytes = 50L * 1024L * 1024L;
 
     [HttpGet("")]
     [HttpGet("Index")]
@@ -74,6 +75,12 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             };
 
             model.CanManageFocusedListing = canManageByRole || (hasUserGuid && listing.UserId != Guid.Empty && listing.UserId == currentUserId);
+            if (hasUserGuid)
+            {
+                model.IsFavorited = await context.FavoriteListings
+                    .AsNoTracking()
+                    .AnyAsync(item => item.ListingGUID == listing.ListingGUID && item.UserId == currentUserId && !item.DeletedInd);
+            }
 
             model.ListingImages = await context.ListingImages
                 .AsNoTracking()
@@ -89,6 +96,22 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                     SorOrder = image.SorOrder,
                     ThumbnailURL = image.ThumbnailURL,
                     ImageURL = image.ImageURL
+                })
+                .ToListAsync();
+
+            model.ListingVideos = await context.ListingVideos
+                .AsNoTracking()
+                .Where(video => video.ListingGUID == listing.ListingGUID && !video.DeletedInd)
+                .OrderBy(video => video.SortOrder)
+                .ThenBy(video => video.CreatedDate)
+                .Select(video => new ListingVideoCardViewModel
+                {
+                    ListingVideoGUID = video.ListingVideoGUID,
+                    Name = video.Name,
+                    SortOrder = video.SortOrder,
+                    VideoSize = video.VideoSize,
+                    ThumbnailURL = video.ThumbnailURL,
+                    VideoURL = video.VideoURL
                 })
                 .ToListAsync();
 
@@ -143,6 +166,107 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         }
 
         return View("~/Views/EstateSaleDetail/Index.cshtml", model);
+    }
+
+    [HttpPost("Favorite/{listingGuid:guid}")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Favorite(Guid listingGuid, string? returnUrl)
+    {
+        if (!TryGetCurrentUserGuid(out var currentUserId))
+        {
+            return Forbid();
+        }
+
+        var listing = await context.Listings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+        if (listing is null)
+        {
+            return NotFound();
+        }
+
+        var favorite = await context.FavoriteListings
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && item.UserId == currentUserId);
+
+        if (favorite is null)
+        {
+            var maxSortOrder = await context.FavoriteListings
+                .Where(item => item.UserId == currentUserId && !item.DeletedInd)
+                .Select(item => (int?)item.SortOrder)
+                .MaxAsync() ?? -1;
+
+            favorite = new FavoriteListing
+            {
+                FavoriteListingGUID = Guid.NewGuid(),
+                ListingGUID = listingGuid,
+                UserId = currentUserId,
+                ListingURL = BuildListingUrl(listingGuid, returnUrl),
+                ListingSubject = (listing.Subject ?? string.Empty).Trim(),
+                SortOrder = maxSortOrder + 1,
+                DeletedInd = false,
+                CreatedBy = User.Identity?.Name ?? string.Empty,
+                ModifiedBy = User.Identity?.Name ?? string.Empty,
+                CreatedDate = CanHappy.Common.EasternTime.Now,
+                ModifiedDate = CanHappy.Common.EasternTime.Now
+            };
+
+            if (favorite.ListingSubject.Length > 50)
+            {
+                favorite.ListingSubject = favorite.ListingSubject[..50];
+            }
+
+            if (favorite.ListingURL.Length > 200)
+            {
+                favorite.ListingURL = favorite.ListingURL[..200];
+            }
+
+            context.FavoriteListings.Add(favorite);
+        }
+        else
+        {
+            favorite.DeletedInd = false;
+            favorite.ListingURL = BuildListingUrl(listingGuid, returnUrl);
+            favorite.ListingSubject = (listing.Subject ?? string.Empty).Trim();
+            if (favorite.ListingSubject.Length > 50)
+            {
+                favorite.ListingSubject = favorite.ListingSubject[..50];
+            }
+            if (favorite.ListingURL.Length > 200)
+            {
+                favorite.ListingURL = favorite.ListingURL[..200];
+            }
+            favorite.ModifiedBy = User.Identity?.Name ?? string.Empty;
+            favorite.ModifiedDate = CanHappy.Common.EasternTime.Now;
+        }
+
+        await context.SaveChangesAsync();
+        TempData["MessageSuccess"] = "Listing added to favorites.";
+        return RedirectToLocalOrIndex(returnUrl, listingGuid);
+    }
+
+    [HttpPost("Unfavorite/{listingGuid:guid}")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Unfavorite(Guid listingGuid, string? returnUrl)
+    {
+        if (!TryGetCurrentUserGuid(out var currentUserId))
+        {
+            return Forbid();
+        }
+
+        var favorite = await context.FavoriteListings
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && item.UserId == currentUserId && !item.DeletedInd);
+        if (favorite is not null)
+        {
+            favorite.DeletedInd = true;
+            favorite.ModifiedBy = User.Identity?.Name ?? string.Empty;
+            favorite.ModifiedDate = CanHappy.Common.EasternTime.Now;
+            await context.SaveChangesAsync();
+            TempData["MessageSuccess"] = "Listing removed from favorites.";
+        }
+
+        return RedirectToLocalOrIndex(returnUrl, listingGuid);
     }
 
     [HttpGet("Create")]
@@ -660,6 +784,181 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         return RedirectToAction(nameof(Index), new { listingGuid });
     }
 
+    [HttpPost("UpsertVideo/{listingGuid:guid}")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpsertVideo(Guid listingGuid, Guid? listingVideoGuid, string? name, int? sortOrder, IFormFile? editedVideoFile, string? thumbnailImageData)
+    {
+        if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
+        {
+            return Forbid();
+        }
+
+        var listing = await context.Listings
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+        if (listing is null)
+        {
+            return NotFound();
+        }
+
+        if (!string.Equals(listing.Category?.Name, EstateSaleCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
+        if (!CanManageListing(listing, currentUserId))
+        {
+            return Forbid();
+        }
+
+        ListingVideo? listingVideo = null;
+        if (listingVideoGuid.HasValue)
+        {
+            listingVideo = await context.ListingVideos.FirstOrDefaultAsync(item => item.ListingVideoGUID == listingVideoGuid.Value && item.ListingGUID == listingGuid && !item.DeletedInd);
+        }
+
+        if (listingVideo is null)
+        {
+            listingVideo = await context.ListingVideos
+                .Where(item => item.ListingGUID == listingGuid && !item.DeletedInd)
+                .OrderBy(item => item.SortOrder)
+                .ThenBy(item => item.CreatedDate)
+                .FirstOrDefaultAsync();
+        }
+
+        if (listingVideo is null)
+        {
+            listingVideo = new ListingVideo
+            {
+                ListingVideoGUID = Guid.NewGuid(),
+                ListingGUID = listingGuid,
+                CreatedBy = User.Identity?.Name ?? string.Empty,
+                CreatedDate = CanHappy.Common.EasternTime.Now,
+                DeletedInd = false
+            };
+            context.ListingVideos.Add(listingVideo);
+        }
+
+        if (editedVideoFile is not null)
+        {
+            if (editedVideoFile.Length <= 0)
+            {
+                TempData["MessageError"] = "Video file is empty.";
+                return RedirectToAction(nameof(Index), new { listingGuid });
+            }
+
+            if (editedVideoFile.Length > MaxVideoBytes)
+            {
+                TempData["MessageError"] = "Edited video must be under 50MB.";
+                return RedirectToAction(nameof(Index), new { listingGuid });
+            }
+
+            var savedVideoPath = await SaveUploadedVideoAsync(editedVideoFile, "ListingVideos");
+            if (string.IsNullOrWhiteSpace(savedVideoPath))
+            {
+                TempData["MessageError"] = "Could not save video file.";
+                return RedirectToAction(nameof(Index), new { listingGuid });
+            }
+
+            listingVideo.VideoURL = savedVideoPath;
+            listingVideo.VideoSize = ToMegaByteSizeText(editedVideoFile.Length);
+        }
+
+        if (!string.IsNullOrWhiteSpace(thumbnailImageData))
+        {
+            var thumbnailPath = await SaveImageFromDataUrlAsync(thumbnailImageData, "ListingVideoThumbnails");
+            if (!string.IsNullOrWhiteSpace(thumbnailPath))
+            {
+                listingVideo.ThumbnailURL = thumbnailPath;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(listingVideo.VideoURL))
+        {
+            TempData["MessageError"] = "Video is required.";
+            return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        if (string.IsNullOrWhiteSpace(listingVideo.ThumbnailURL))
+        {
+            TempData["MessageError"] = "Video thumbnail is required.";
+            return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        listingVideo.Name = string.IsNullOrWhiteSpace(name) ? string.Empty : name.Trim();
+        listingVideo.SortOrder = sortOrder.GetValueOrDefault(0);
+        listingVideo.ModifiedBy = User.Identity?.Name ?? string.Empty;
+        listingVideo.ModifiedDate = CanHappy.Common.EasternTime.Now;
+
+        var extraVideos = await context.ListingVideos
+            .Where(item => item.ListingGUID == listingGuid && !item.DeletedInd && item.ListingVideoGUID != listingVideo.ListingVideoGUID)
+            .ToListAsync();
+        foreach (var extraVideo in extraVideos)
+        {
+            extraVideo.DeletedInd = true;
+            extraVideo.ModifiedBy = User.Identity?.Name ?? string.Empty;
+            extraVideo.ModifiedDate = CanHappy.Common.EasternTime.Now;
+        }
+
+        await context.SaveChangesAsync();
+        TempData["MessageSuccess"] = "Video saved.";
+        return RedirectToAction(nameof(Index), new { listingGuid });
+    }
+
+    [HttpPost("DeleteVideo/{listingGuid:guid}/{listingVideoGuid:guid}")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteVideo(Guid listingGuid, Guid listingVideoGuid)
+    {
+        if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
+        {
+            return Forbid();
+        }
+
+        var listing = await context.Listings
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+        if (listing is null)
+        {
+            return NotFound();
+        }
+
+        if (!string.Equals(listing.Category?.Name, EstateSaleCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
+        if (!CanManageListing(listing, currentUserId))
+        {
+            return Forbid();
+        }
+
+        var listingVideo = await context.ListingVideos.FirstOrDefaultAsync(item => item.ListingVideoGUID == listingVideoGuid && item.ListingGUID == listingGuid && !item.DeletedInd);
+        if (listingVideo is null)
+        {
+            TempData["MessageError"] = "Video not found.";
+            return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        var videoUrlToDelete = listingVideo.VideoURL;
+        var thumbnailUrlToDelete = listingVideo.ThumbnailURL;
+
+        listingVideo.DeletedInd = true;
+        listingVideo.ModifiedBy = User.Identity?.Name ?? string.Empty;
+        listingVideo.ModifiedDate = CanHappy.Common.EasternTime.Now;
+        await context.SaveChangesAsync();
+
+        TryDeleteMediaFile(videoUrlToDelete);
+        if (!string.Equals(videoUrlToDelete, thumbnailUrlToDelete, StringComparison.OrdinalIgnoreCase))
+        {
+            TryDeleteMediaFile(thumbnailUrlToDelete);
+        }
+
+        TempData["MessageSuccess"] = "Video deleted.";
+        return RedirectToAction(nameof(Index), new { listingGuid });
+    }
+
     [HttpPost("UpsertRoom/{listingGuid:guid}")]
     [Authorize]
     [ValidateAntiForgeryToken]
@@ -876,6 +1175,26 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         return listing.UserId != Guid.Empty && currentUserId != Guid.Empty && listing.UserId == currentUserId;
     }
 
+    private string BuildListingUrl(Guid listingGuid, string? returnUrl)
+    {
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return returnUrl;
+        }
+
+        return $"/EstateSaleDetail/Index?listingGuid={listingGuid}";
+    }
+
+    private IActionResult RedirectToLocalOrIndex(string? returnUrl, Guid listingGuid)
+    {
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return LocalRedirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(Index), new { listingGuid });
+    }
+
     private async Task PopulateListingSelectListAsync(Guid currentUserId, Guid? selectedListingId = null)
     {
         var isPrivileged = User.IsInRole("Admin") || User.IsInRole("Clerk");
@@ -954,5 +1273,83 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
         return relativePath;
+    }
+
+    private async Task<string?> SaveUploadedVideoAsync(IFormFile file, string folderName)
+    {
+        var extension = Path.GetExtension(file.FileName);
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            extension = ".webm";
+        }
+
+        var fileName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
+        var relativePath = $"/{folderName}/{fileName}";
+        var folderPath = Path.Combine(environment.WebRootPath, folderName);
+        Directory.CreateDirectory(folderPath);
+
+        var filePath = Path.Combine(folderPath, fileName);
+        await using var output = System.IO.File.Create(filePath);
+        await file.CopyToAsync(output);
+        return relativePath;
+    }
+
+    private void TryDeleteMediaFile(string? mediaPath)
+    {
+        if (string.IsNullOrWhiteSpace(mediaPath))
+        {
+            return;
+        }
+
+        try
+        {
+            var normalizedPath = mediaPath.Trim();
+
+            var queryIndex = normalizedPath.IndexOf('?');
+            if (queryIndex >= 0)
+            {
+                normalizedPath = normalizedPath[..queryIndex];
+            }
+
+            var fragmentIndex = normalizedPath.IndexOf('#');
+            if (fragmentIndex >= 0)
+            {
+                normalizedPath = normalizedPath[..fragmentIndex];
+            }
+
+            if (Uri.TryCreate(normalizedPath, UriKind.Absolute, out var absoluteUri))
+            {
+                normalizedPath = absoluteUri.AbsolutePath;
+            }
+
+            normalizedPath = normalizedPath.Replace('\\', '/');
+            if (!normalizedPath.StartsWith('/'))
+            {
+                return;
+            }
+
+            var webRootFullPath = Path.GetFullPath(environment.WebRootPath);
+            var relativeFsPath = normalizedPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+            var targetFullPath = Path.GetFullPath(Path.Combine(environment.WebRootPath, relativeFsPath));
+
+            if (!targetFullPath.StartsWith(webRootFullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (System.IO.File.Exists(targetFullPath))
+            {
+                System.IO.File.Delete(targetFullPath);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private static string ToMegaByteSizeText(long bytes)
+    {
+        var megaBytes = bytes / 1024d / 1024d;
+        return $"{megaBytes:0.##} MB";
     }
 }

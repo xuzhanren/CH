@@ -8,9 +8,21 @@ public class EstateSaleDetailIndexPageViewModel
     public BuySellDetailListingCardViewModel? ListingCard { get; set; }
     public EstateSaleDetailEditViewModel? FocusDetail { get; set; }
     public bool CanManageFocusedListing { get; set; }
+    public bool IsFavorited { get; set; }
     public bool HasExistingFocusDetail { get; set; }
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
+    public List<ListingVideoCardViewModel> ListingVideos { get; set; } = new();
     public List<EstateRoomEditViewModel> Rooms { get; set; } = [];
+}
+
+public class ListingVideoCardViewModel
+{
+    public Guid ListingVideoGUID { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int SortOrder { get; set; }
+    public string VideoSize { get; set; } = string.Empty;
+    public string ThumbnailURL { get; set; } = string.Empty;
+    public string VideoURL { get; set; } = string.Empty;
 }
 
 public class EstateSaleDetailEditViewModel

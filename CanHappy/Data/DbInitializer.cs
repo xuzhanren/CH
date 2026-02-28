@@ -60,11 +60,6 @@ public static class DbInitializer
 
     private static readonly string[] EstateSaleSubcategoryNames =
     [
-        "Garage Sales",
-        "Moving Sales",
-        "Estate Auctions",
-        "Antiques & Collectibles",
-        "Other"
     ];
 
     private static readonly string[] CarPoolSubcategoryNames =
@@ -248,9 +243,9 @@ public static class DbInitializer
         }
 
         await context.SaveChangesAsync();
-        await SeedCoreSubcategoriesAsync(context);
-        await SeedCanadaHierarchyAsync(context);
-        await SeedOttawaSampleListingsAsync(context);
+        //await SeedCoreSubcategoriesAsync(context);
+        //await SeedCanadaHierarchyAsync(context);
+        //await SeedOttawaSampleListingsAsync(context);
     }
 
     private static async Task SeedOttawaSampleListingsAsync(ApplicationDbContext context)

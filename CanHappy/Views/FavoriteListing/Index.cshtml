@@ -1,0 +1,61 @@
+@model CanHappy.Models.FavoriteListingIndexPageViewModel
+
+@{
+    ViewData["Title"] = "My favorites";
+}
+
+<h1 class="mb-3">My favorites</h1>
+
+@if (TempData["MessageSuccess"] is string messageSuccess && !string.IsNullOrWhiteSpace(messageSuccess))
+{
+    <div class="alert alert-success">@messageSuccess</div>
+}
+
+@if (TempData["MessageError"] is string messageError && !string.IsNullOrWhiteSpace(messageError))
+{
+    <div class="alert alert-danger">@messageError</div>
+}
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info mb-0">No favorite listings yet.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Listing</th>
+                    <th style="width: 140px;">Sort Order</th>
+                    <th style="width: 200px;">Created Date</th>
+                    <th style="width: 220px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <a href="@item.ListingURL">@item.ListingSubject</a>
+                        </td>
+                        <td>
+                            <form method="post" asp-action="UpdateSortOrder" asp-route-favoriteListingGuid="@item.FavoriteListingGUID" class="d-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="number" name="sortOrder" value="@item.SortOrder" class="form-control form-control-sm" min="0" max="999" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                            </form>
+                        </td>
+                        <td>@item.CreatedDate</td>
+                        <td>
+                            <form method="post" asp-action="Delete" asp-route-favoriteListingGuid="@item.FavoriteListingGUID" onsubmit="return confirm('Remove from favorites?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
