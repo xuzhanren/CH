@@ -25,7 +25,7 @@
                     @if (User.IsInRole("RegisteredUser") || User.IsInRole("Admin") || User.IsInRole("Clerk"))
                     {
                         <li>
-                            <a class="dropdown-item" asp-controller="Admin" asp-action="Ads">Manage My Ads</a>
+                            <a class="dropdown-item" asp-controller="Admin" asp-action="Ads">My Ads</a>
                         </li>
                     }
                     <li>

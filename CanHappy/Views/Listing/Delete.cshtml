@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Delete";
+    var addressMapQuery = $"{Model.Address} {Model.City?.Name} {Model.Province?.Name} {Model.PostalCode}".Trim();
+    var addressMapUrl = string.IsNullOrWhiteSpace(addressMapQuery)
+        ? string.Empty
+        : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
 }
 
 <h1>Delete</h1>
@@ -27,6 +31,13 @@
             <div class="col-md-6"><strong>Subcategory:</strong> @Model.Subcategory?.Name</div>
             <div class="col-md-6"><strong>Province:</strong> @Model.Province?.Name</div>
             <div class="col-md-6"><strong>City:</strong> @Model.City?.Name</div>
+            <div class="col-md-6">
+                <strong>Address:</strong> @Model.Address
+                @if (!string.IsNullOrWhiteSpace(Model.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
+                {
+                    <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
+                }
+            </div>
         </div>
     </div>
     <div class="card-footer bg-transparent">

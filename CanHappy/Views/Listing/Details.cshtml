@@ -21,6 +21,10 @@ string.Empty;
     var stars = new string('★', fullStars) + (halfStar ? "½" : string.Empty) + new string('☆', Math.Max(0, 5 - fullStars -
 (halfStar ? 1 : 0)));
     var reviewUrl = Url.Action("Index", "ListingReview", new { listingGuid = Model.ListingGUID }) ?? "#";
+    var addressMapQuery = $"{Model.Address} {Model.City?.Name} {Model.Province?.Name} {Model.PostalCode}".Trim();
+    var addressMapUrl = string.IsNullOrWhiteSpace(addressMapQuery)
+        ? string.Empty
+        : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
 }
 
 <h1>Details</h1>
@@ -60,6 +64,13 @@ string.Empty;
             <div class="col-md-6"><strong>Subcategory:</strong> @Model.Subcategory?.Name</div>
             <div class="col-md-6"><strong>Province:</strong> @Model.Province?.Name</div>
             <div class="col-md-6"><strong>City:</strong> @Model.City?.Name</div>
+            <div class="col-md-6">
+                <strong>Address:</strong> @Model.Address
+                @if (!string.IsNullOrWhiteSpace(Model.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
+                {
+                    <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
+                }
+            </div>
         </div>
     </div>
     <div class="card-footer bg-transparent">

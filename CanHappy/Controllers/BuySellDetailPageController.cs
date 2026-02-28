@@ -61,6 +61,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                 SubcategoryName = listing.Subcategory?.Name,
                 ProvinceName = listing.Province?.Name,
                 CityName = listing.City?.Name,
+                Address = listing.Address,
                 PostalCode = listing.PostalCode,
                 Price = listing.Price,
                 DiscountPercent = listing.DiscountPercent,
@@ -73,6 +74,12 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             };
 
             model.CanManageFocusedListing = canManageByRole || (hasUserGuid && listing.UserId != Guid.Empty && listing.UserId == currentUserId);
+            if (hasUserGuid)
+            {
+                model.IsFavorited = await context.FavoriteListings
+                    .AsNoTracking()
+                    .AnyAsync(item => item.ListingGUID == listing.ListingGUID && item.UserId == currentUserId && !item.DeletedInd);
+            }
 
             model.ListingImages = await context.ListingImages
                 .AsNoTracking()

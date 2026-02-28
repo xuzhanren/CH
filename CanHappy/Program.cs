@@ -70,6 +70,7 @@ builder.Services.AddControllersWithViews(options =>
 {
     options.ModelMetadataDetailsProviders.Add(new SuffixTrimDisplayMetadataProvider());
 });
+builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

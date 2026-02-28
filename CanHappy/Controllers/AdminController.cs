@@ -893,6 +893,7 @@ public class AdminController(
         listing.KeyWords = model.KeyWords;
         listing.ProvinceId = model.ProvinceId;
         listing.CityId = model.CityId;
+        listing.Address = model.Address;
         listing.PostalCode = model.PostalCode;
         listing.ViewCount = model.ViewCount;
         listing.ClickCount = model.ClickCount;

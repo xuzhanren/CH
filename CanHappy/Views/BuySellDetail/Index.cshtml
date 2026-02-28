@@ -8,6 +8,10 @@
     var isCurrentUserGuid = Guid.TryParse(currentUserIdText, out var currentUserId);
     var currentReturnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
     var photoCount = Model.ListingImages.Count;
+    var addressMapQuery = $"{Model.ListingCard?.Address} {Model.ListingCard?.CityName} {Model.ListingCard?.ProvinceName} {Model.ListingCard?.PostalCode}".Trim();
+    var addressMapUrl = string.IsNullOrWhiteSpace(addressMapQuery)
+        ? string.Empty
+        : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
@@ -37,6 +41,22 @@
     .form-check-label {
         font-weight: 700;
     }
+
+    .favorite-heart-button {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font-size: 1.35rem;
+        line-height: 1;
+    }
+
+    .favorite-heart-button.hollow {
+        color: #0d6efd;
+    }
+
+    .favorite-heart-button.solid {
+        color: #dc3545;
+    }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -65,7 +85,28 @@
 
     <div class="card shadow-sm mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <strong>Listing</strong>
+            <div class="d-flex align-items-center gap-2">
+                <strong>Listing</strong>
+                @if (isCurrentUserGuid)
+                {
+                    @if (Model.IsFavorited)
+                    {
+                        <form method="post" asp-controller="EstateSaleDetailPage" asp-action="Unfavorite" asp-route-listingGuid="@Model.ListingCard.ListingGUID" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="returnUrl" value="@currentReturnUrl" />
+                            <button type="submit" class="favorite-heart-button solid" title="Remove from favorites" aria-label="Remove from favorites">♥</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-controller="EstateSaleDetailPage" asp-action="Favorite" asp-route-listingGuid="@Model.ListingCard.ListingGUID" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="returnUrl" value="@currentReturnUrl" />
+                            <button type="submit" class="favorite-heart-button hollow" title="Add to favorites" aria-label="Add to favorites">♡</button>
+                        </form>
+                    }
+                }
+            </div>
             <div class="d-flex align-items-center gap-2">
                 <a href="#" class="btn btn-link btn-sm p-0 send-message-link" data-message-modal-id="@messageModalId"
                        data-listing-guid="@Model.ListingCard.ListingGUID.ToString("N")"
@@ -145,6 +186,13 @@
                     <div class="col-md-4"><strong>Subcategory:</strong> @Model.ListingCard.SubcategoryName</div>
                     <div class="col-md-4"><strong>Province:</strong> @Model.ListingCard.ProvinceName</div>
                     <div class="col-md-4"><strong>City:</strong> @Model.ListingCard.CityName</div>
+                    <div class="col-md-4">
+                        <strong>Address:</strong> @Model.ListingCard.Address
+                        @if (!string.IsNullOrWhiteSpace(Model.ListingCard.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
+                        {
+                            <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
+                        }
+                    </div>
                     <div class="col-md-4">
                         <strong>Postal Code:</strong> @Model.ListingCard.PostalCode
                         @if (!string.IsNullOrWhiteSpace(Model.ListingCard.PostalCode))

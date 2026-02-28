@@ -10,9 +10,13 @@
     var photoCount = Model.ListingImages.Count;
     var firstVideo = Model.ListingVideos.OrderBy(v => v.SortOrder).ThenBy(v => v.Name).FirstOrDefault();
     var mapQuery = $"{Model.ListingCard?.PostalCode} {Model.ListingCard?.CityName} {Model.ListingCard?.ProvinceName}".Trim();
-    var mapEmbedUrl = string.IsNullOrWhiteSpace(mapQuery)
+    var mapUrl = string.IsNullOrWhiteSpace(mapQuery)
         ? string.Empty
-        : $"https://www.google.com/maps?q={Uri.EscapeDataString(mapQuery)}&output=embed";
+        : $"https://www.google.com/maps?q={Uri.EscapeDataString(mapQuery)}";
+    var addressMapQuery = $"{Model.ListingCard?.Address} {Model.ListingCard?.CityName} {Model.ListingCard?.ProvinceName} {Model.ListingCard?.PostalCode}".Trim();
+    var addressMapUrl = string.IsNullOrWhiteSpace(addressMapQuery)
+        ? string.Empty
+        : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
@@ -97,14 +101,8 @@ else
 
     <div class="card shadow-sm mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <strong>Listing</strong>
             <div class="d-flex align-items-center gap-2">
-                <a href="#" class="btn btn-link btn-sm p-0 send-message-link" data-message-modal-id="@messageModalId"
-                       data-listing-guid="@Model.ListingCard.ListingGUID.ToString("N")"
-                       data-is-owner="@isOwnerListing.ToString().ToLowerInvariant()" data-notice-id="@ownListingNoticeId">
-                    Mesasage seller
-                </a>
-                <span id="@ownListingNoticeId" class="small text-muted d-none">You cannot message your own listing.</span>
+                <strong>Listing</strong>
                 @if (isCurrentUserGuid)
                 {
                     @if (Model.IsFavorited)
@@ -124,6 +122,14 @@ else
                         </form>
                     }
                 }
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="#" class="btn btn-link btn-sm p-0 send-message-link" data-message-modal-id="@messageModalId"
+                       data-listing-guid="@Model.ListingCard.ListingGUID.ToString("N")"
+                       data-is-owner="@isOwnerListing.ToString().ToLowerInvariant()" data-notice-id="@ownListingNoticeId">
+                    Mesasage seller
+                </a>
+                <span id="@ownListingNoticeId" class="small text-muted d-none">You cannot message your own listing.</span>
                 @if (Model.CanManageFocusedListing && Model.ListingImages.Count < 30)
                 {
                     <button type="button" class="btn btn-sm btn-outline-primary" id="addListingPhotoButton">Add photo</button>
@@ -237,21 +243,28 @@ else
                     <div class="col-md-4"><strong>Price:</strong> @Model.ListingCard.Price</div>
                     <div class="col-md-4"><strong>Condition:</strong> @Model.ListingCard.Condition</div>
                     <div class="col-md-4"><strong>Quantity:</strong> @Model.ListingCard.Quantity</div>
+                    <div class="col-md-4"><strong>Brand:</strong> @Model.ListingCard.Brand</div>
+                    <div class="col-md-4"><strong>Model:</strong> @Model.ListingCard.Model</div>
                     <div class="col-md-4"><strong>Discount Percent:</strong> @Model.ListingCard.DiscountPercent</div>
                     <div class="col-md-4"><strong>Sales Ending:</strong> @Model.ListingCard.DiscountEndDate</div>
                     <div class="col-md-4"><strong>Category:</strong> @Model.ListingCard.CategoryName</div>
                     <div class="col-md-4"><strong>Subcategory:</strong> @Model.ListingCard.SubcategoryName</div>
                     <div class="col-md-4"><strong>Province:</strong> @Model.ListingCard.ProvinceName</div>
                     <div class="col-md-4"><strong>City:</strong> @Model.ListingCard.CityName</div>
-                    <div class="col-md-6"><strong>Postal Code:</strong> @Model.ListingCard.PostalCode</div>
-                    <div class="col-md-6">
-                        @if (!string.IsNullOrWhiteSpace(mapEmbedUrl))
+                    <div class="col-md-4">
+                        <strong>Address:</strong> @Model.ListingCard.Address
+                        @if (!string.IsNullOrWhiteSpace(Model.ListingCard.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
                         {
-                            <iframe title="Google map" src="@mapEmbedUrl" width="100%" height="130" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
                         }
                     </div>
-                    <div class="col-md-4"><strong>Brand:</strong> @Model.ListingCard.Brand</div>
-                    <div class="col-md-4"><strong>Model:</strong> @Model.ListingCard.Model</div>
+                    <div class="col-md-6">
+                        <strong>Postal Code:</strong> @Model.ListingCard.PostalCode
+                        @if (!string.IsNullOrWhiteSpace(Model.ListingCard.PostalCode) && !string.IsNullOrWhiteSpace(mapUrl))
+                        {
+                            <a href="@mapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
+                        }
+                    </div>
                 </div>
             </div>
         </div>

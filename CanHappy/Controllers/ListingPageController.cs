@@ -4,15 +4,28 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Collections.Concurrent;
+using System.Globalization;
+using System.Text.Json;
 
 namespace CanHappy.Controllers;
 
 [Route("Listing")]
-public class ListingPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
+public class ListingPageController(
+    ApplicationDbContext context,
+    IWebHostEnvironment environment,
+    IHttpClientFactory httpClientFactory,
+    ILogger<ListingPageController> logger,
+    IConfiguration configuration) : Controller
 {
-    [HttpGet("")]
-    public async Task<IActionResult> Index(string? categoryName, string? subcategoryName, string? keywords, int? provinceId, int? cityId, Guid? focusListingId)
+    private static readonly ConcurrentDictionary<string, (double Latitude, double Longitude)?> PostalCodeCoordinateCache = new(StringComparer.OrdinalIgnoreCase);
+
+    [HttpGet("", Name = "ListingIndex")]
+    public async Task<IActionResult> Index(string? categoryName, string? subcategoryName, string? keywords, int? provinceId, int? cityId, Guid? focusListingId, int page = 1)
     {
+        page = Math.Max(1, page);
+        var pageSize = Math.Max(1, configuration.GetValue<int?>("NumberOfListingsPerPage") ?? 5);
+
         var query = context.Listings
             .Include(listing => listing.Category)
             .Include(listing => listing.Subcategory)
@@ -21,60 +34,63 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             .AsNoTracking()
             .Where(listing => !listing.DeletedInd)
             .AsQueryable();
+        query = ApplyListingFilters(query, categoryName, subcategoryName, provinceId, cityId);
 
-        if (!string.IsNullOrWhiteSpace(categoryName))
+        var searchWords = TokenizeSearchWords(keywords);
+        List<Listing> listings;
+        int totalItemCount;
+        int totalPages;
+
+        if (searchWords.Length > 0)
         {
-            query = query.Where(listing => listing.Category != null && listing.Category.Name == categoryName);
-            ViewData["CategoryName"] = categoryName;
+            var rankedListings = (await query.ToListAsync())
+                .Select(listing => new
+                {
+                    Listing = listing,
+                    Score = ComputeKeywordMatchScore(listing, searchWords)
+                })
+                .Where(item => item.Score > 0)
+                .OrderByDescending(item => item.Score)
+                .ThenByDescending(item => item.Listing.CreatedDate)
+                .ToList();
+
+            totalItemCount = rankedListings.Count;
+            totalPages = Math.Max(1, (int)Math.Ceiling(totalItemCount / (double)pageSize));
+            page = Math.Min(page, totalPages);
+
+            listings = rankedListings
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(item => item.Listing)
+                .ToList();
+        }
+        else
+        {
+            totalItemCount = await query.CountAsync();
+            totalPages = Math.Max(1, (int)Math.Ceiling(totalItemCount / (double)pageSize));
+            page = Math.Min(page, totalPages);
+
+            listings = await query
+                .OrderByDescending(listing => listing.CreatedDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
         }
 
-        if (!string.IsNullOrWhiteSpace(subcategoryName))
-        {
-            query = query.Where(listing => listing.Subcategory != null && listing.Subcategory.Name == subcategoryName);
-            ViewData["SubcategoryName"] = subcategoryName;
-        }
-
-        if (!string.IsNullOrWhiteSpace(keywords))
-        {
-            var normalizedTerms = keywords
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(term => !string.IsNullOrWhiteSpace(term))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToArray();
-
-            if (normalizedTerms.Length > 0)
-            {
-                var keywordPatterns = normalizedTerms
-                    .Select(term => $"%{term}%")
-                    .ToArray();
-
-                query = query.Where(listing => listing.KeyWords != null
-                    && keywordPatterns.Any(pattern => EF.Functions.ILike(listing.KeyWords, pattern)));
-            }
-
-            ViewData["Keywords"] = keywords;
-        }
-
-        if (provinceId.HasValue)
-        {
-            query = query.Where(listing => listing.ProvinceId == provinceId.Value);
-            ViewData["ProvinceId"] = provinceId.Value;
-        }
-
-        if (cityId.HasValue)
-        {
-            query = query.Where(listing => listing.CityId == cityId.Value);
-            ViewData["CityId"] = cityId.Value;
-        }
+        ViewData["CategoryName"] = categoryName;
+        ViewData["SubcategoryName"] = subcategoryName;
+        ViewData["Keywords"] = keywords;
+        ViewData["ProvinceId"] = provinceId;
+        ViewData["CityId"] = cityId;
+        ViewData["CurrentPage"] = page;
+        ViewData["TotalPages"] = totalPages;
+        ViewData["PageSize"] = pageSize;
+        ViewData["TotalItemCount"] = totalItemCount;
 
         if (focusListingId.HasValue)
         {
             ViewData["FocusListingId"] = focusListingId.Value;
         }
-
-        var listings = await query
-            .OrderByDescending(listing => listing.CreatedDate)
-            .ToListAsync();
 
         var listingIds = listings.Select(item => item.ListingGUID).ToList();
         var reviewCounts = listingIds.Count == 0
@@ -92,41 +108,79 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
     }
 
     [HttpGet("Map")]
-    public async Task<IActionResult> Map(string? categoryName, string? subcategoryName)
+    public async Task<IActionResult> Map(string? categoryName, string? subcategoryName, string? keywords, int? provinceId, int? cityId, CancellationToken cancellationToken)
     {
         var query = context.Listings
             .AsNoTracking()
             .Include(listing => listing.Category)
             .Include(listing => listing.Subcategory)
+            .Include(listing => listing.Province)
+            .Include(listing => listing.City)
             .Where(listing => !listing.DeletedInd && !string.IsNullOrWhiteSpace(listing.PostalCode))
             .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(categoryName))
-        {
-            query = query.Where(listing => listing.Category != null && listing.Category.Name == categoryName);
-            ViewData["CategoryName"] = categoryName;
-        }
+        query = ApplyListingFilters(query, categoryName, subcategoryName, provinceId, cityId);
 
-        if (!string.IsNullOrWhiteSpace(subcategoryName))
-        {
-            query = query.Where(listing => listing.Subcategory != null && listing.Subcategory.Name == subcategoryName);
-            ViewData["SubcategoryName"] = subcategoryName;
-        }
+        ViewData["CategoryName"] = categoryName;
+        ViewData["SubcategoryName"] = subcategoryName;
+        ViewData["Keywords"] = keywords;
+        ViewData["ProvinceId"] = provinceId;
+        ViewData["CityId"] = cityId;
 
         var listings = await query
-            .OrderByDescending(listing => listing.CreatedDate)
             .Select(listing => new
             {
                 listing.ListingGUID,
                 listing.Subject,
+                listing.Description,
+                listing.KeyWords,
                 listing.PostalCode,
                 listing.Price,
+                listing.CreatedDate,
                 CategoryName = listing.Category != null ? listing.Category.Name : null
             })
             .ToListAsync();
 
+        var searchWords = TokenizeSearchWords(keywords);
+        if (searchWords.Length > 0)
+        {
+            listings = listings
+                .Select(listing => new
+                {
+                    Listing = listing,
+                    Score = ComputeKeywordMatchScore(listing.Subject, listing.Description, listing.KeyWords, searchWords)
+                })
+                .Where(item => item.Score > 0)
+                .OrderByDescending(item => item.Score)
+                .ThenByDescending(item => item.Listing.CreatedDate)
+                .Select(item => item.Listing)
+                .ToList();
+        }
+        else
+        {
+            listings = listings
+                .OrderByDescending(listing => listing.CreatedDate)
+                .ToList();
+        }
+
+        var distinctPostalCodes = listings
+            .Select(listing => NormalizePostalCode(listing.PostalCode))
+            .Where(postalCode => !string.IsNullOrWhiteSpace(postalCode))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var coordinatesByPostalCode = new Dictionary<string, (double Latitude, double Longitude)?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var normalizedPostalCode in distinctPostalCodes)
+        {
+            var coordinate = await GeocodePostalCodeWithGeocoderCaAsync(normalizedPostalCode, cancellationToken);
+            coordinatesByPostalCode[normalizedPostalCode] = coordinate;
+        }
+
         var model = listings.Select(listing =>
         {
+            var normalizedPostalCode = NormalizePostalCode(listing.PostalCode);
+            coordinatesByPostalCode.TryGetValue(normalizedPostalCode, out var coordinate);
+
             var isBuySellCategory = string.Equals(listing.CategoryName, "Buy & Sell", StringComparison.OrdinalIgnoreCase);
             var isCarVehicleCategory = string.Equals(listing.CategoryName, "Car & Vehicle", StringComparison.OrdinalIgnoreCase);
             var isHomeRentalCategory = string.Equals(listing.CategoryName, "Home Rental", StringComparison.OrdinalIgnoreCase);
@@ -148,7 +202,9 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
                 Subject = string.IsNullOrWhiteSpace(listing.Subject) ? "Listing" : listing.Subject,
                 PostalCode = listing.PostalCode ?? string.Empty,
                 Price = listing.Price,
-                DetailUrl = detailUrl ?? "#"
+                DetailUrl = detailUrl ?? "#",
+                Latitude = coordinate?.Latitude,
+                Longitude = coordinate?.Longitude
             };
         }).ToList();
 
@@ -193,7 +249,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
+    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
     {
         if (!ModelState.IsValid)
         {
@@ -250,7 +306,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? categoryName, string? subcategoryName)
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? categoryName, string? subcategoryName)
     {
         if (id != listing.ListingGUID)
         {
@@ -285,6 +341,7 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
             existingListing.KeyWords = listing.KeyWords;
             existingListing.ProvinceId = listing.ProvinceId;
             existingListing.CityId = listing.CityId;
+            existingListing.Address = listing.Address;
             existingListing.PostalCode = listing.PostalCode;
             existingListing.ContactPhone = listing.ContactPhone;
             existingListing.ContactName = listing.ContactName;
@@ -397,6 +454,183 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
     private bool ListingExists(Guid id)
     {
         return context.Listings.Any(listing => listing.ListingGUID == id);
+    }
+
+    private IQueryable<Listing> ApplyListingFilters(
+        IQueryable<Listing> query,
+        string? categoryName,
+        string? subcategoryName,
+        int? provinceId,
+        int? cityId)
+    {
+        if (!string.IsNullOrWhiteSpace(categoryName))
+        {
+            query = query.Where(listing => listing.Category != null && listing.Category.Name == categoryName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(subcategoryName))
+        {
+            query = query.Where(listing => listing.Subcategory != null && listing.Subcategory.Name == subcategoryName);
+        }
+
+        if (provinceId.HasValue)
+        {
+            query = query.Where(listing => listing.ProvinceId == provinceId.Value);
+        }
+
+        if (cityId.HasValue)
+        {
+            query = query.Where(listing => listing.CityId == cityId.Value);
+        }
+
+        return query;
+    }
+
+    private static string[] TokenizeSearchWords(string? keywords)
+    {
+        if (string.IsNullOrWhiteSpace(keywords))
+        {
+            return [];
+        }
+
+        return keywords
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(term => !string.IsNullOrWhiteSpace(term))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private static int ComputeKeywordMatchScore(Listing listing, IReadOnlyCollection<string> words)
+    {
+        return ComputeKeywordMatchScore(listing.Subject, listing.Description, listing.KeyWords, words);
+    }
+
+    private static int ComputeKeywordMatchScore(string? subject, string? description, string? keyWords, IReadOnlyCollection<string> words)
+    {
+        if (words.Count == 0)
+        {
+            return 0;
+        }
+
+        var score = 0;
+        foreach (var word in words)
+        {
+            score += CountOccurrences(subject, word);
+            score += CountOccurrences(description, word);
+            score += CountOccurrences(keyWords, word);
+        }
+
+        return score;
+    }
+
+    private static int CountOccurrences(string? source, string word)
+    {
+        if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(word))
+        {
+            return 0;
+        }
+
+        var count = 0;
+        var index = 0;
+        while (index < source.Length)
+        {
+            var foundIndex = source.IndexOf(word, index, StringComparison.OrdinalIgnoreCase);
+            if (foundIndex < 0)
+            {
+                break;
+            }
+
+            count++;
+            index = foundIndex + word.Length;
+        }
+
+        return count;
+    }
+
+    private static string NormalizePostalCode(string? postalCode)
+    {
+        if (string.IsNullOrWhiteSpace(postalCode))
+        {
+            return string.Empty;
+        }
+
+        return new string(postalCode.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+    }
+
+    private async Task<(double Latitude, double Longitude)?> GeocodePostalCodeWithGeocoderCaAsync(string normalizedPostalCode, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedPostalCode))
+        {
+            return null;
+        }
+
+        if (PostalCodeCoordinateCache.TryGetValue(normalizedPostalCode, out var cachedCoordinate))
+        {
+            return cachedCoordinate;
+        }
+
+        var requestUrl = $"https://geocoder.ca/?locate={Uri.EscapeDataString(normalizedPostalCode)}&json=1";
+
+        try
+        {
+            var httpClient = httpClientFactory.CreateClient();
+            using var response = await httpClient.GetAsync(requestUrl, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                PostalCodeCoordinateCache[normalizedPostalCode] = null;
+                return null;
+            }
+
+            await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var payload = await JsonDocument.ParseAsync(responseStream, cancellationToken: cancellationToken);
+            if (TryReadCoordinate(payload.RootElement, "latt", out var latitude)
+                && TryReadCoordinate(payload.RootElement, "longt", out var longitude))
+            {
+                var coordinate = (Latitude: latitude, Longitude: longitude);
+                PostalCodeCoordinateCache[normalizedPostalCode] = coordinate;
+                return coordinate;
+            }
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Failed to geocode postal code {PostalCode} via geocoder.ca", normalizedPostalCode);
+        }
+
+        PostalCodeCoordinateCache[normalizedPostalCode] = null;
+        return null;
+    }
+
+    private static bool TryReadCoordinate(JsonElement root, string propertyName, out double coordinate)
+    {
+        coordinate = 0;
+        if (!root.TryGetProperty(propertyName, out var property))
+        {
+            return false;
+        }
+
+        if (property.ValueKind == JsonValueKind.Number)
+        {
+            return property.TryGetDouble(out coordinate) && double.IsFinite(coordinate);
+        }
+
+        if (property.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        var rawValue = property.GetString();
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return false;
+        }
+
+        var normalizedValue = rawValue.Trim().Replace(',', '.');
+        if (!double.TryParse(normalizedValue, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out coordinate))
+        {
+            return false;
+        }
+
+        return double.IsFinite(coordinate);
     }
 
     private async Task<string?> SaveThumbnailFromDataUrlAsync(string dataUrl)

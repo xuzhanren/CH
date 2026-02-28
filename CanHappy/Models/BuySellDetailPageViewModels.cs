@@ -8,6 +8,7 @@ public class BuySellDetailIndexPageViewModel
     public BuySellDetailListingCardViewModel? ListingCard { get; set; }
     public BuySellDetailEditViewModel? FocusDetail { get; set; }
     public bool CanManageFocusedListing { get; set; }
+    public bool IsFavorited { get; set; }
     public bool HasExistingFocusDetail { get; set; }
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
     public List<BuySellDetailIndexItemViewModel> Items { get; set; } = [];
@@ -28,6 +29,7 @@ public class BuySellDetailListingCardViewModel
     public string? SubcategoryName { get; set; }
     public string? ProvinceName { get; set; }
     public string? CityName { get; set; }
+    public string? Address { get; set; }
     public string? PostalCode { get; set; }
     public decimal? Price { get; set; }
     public decimal DiscountPercent { get; set; }
@@ -130,6 +132,7 @@ public class CarVehicleDetailIndexPageViewModel
     public BuySellDetailListingCardViewModel? ListingCard { get; set; }
     public CarVehicleDetailEditViewModel? FocusDetail { get; set; }
     public bool CanManageFocusedListing { get; set; }
+    public bool IsFavorited { get; set; }
     public bool HasExistingFocusDetail { get; set; }
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
     public List<CarVehicleDetailIndexItemViewModel> Items { get; set; } = [];
@@ -254,6 +257,7 @@ public class HomeRentalDetailIndexPageViewModel
     public BuySellDetailListingCardViewModel? ListingCard { get; set; }
     public HomeRentalDetailEditViewModel? FocusDetail { get; set; }
     public bool CanManageFocusedListing { get; set; }
+    public bool IsFavorited { get; set; }
     public bool HasExistingFocusDetail { get; set; }
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
     public List<HomeRentalDetailIndexItemViewModel> Items { get; set; } = [];

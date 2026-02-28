@@ -7,4 +7,6 @@ public class ListingMapMarkerViewModel
     public string PostalCode { get; set; } = string.Empty;
     public decimal? Price { get; set; }
     public string DetailUrl { get; set; } = string.Empty;
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
 }

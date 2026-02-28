@@ -63,6 +63,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                 SubcategoryName = listing.Subcategory?.Name,
                 ProvinceName = listing.Province?.Name,
                 CityName = listing.City?.Name,
+                Address = listing.Address,
                 PostalCode = listing.PostalCode,
                 Price = listing.Price,
                 DiscountPercent = listing.DiscountPercent,

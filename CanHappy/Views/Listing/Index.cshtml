@@ -12,15 +12,31 @@
     var focusListingKey = focusListingId?.ToString("N");
     var currentCategoryName = ViewData["CategoryName"]?.ToString();
     var currentSubcategoryName = ViewData["SubcategoryName"]?.ToString();
+    var currentKeywords = Context.Request.Query["keywords"].ToString();
+    var currentProvinceId = Context.Request.Query["provinceId"].ToString();
+    var currentCityId = Context.Request.Query["cityId"].ToString();
+    var currentPage = ViewData["CurrentPage"] is int pageValue ? pageValue : 1;
+    var totalPages = ViewData["TotalPages"] is int totalPageValue ? totalPageValue : 1;
+    var maxVisiblePageLinks = 5;
+    var halfWindow = maxVisiblePageLinks / 2;
+    var startPage = Math.Max(1, currentPage - halfWindow);
+    var endPage = Math.Min(totalPages, startPage + maxVisiblePageLinks - 1);
+    if (endPage - startPage + 1 < maxVisiblePageLinks)
+    {
+        startPage = Math.Max(1, endPage - maxVisiblePageLinks + 1);
+    }
     var reviewCountByListing = ViewData["ReviewCountByListing"] as Dictionary<Guid, int> ?? new Dictionary<Guid, int>();
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="mb-0">
+    <h1 class="mb-0 d-flex flex-wrap align-items-center gap-2">
         Listings
           <a asp-action="Map"
               asp-route-categoryName="@currentCategoryName"
               asp-route-subcategoryName="@currentSubcategoryName"
+                            asp-route-keywords="@currentKeywords"
+                            asp-route-provinceId="@currentProvinceId"
+                            asp-route-cityId="@currentCityId"
               target="_blank" rel="noopener noreferrer" class="ms-2 fs-6 text-decoration-none align-middle">
             <span class="d-inline-flex align-items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" class="me-1">
@@ -29,6 +45,104 @@
                 See locations in Map
             </span>
         </a>
+
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Listings pagination header" class="ms-1">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : string.Empty)">
+                                <a class="page-link"
+                                    asp-route="ListingIndex"
+                           asp-route-categoryName="@currentCategoryName"
+                           asp-route-subcategoryName="@currentSubcategoryName"
+                           asp-route-keywords="@currentKeywords"
+                           asp-route-provinceId="@currentProvinceId"
+                           asp-route-cityId="@currentCityId"
+                           asp-route-page="@(currentPage - 1)" aria-label="Previous">&lt;</a>
+                    </li>
+
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item @(currentPage == 1 ? "active" : string.Empty)">
+                            <a class="page-link"
+                               asp-route="ListingIndex"
+                               asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName"
+                               asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId"
+                               asp-route-cityId="@currentCityId"
+                               asp-route-page="1">1</a>
+                        </li>
+
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @for (var pageNumber = startPage; pageNumber <= endPage; pageNumber++)
+                    {
+                        <li class="page-item @(pageNumber == currentPage ? "active" : string.Empty)">
+                                     <a class="page-link"
+                                         asp-route="ListingIndex"
+                               asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName"
+                               asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId"
+                               asp-route-cityId="@currentCityId"
+                               asp-route-page="@pageNumber">@pageNumber</a>
+                        </li>
+                    }
+
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+
+                        <li class="page-item @(currentPage == totalPages ? "active" : string.Empty)">
+                            <a class="page-link"
+                               asp-route="ListingIndex"
+                               asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName"
+                               asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId"
+                               asp-route-cityId="@currentCityId"
+                               asp-route-page="@totalPages">@totalPages</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : string.Empty)">
+                                <a class="page-link"
+                                    asp-route="ListingIndex"
+                           asp-route-categoryName="@currentCategoryName"
+                           asp-route-subcategoryName="@currentSubcategoryName"
+                           asp-route-keywords="@currentKeywords"
+                           asp-route-provinceId="@currentProvinceId"
+                           asp-route-cityId="@currentCityId"
+                           asp-route-page="@(currentPage + 1)" aria-label="Next">&gt;</a>
+                    </li>
+
+                    <li class="page-item">
+                        <form asp-route="ListingIndex" method="get" class="d-flex align-items-center ms-2">
+                            <input type="hidden" name="categoryName" value="@currentCategoryName" />
+                            <input type="hidden" name="subcategoryName" value="@currentSubcategoryName" />
+                            <input type="hidden" name="keywords" value="@currentKeywords" />
+                            <input type="hidden" name="provinceId" value="@currentProvinceId" />
+                            <input type="hidden" name="cityId" value="@currentCityId" />
+                            <input type="text"
+                                   name="page"
+                                   inputmode="numeric"
+                                   pattern="[0-9]*"
+                                   value="@currentPage"
+                                   class="form-control form-control-sm"
+                                   style="width: 3.3rem;" />
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        }
     </h1>
     <a asp-action="Create" class="btn btn-primary">Create New</a>
 </div>
@@ -86,6 +200,10 @@ else
                     var stars = new string('★', fullStars) + (halfStar ? "½" : string.Empty) + new string('☆', Math.Max(0, 5 -
                     fullStars - (halfStar ? 1 : 0)));
                     var reviewUrl = Url.Action("Index", "ListingReview", new { listingGuid = item.ListingGUID }) ?? "#";
+                    var addressMapQuery = $"{item.Address} {item.City?.Name} {item.Province?.Name} {item.PostalCode}".Trim();
+                    var addressMapUrl = string.IsNullOrWhiteSpace(addressMapQuery)
+                    ? string.Empty
+                    : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
                     var today = CanHappy.Common.EasternTime.Now.Date;
                     var isSaleActive = item.Price.HasValue
                     && item.DiscountPercent > 0
@@ -147,6 +265,13 @@ else
                             <div class="col-md-6"><strong>Subcategory:</strong> @item.Subcategory?.Name</div>
                             <div class="col-md-6"><strong>Province:</strong> @item.Province?.Name</div>
                             <div class="col-md-6"><strong>City:</strong> @item.City?.Name</div>
+                            <div class="col-md-6">
+                                <strong>Address:</strong> @item.Address
+                                @if (!string.IsNullOrWhiteSpace(item.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
+                                {
+                                    <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
+                                }
+                            </div>
                             <div class="col-md-6">
                                 <strong>Postal Code:</strong> @item.PostalCode
                                 @if (!string.IsNullOrWhiteSpace(item.PostalCode))
@@ -240,6 +365,104 @@ else
                 </div>
             }
         </div>
+
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Listings pagination" class="mt-3">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : string.Empty)">
+                                <a class="page-link"
+                                    asp-route="ListingIndex"
+                           asp-route-categoryName="@currentCategoryName"
+                           asp-route-subcategoryName="@currentSubcategoryName"
+                           asp-route-keywords="@currentKeywords"
+                           asp-route-provinceId="@currentProvinceId"
+                           asp-route-cityId="@currentCityId"
+                           asp-route-page="@(currentPage - 1)" aria-label="Previous">&lt;</a>
+                    </li>
+
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item @(currentPage == 1 ? "active" : string.Empty)">
+                            <a class="page-link"
+                               asp-route="ListingIndex"
+                               asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName"
+                               asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId"
+                               asp-route-cityId="@currentCityId"
+                               asp-route-page="1">1</a>
+                        </li>
+
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @for (var pageNumber = startPage; pageNumber <= endPage; pageNumber++)
+                    {
+                        <li class="page-item @(pageNumber == currentPage ? "active" : string.Empty)">
+                                     <a class="page-link"
+                                         asp-route="ListingIndex"
+                               asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName"
+                               asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId"
+                               asp-route-cityId="@currentCityId"
+                               asp-route-page="@pageNumber">@pageNumber</a>
+                        </li>
+                    }
+
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+
+                        <li class="page-item @(currentPage == totalPages ? "active" : string.Empty)">
+                            <a class="page-link"
+                               asp-route="ListingIndex"
+                               asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName"
+                               asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId"
+                               asp-route-cityId="@currentCityId"
+                               asp-route-page="@totalPages">@totalPages</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : string.Empty)">
+                                <a class="page-link"
+                                    asp-route="ListingIndex"
+                           asp-route-categoryName="@currentCategoryName"
+                           asp-route-subcategoryName="@currentSubcategoryName"
+                           asp-route-keywords="@currentKeywords"
+                           asp-route-provinceId="@currentProvinceId"
+                           asp-route-cityId="@currentCityId"
+                           asp-route-page="@(currentPage + 1)" aria-label="Next">&gt;</a>
+                    </li>
+
+                    <li class="page-item">
+                        <form asp-route="ListingIndex" method="get" class="d-flex align-items-center ms-2">
+                            <input type="hidden" name="categoryName" value="@currentCategoryName" />
+                            <input type="hidden" name="subcategoryName" value="@currentSubcategoryName" />
+                            <input type="hidden" name="keywords" value="@currentKeywords" />
+                            <input type="hidden" name="provinceId" value="@currentProvinceId" />
+                            <input type="hidden" name="cityId" value="@currentCityId" />
+                            <input type="text"
+                                   name="page"
+                                   inputmode="numeric"
+                                   pattern="[0-9]*"
+                                   value="@currentPage"
+                                   class="form-control form-control-sm"
+                                   style="width: 3.3rem;" />
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        }
 
         <div class="modal fade" id="postalCodeMapModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">

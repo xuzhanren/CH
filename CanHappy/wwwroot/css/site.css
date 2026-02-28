@@ -145,9 +145,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.25rem;
-  overflow-x: auto;
+  overflow-x: visible;
 }
 
 .top-nav-search-primary {
@@ -161,26 +161,38 @@ body {
 .top-nav-search-icon {
   border: 0;
   background: transparent;
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1.2;
   padding: 0.05rem 0.15rem;
   color: inherit;
 }
 
 .top-nav-search-input {
-  width: 250px;
+  width: 175px;
   min-width: 100px;
-  max-width: 250px;
+  max-width: 175px;
 }
 
 .top-nav-search-advanced {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.2rem;
   margin-top: 0;
   flex: 0 0 auto;
+}
+
+@media (max-width: 992px) {
+  .top-nav-search-input {
+    width: 120px;
+    max-width: 120px;
+  }
+
+  .top-nav-search-advanced .form-select {
+    width: 100px;
+    min-width: 100px;
+  }
 }
 
 .top-nav-search-advanced .form-select {
@@ -196,8 +208,8 @@ body {
   padding-bottom: 0.1rem;
   padding-left: 0.35rem;
   padding-right: 0.35rem;
-  font-size: 0.78rem;
-  line-height: 1.1;
+  font-size: 1rem;
+  line-height: 1.2;
 }
 
 .top-nav-geo-status {

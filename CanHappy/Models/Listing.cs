@@ -25,6 +25,9 @@ public class Listing
 
     public int CityId { get; set; }
 
+    [StringLength(50)]
+    public string? Address { get; set; }
+
     [StringLength(15)]
     public string? PostalCode { get; set; }
 

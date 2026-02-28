@@ -5,15 +5,23 @@
     ViewData["Title"] = "Listings Map";
     var currentCategoryName = ViewData["CategoryName"]?.ToString();
     var currentSubcategoryName = ViewData["SubcategoryName"]?.ToString();
+    var currentKeywords = ViewData["Keywords"]?.ToString();
+    var currentProvinceId = ViewData["ProvinceId"] as int?;
+    var currentCityId = ViewData["CityId"] as int?;
     var markerPayload = Model
-        .Where(item => !string.IsNullOrWhiteSpace(item.PostalCode) && !string.IsNullOrWhiteSpace(item.DetailUrl))
+        .Where(item => !string.IsNullOrWhiteSpace(item.PostalCode)
+            && !string.IsNullOrWhiteSpace(item.DetailUrl)
+            && item.Latitude.HasValue
+            && item.Longitude.HasValue)
         .Select(item => new
         {
             id = item.ListingGUID,
             subject = item.Subject,
             postalCode = item.PostalCode,
             price = item.Price,
-            detailUrl = item.DetailUrl
+            detailUrl = item.DetailUrl,
+            lat = item.Latitude,
+            lon = item.Longitude
         })
         .ToList();
 
@@ -25,7 +33,13 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Listings Map</h1>
-    <a asp-action="Index" asp-route-categoryName="@currentCategoryName" asp-route-subcategoryName="@currentSubcategoryName" class="btn btn-outline-secondary">Back to Listings</a>
+    <a asp-action="Index"
+       asp-route-categoryName="@currentCategoryName"
+       asp-route-subcategoryName="@currentSubcategoryName"
+       asp-route-keywords="@currentKeywords"
+       asp-route-provinceId="@currentProvinceId"
+       asp-route-cityId="@currentCityId"
+       class="btn btn-outline-secondary">Back to Listings</a>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(currentCategoryName) || !string.IsNullOrWhiteSpace(currentSubcategoryName))
@@ -67,56 +81,6 @@
             }).addTo(map);
 
             const bounds = L.latLngBounds([]);
-            const geocodeCache = new Map();
-
-            const delay = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-
-            const geocodePostalCode = async (postalCode) => {
-                const key = (postalCode || "").trim().toUpperCase();
-                if (!key) {
-                    return null;
-                }
-
-                if (geocodeCache.has(key)) {
-                    return geocodeCache.get(key);
-                }
-
-                const query = encodeURIComponent(`${key}, Canada`);
-                const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`;
-
-                try {
-                    const response = await fetch(url, {
-                        method: "GET",
-                        headers: {
-                            "Accept": "application/json"
-                        }
-                    });
-
-                    if (!response.ok) {
-                        geocodeCache.set(key, null);
-                        return null;
-                    }
-
-                    const payload = await response.json();
-                    if (!Array.isArray(payload) || payload.length === 0) {
-                        geocodeCache.set(key, null);
-                        return null;
-                    }
-
-                    const candidate = payload[0];
-                    const lat = Number.parseFloat(candidate.lat);
-                    const lon = Number.parseFloat(candidate.lon);
-                    const location = Number.isFinite(lat) && Number.isFinite(lon)
-                        ? { lat, lon }
-                        : null;
-
-                    geocodeCache.set(key, location);
-                    return location;
-                } catch {
-                    geocodeCache.set(key, null);
-                    return null;
-                }
-            };
 
             const openDetailsInNewTab = (url) => {
                 if (!url || url === "#") {
@@ -146,8 +110,14 @@
                 return `$${amount.toFixed(2)}`;
             };
 
-            const addMarker = (item, location) => {
-                const marker = L.marker([location.lat, location.lon]).addTo(map);
+            const addMarker = (item) => {
+                const lat = Number(item.lat);
+                const lon = Number(item.lon);
+                if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+                    return;
+                }
+
+                const marker = L.marker([lat, lon]).addTo(map);
 
                 marker.bindTooltip(`
                     <div>
@@ -172,22 +142,16 @@
                     openDetailsInNewTab(item.detailUrl);
                 });
 
-                bounds.extend([location.lat, location.lon]);
+                bounds.extend([lat, lon]);
             };
 
-            const initializeMap = async () => {
+            const initializeMap = () => {
                 if (!Array.isArray(markers) || markers.length === 0) {
                     return;
                 }
 
                 for (const item of markers) {
-                    const location = await geocodePostalCode(item.postalCode);
-                    if (!location) {
-                        continue;
-                    }
-
-                    addMarker(item, location);
-                    await delay(120);
+                    addMarker(item);
                 }
 
                 if (bounds.isValid()) {

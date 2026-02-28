@@ -69,6 +69,7 @@ public class ListingController(ApplicationDbContext context) : ControllerBase
         listing.KeyWords = updatedListing.KeyWords;
         listing.ProvinceId = updatedListing.ProvinceId;
         listing.CityId = updatedListing.CityId;
+        listing.Address = updatedListing.Address;
         listing.PostalCode = updatedListing.PostalCode;
         listing.ContactPhone = updatedListing.ContactPhone;
         listing.ContactName = updatedListing.ContactName;
