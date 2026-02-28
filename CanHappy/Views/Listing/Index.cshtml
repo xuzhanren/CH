@@ -16,7 +16,20 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="mb-0">Listings</h1>
+    <h1 class="mb-0">
+        Listings
+          <a asp-action="Map"
+              asp-route-categoryName="@currentCategoryName"
+              asp-route-subcategoryName="@currentSubcategoryName"
+              target="_blank" rel="noopener noreferrer" class="ms-2 fs-6 text-decoration-none align-middle">
+            <span class="d-inline-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" class="me-1">
+                    <path d="M8 0a5 5 0 0 0-5 5c0 3.25 4.53 9.08 4.72 9.33a.35.35 0 0 0 .56 0C8.47 14.08 13 8.25 13 5a5 5 0 0 0-5-5m0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4"/>
+                </svg>
+                See locations in Map
+            </span>
+        </a>
+    </h1>
     <a asp-action="Create" class="btn btn-primary">Create New</a>
 </div>
 

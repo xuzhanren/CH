@@ -91,6 +91,70 @@ public class ListingPageController(ApplicationDbContext context, IWebHostEnviron
         return View("~/Views/Listing/Index.cshtml", listings);
     }
 
+    [HttpGet("Map")]
+    public async Task<IActionResult> Map(string? categoryName, string? subcategoryName)
+    {
+        var query = context.Listings
+            .AsNoTracking()
+            .Include(listing => listing.Category)
+            .Include(listing => listing.Subcategory)
+            .Where(listing => !listing.DeletedInd && !string.IsNullOrWhiteSpace(listing.PostalCode))
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(categoryName))
+        {
+            query = query.Where(listing => listing.Category != null && listing.Category.Name == categoryName);
+            ViewData["CategoryName"] = categoryName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(subcategoryName))
+        {
+            query = query.Where(listing => listing.Subcategory != null && listing.Subcategory.Name == subcategoryName);
+            ViewData["SubcategoryName"] = subcategoryName;
+        }
+
+        var listings = await query
+            .OrderByDescending(listing => listing.CreatedDate)
+            .Select(listing => new
+            {
+                listing.ListingGUID,
+                listing.Subject,
+                listing.PostalCode,
+                listing.Price,
+                CategoryName = listing.Category != null ? listing.Category.Name : null
+            })
+            .ToListAsync();
+
+        var model = listings.Select(listing =>
+        {
+            var isBuySellCategory = string.Equals(listing.CategoryName, "Buy & Sell", StringComparison.OrdinalIgnoreCase);
+            var isCarVehicleCategory = string.Equals(listing.CategoryName, "Car & Vehicle", StringComparison.OrdinalIgnoreCase);
+            var isHomeRentalCategory = string.Equals(listing.CategoryName, "Home Rental", StringComparison.OrdinalIgnoreCase);
+            var isEstateSaleCategory = string.Equals(listing.CategoryName, "Estate Sale", StringComparison.OrdinalIgnoreCase);
+
+            var detailUrl = isBuySellCategory
+                ? Url.Action("Index", "BuySellDetailPage", new { listingGuid = listing.ListingGUID })
+                : isCarVehicleCategory
+                    ? Url.Action("Index", "CarVehicleDetailPage", new { listingGuid = listing.ListingGUID })
+                    : isHomeRentalCategory
+                        ? Url.Action("Index", "HomeRentalDetailPage", new { listingGuid = listing.ListingGUID })
+                        : isEstateSaleCategory
+                            ? Url.Action("Index", "EstateSaleDetailPage", new { listingGuid = listing.ListingGUID })
+                            : Url.Action("Details", "ListingPage", new { id = listing.ListingGUID });
+
+            return new ListingMapMarkerViewModel
+            {
+                ListingGUID = listing.ListingGUID,
+                Subject = string.IsNullOrWhiteSpace(listing.Subject) ? "Listing" : listing.Subject,
+                PostalCode = listing.PostalCode ?? string.Empty,
+                Price = listing.Price,
+                DetailUrl = detailUrl ?? "#"
+            };
+        }).ToList();
+
+        return View("~/Views/Listing/Map.cshtml", model);
+    }
+
     [HttpGet("Details/{id:guid}")]
     public async Task<IActionResult> Details(Guid? id)
     {
