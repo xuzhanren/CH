@@ -15,6 +15,7 @@
     var currentKeywords = Context.Request.Query["keywords"].ToString();
     var currentProvinceId = Context.Request.Query["provinceId"].ToString();
     var currentCityId = Context.Request.Query["cityId"].ToString();
+    var listingCardAdWaitSeconds = ViewData["ListingCardAdWaitSeconds"] is int waitSecondsValue ? waitSecondsValue : 3;
     var currentPage = ViewData["CurrentPage"] is int pageValue ? pageValue : 1;
     var totalPages = ViewData["TotalPages"] is int totalPageValue ? totalPageValue : 1;
     var maxVisiblePageLinks = 5;
@@ -210,6 +211,7 @@ else
                     && item.DiscountBeginDate.HasValue
                     && today > item.DiscountBeginDate.Value.Date
                     && (!item.DiscountEndDate.HasValue || today < item.DiscountEndDate.Value.Date);
+                    var listingCardAdUrl = Url.Action("TopCardAd", "ListingPage", new { listingGuid = item.ListingGUID }) ?? string.Empty;
                     decimal? discountedPrice = null;
                     if (isSaleActive && item.Price is decimal basePrice)
                     {
@@ -220,22 +222,38 @@ else
                     <div class="card-body">
                         @if (!string.IsNullOrWhiteSpace(item.ThumbnailURL))
                         {
-                            <div class="mb-3">
-                                @if (isBuySellCategory || isCarVehicleCategory || isHomeRentalCategory || isEstateSaleCategory)
-                                {
-                                    <a href="@listingDetailsUrl">
+                            <div class="row g-2 mb-3 align-items-start listing-card-media-row" data-listing-card-media-row="true">
+                                <div class="col-12 listing-card-media-main" data-listing-card-media-main="true">
+                                    @if (isBuySellCategory || isCarVehicleCategory || isHomeRentalCategory || isEstateSaleCategory)
+                                    {
+                                        <a href="@listingDetailsUrl">
+                                            <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
+                                                 style="max-height: 220px;" />
+                                        </a>
+                                    }
+                                    else
+                                    {
                                         <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
                                              style="max-height: 220px;" />
-                                    </a>
-                                }
-                                else
-                                {
-                                    <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
-                                         style="max-height: 220px;" />
-                                }
+                                    }
+
+                                    <h5 class="card-title mt-2 mb-0">@item.Subject</h5>
+                                </div>
+                                <div class="listing-card-media-ad d-none" data-listing-card-media-ad-wrapper="true">
+                                    <div class="listing-card-ad-slot d-none"
+                                         data-listing-card-ad-slot="true"
+                                         data-ad-endpoint="@listingCardAdUrl"
+                                         data-ad-delay-seconds="@listingCardAdWaitSeconds"
+                                         data-search-keywords="@currentKeywords"
+                                         data-listing-guid="@item.ListingGUID">
+                                    </div>
+                                </div>
                             </div>
                         }
-                        <h5 class="card-title mb-3">@item.Subject</h5>
+                        @if (string.IsNullOrWhiteSpace(item.ThumbnailURL))
+                        {
+                            <h5 class="card-title mb-3">@item.Subject</h5>
+                        }
                         <div class="mb-2">
                             <span class="fw-semibold">@ratingValue.ToString("0.0")</span>
                             <span class="ms-1 text-warning">@stars</span>
@@ -611,6 +629,150 @@ else
                 if (window.location.hash && window.location.hash.startsWith("#listing-card-")) {
                     const listingFromHash = window.location.hash.substring("#listing-card-".length);
                     scrollToFocusedListing(listingFromHash);
+                }
+
+                const adSlots = Array.from(document.querySelectorAll('[data-listing-card-ad-slot="true"]'));
+                const loadedAdSlotKeys = new Set();
+
+                const renderListingCardAd = (slotElement, adPayload) => {
+                    if (!slotElement || !adPayload || !adPayload.imageURL || !adPayload.targetURL || !adPayload.adGuid) {
+                        return;
+                    }
+
+                    const mediaRow = slotElement.closest("[data-listing-card-media-row='true']");
+                    const mediaMain = mediaRow ? mediaRow.querySelector("[data-listing-card-media-main='true']") : null;
+                    const adWrapper = mediaRow ? mediaRow.querySelector("[data-listing-card-media-ad-wrapper='true']") : null;
+
+                    if (mediaMain) {
+                        mediaMain.classList.remove("col-12");
+                        mediaMain.classList.add("col-lg-8");
+                    }
+
+                    if (adWrapper) {
+                        adWrapper.classList.remove("d-none");
+                        adWrapper.classList.add("col-lg-4");
+                    }
+
+                    slotElement.innerHTML = "";
+
+                    const adLink = document.createElement("a");
+                    adLink.href = adPayload.targetURL;
+                    adLink.target = "_blank";
+                    adLink.rel = "noopener noreferrer";
+
+                    const trackingUrl = `/Listing/TopCardAdClick/${encodeURIComponent(adPayload.adGuid)}`;
+                    adLink.addEventListener("click", () => {
+                        try {
+                            if (navigator.sendBeacon) {
+                                const payload = new Blob([], { type: "application/octet-stream" });
+                                navigator.sendBeacon(trackingUrl, payload);
+                                return;
+                            }
+
+                            fetch(trackingUrl, { method: "POST", keepalive: true })
+                                .then((response) => {
+                                    if (response.status === 405) {
+                                        fetch(trackingUrl, { method: "GET", keepalive: true });
+                                    }
+                                });
+                        } catch {
+                        }
+                    });
+
+                    const adImage = document.createElement("img");
+                    adImage.src = adPayload.imageURL;
+                    adImage.alt = "Advertisement";
+                    adImage.className = "img-fluid rounded border";
+                    adImage.style.maxHeight = "220px";
+
+                    adLink.appendChild(adImage);
+                    slotElement.appendChild(adLink);
+
+                    const adSubject = typeof adPayload.subject === "string" ? adPayload.subject.trim() : "";
+                    if (adSubject.length > 0) {
+                        const adSubjectElement = document.createElement("h6");
+                        adSubjectElement.className = "card-title mt-2 mb-0";
+                        adSubjectElement.textContent = adSubject;
+                        slotElement.appendChild(adSubjectElement);
+                    }
+
+                    slotElement.classList.remove("d-none");
+                };
+
+                const loadListingCardAd = async (slotElement) => {
+                    const listingGuid = slotElement.getAttribute("data-listing-guid") || "";
+                    if (!listingGuid || loadedAdSlotKeys.has(listingGuid)) {
+                        return;
+                    }
+
+                    loadedAdSlotKeys.add(listingGuid);
+
+                    const endpoint = slotElement.getAttribute("data-ad-endpoint") || "";
+                    if (!endpoint) {
+                        return;
+                    }
+
+                    const searchKeywords = slotElement.getAttribute("data-search-keywords") || "";
+                    const endpointUrl = new URL(endpoint, window.location.origin);
+                    if (searchKeywords.trim().length > 0) {
+                        endpointUrl.searchParams.set("keywords", searchKeywords);
+                    }
+
+                    const delaySeconds = Number(slotElement.getAttribute("data-ad-delay-seconds") || "0");
+                    const delayMilliseconds = Number.isFinite(delaySeconds) && delaySeconds > 0
+                        ? Math.round(delaySeconds * 1000)
+                        : 0;
+
+                    if (delayMilliseconds > 0) {
+                        await new Promise((resolve) => {
+                            window.setTimeout(resolve, delayMilliseconds);
+                        });
+                    }
+
+                    try {
+                        const response = await fetch(endpointUrl.toString(), {
+                            method: "GET",
+                            headers: {
+                                "Accept": "application/json"
+                            }
+                        });
+
+                        if (response.status === 204 || !response.ok) {
+                            return;
+                        }
+
+                        const payload = await response.json();
+                        renderListingCardAd(slotElement, payload);
+                    } catch {
+                    }
+                };
+
+                if (adSlots.length > 0) {
+                    const slotsByCardElement = new Map();
+                    adSlots.forEach((slotElement) => {
+                        const cardElement = slotElement.closest(".card");
+                        if (cardElement) {
+                            slotsByCardElement.set(cardElement, slotElement);
+                        }
+                    });
+
+                    const intersectionObserver = new IntersectionObserver((entries) => {
+                        entries.forEach((entry) => {
+                            if (!entry.isIntersecting) {
+                                return;
+                            }
+
+                            intersectionObserver.unobserve(entry.target);
+                            const slotElement = slotsByCardElement.get(entry.target);
+                            if (slotElement) {
+                                loadListingCardAd(slotElement);
+                            }
+                        });
+                    }, { threshold: 0.35 });
+
+                    slotsByCardElement.forEach((_slotElement, cardElement) => {
+                        intersectionObserver.observe(cardElement);
+                    });
                 }
             })();
         </script>

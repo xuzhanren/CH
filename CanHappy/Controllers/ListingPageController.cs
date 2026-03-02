@@ -25,6 +25,7 @@ public class ListingPageController(
     {
         page = Math.Max(1, page);
         var pageSize = Math.Max(1, configuration.GetValue<int?>("NumberOfListingsPerPage") ?? 5);
+        var listingCardAdWaitSeconds = Math.Max(0, configuration.GetValue<int?>("ListingCardAdWaitSeconds") ?? 3);
 
         var query = context.Listings
             .Include(listing => listing.Category)
@@ -86,6 +87,7 @@ public class ListingPageController(
         ViewData["TotalPages"] = totalPages;
         ViewData["PageSize"] = pageSize;
         ViewData["TotalItemCount"] = totalItemCount;
+        ViewData["ListingCardAdWaitSeconds"] = listingCardAdWaitSeconds;
 
         if (focusListingId.HasValue)
         {
@@ -105,6 +107,163 @@ public class ListingPageController(
         ViewData["ReviewCountByListing"] = reviewCounts;
 
         return View("~/Views/Listing/Index.cshtml", listings);
+    }
+
+    [HttpGet("TopCardAd/{listingGuid:guid}")]
+    public async Task<IActionResult> TopCardAd(Guid listingGuid, string? keywords)
+    {
+        void SetDebugHeader(string message)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return;
+            }
+
+            var compact = message.Length > 500 ? message[..500] : message;
+            Response.Headers["X-TopCardAd-Debug"] = compact;
+        }
+
+        var listing = await context.Listings
+            .AsNoTracking()
+            .Include(item => item.Category)
+            .Include(item => item.Subcategory)
+            .Include(item => item.Province)
+            .Include(item => item.City)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+
+        if (listing is null)
+        {
+            SetDebugHeader($"listing-not-found:{listingGuid}");
+            logger.LogInformation("TopCardAd listing not found for ListingGUID={ListingGuid}", listingGuid);
+            return NotFound();
+        }
+
+        var today = CanHappy.Common.EasternTime.Now.Date;
+        var allEligibleAds = await context.Ads
+            .AsNoTracking()
+            .Include(item => item.AdSizeOption)
+            .Include(item => item.Category)
+            .Include(item => item.Subcategory)
+            .Include(item => item.Province)
+            .Include(item => item.City)
+            .Where(item => !item.DeletedInd
+                && item.ActiveInd
+                && item.AdStatusId == 3
+                && item.PublishDate < today
+                && (!item.ExpiryDate.HasValue || item.ExpiryDate.Value > today)
+                && !string.IsNullOrWhiteSpace(item.ImageURL)
+                && !string.IsNullOrWhiteSpace(item.TargetURL))
+            .ToListAsync();
+
+        static string NormalizeAdSizeName(string? adSizeName)
+        {
+            if (string.IsNullOrWhiteSpace(adSizeName))
+            {
+                return string.Empty;
+            }
+
+            return new string(adSizeName
+                .Where(character => !char.IsWhiteSpace(character) && character != '-' && character != '_')
+                .ToArray());
+        }
+
+        var targetAdSizeName = "800x530InListingCard";
+        var candidateAds = allEligibleAds
+            .Where(item =>
+            {
+                var normalizedSizeName = NormalizeAdSizeName(item.AdSizeOption?.Name);
+                return normalizedSizeName.Equals(targetAdSizeName, StringComparison.OrdinalIgnoreCase)
+                    || normalizedSizeName.Contains("800x530", StringComparison.OrdinalIgnoreCase)
+                    || normalizedSizeName.Contains("ListingCard", StringComparison.OrdinalIgnoreCase);
+            })
+            .ToList();
+
+        if (candidateAds.Count == 0)
+        {
+            var reason = $"no-ad-size-match eligible={allEligibleAds.Count} listing={listing.ListingGUID:N} city={listing.CityId} province={listing.ProvinceId} category={listing.CategoryId} subcategory={listing.SubcategoryId}";
+            SetDebugHeader(reason);
+            logger.LogInformation("TopCardAd no AdSize match for ListingGUID={ListingGuid}. EligibleAds={EligibleAds}. TargetAdSize={TargetAdSize}.", listing.ListingGUID, allEligibleAds.Count, targetAdSizeName);
+            return NoContent();
+        }
+
+        var scoredAds = candidateAds
+            .Select(item => new
+            {
+                Ad = item,
+                Match = EvaluateListingCardAdMatch(listing, item, keywords)
+            })
+            .OrderByDescending(item => item.Match.Score)
+            .ThenByDescending(item => item.Ad.IsFeatured)
+            .ThenByDescending(item => item.Ad.PublishDate)
+            .ToList();
+
+        var bestAd = scoredAds.FirstOrDefault();
+
+        if (bestAd is null)
+        {
+            var reason = $"no-scored-ad candidates={candidateAds.Count} listing={listing.ListingGUID:N}";
+            SetDebugHeader(reason);
+            logger.LogInformation("TopCardAd no scored ad for ListingGUID={ListingGuid}. Candidates={CandidateCount}.", listing.ListingGUID, candidateAds.Count);
+            return NoContent();
+        }
+
+        var topThree = string.Join(", ",
+            scoredAds
+                .Take(3)
+                .Select(item => $"{item.Ad.AdGUID:N}:{item.Match.Score}"));
+
+        var matchedKeywordsText = string.Join("|",
+            bestAd.Match.MatchedKeywords
+                .Take(20));
+
+        await context.Ads
+            .Where(item => item.AdGUID == bestAd.Ad.AdGUID)
+            .ExecuteUpdateAsync(setters =>
+                setters.SetProperty(item => item.ViewCount, item => item.ViewCount + 1));
+
+        SetDebugHeader($"selected={bestAd.Ad.AdGUID:N};score={bestAd.Match.Score};eligible={allEligibleAds.Count};sizeMatch={candidateAds.Count};keywords={keywords};matched={matchedKeywordsText};top={topThree}");
+        logger.LogInformation(
+            "TopCardAd selected AdGUID={AdGuid} score={Score} matchedKeywords={MatchedKeywords} for ListingGUID={ListingGuid}. QueryKeywords={QueryKeywords}. Eligible={EligibleCount}, AdSizeMatched={SizeMatchCount}, TopCandidates={TopCandidates}",
+            bestAd.Ad.AdGUID,
+            bestAd.Match.Score,
+            matchedKeywordsText,
+            listing.ListingGUID,
+            keywords,
+            allEligibleAds.Count,
+            candidateAds.Count,
+            topThree);
+
+        return Json(new
+        {
+            adGuid = bestAd.Ad.AdGUID,
+            subject = bestAd.Ad.Subject,
+            imageURL = bestAd.Ad.ImageURL,
+            targetURL = bestAd.Ad.TargetURL,
+            score = bestAd.Match.Score,
+            matchedKeywords = bestAd.Match.MatchedKeywords
+        });
+    }
+
+    [HttpPost("TopCardAdClick/{adGuid:guid}")]
+    [HttpGet("TopCardAdClick/{adGuid:guid}")]
+    public async Task<IActionResult> TopCardAdClick(Guid adGuid)
+    {
+        var affectedRows = await context.Ads
+            .Where(item => item.AdGUID == adGuid && !item.DeletedInd && item.ActiveInd)
+            .ExecuteUpdateAsync(setters =>
+                setters.SetProperty(item => item.ClickCount, item => item.ClickCount + 1));
+
+        if (affectedRows <= 0)
+        {
+            return NotFound();
+        }
+
+        if (environment.IsDevelopment())
+        {
+            logger.LogInformation("TopCardAdClick tracked for AdGUID={AdGuid}", adGuid);
+        }
+
+        return NoContent();
     }
 
     [HttpGet("Map")]
@@ -521,6 +680,164 @@ public class ListingPageController(
         }
 
         return score;
+    }
+
+    private static AdMatchEvaluation EvaluateListingCardAdMatch(Listing listing, Ad ad, string? queryKeywords)
+    {
+        var score = 0;
+
+        if (ad.ProvinceId.HasValue && ad.ProvinceId.Value == listing.ProvinceId)
+        {
+            score += 20;
+        }
+
+        if (ad.CityId == listing.CityId)
+        {
+            score += 30;
+        }
+
+        if (ad.CategoryId.HasValue && ad.CategoryId.Value == listing.CategoryId)
+        {
+            score += 25;
+        }
+
+        if (ad.SubcategoryId.HasValue && ad.SubcategoryId.Value == listing.SubcategoryId)
+        {
+            score += 35;
+        }
+
+        var queryWords = BuildWordSet(queryKeywords);
+        var listingKeywordWords = BuildWordSet(listing.KeyWords);
+        var listingSubjectWords = BuildWordSet(listing.Subject);
+        var listingDescriptionWords = BuildWordSet(listing.Description);
+        var preferredListingWords = queryWords
+            .Concat(listingKeywordWords)
+            .Concat(listingSubjectWords)
+            .Concat(listingDescriptionWords)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (!string.IsNullOrWhiteSpace(listing.Subject) && !string.IsNullOrWhiteSpace(ad.Subject))
+        {
+            score += ComputePairTextScore(listing.Subject, ad.Subject, exactWeight: 4, partialWeight: 2);
+        }
+
+        if (!string.IsNullOrWhiteSpace(listing.Description) && !string.IsNullOrWhiteSpace(ad.Description))
+        {
+            score += ComputePairTextScore(listing.Description, ad.Description, exactWeight: 3, partialWeight: 1);
+        }
+
+        if (!string.IsNullOrWhiteSpace(listing.KeyWords) && !string.IsNullOrWhiteSpace(ad.KeyWords))
+        {
+            score += ComputePairTextScore(listing.KeyWords, ad.KeyWords, exactWeight: 4, partialWeight: 2);
+        }
+
+        var listingWords = BuildWordSet(
+            listing.Subject,
+            listing.Description,
+            listing.KeyWords,
+            listing.Category?.Name,
+            listing.Subcategory?.Name,
+            listing.Province?.Name,
+            listing.City?.Name,
+            listing.ProvinceId.ToString(CultureInfo.InvariantCulture),
+            listing.CityId.ToString(CultureInfo.InvariantCulture));
+
+        var adWords = BuildWordSet(
+            ad.Subject,
+            ad.Description,
+            ad.KeyWords,
+            ad.Category?.Name,
+            ad.Subcategory?.Name,
+            ad.Province?.Name,
+            ad.City?.Name,
+            ad.ProvinceId?.ToString(CultureInfo.InvariantCulture),
+            ad.CityId.ToString(CultureInfo.InvariantCulture));
+
+        var matchedKeywords = preferredListingWords
+            .Intersect(adWords, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(item => item, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (preferredListingWords.Count > 0 && adWords.Count > 0)
+        {
+            score += matchedKeywords.Count * 8;
+        }
+
+        if (listingWords.Count == 0 || adWords.Count == 0)
+        {
+            return new AdMatchEvaluation(score, matchedKeywords);
+        }
+
+        var wordMatchCount = listingWords.Intersect(adWords, StringComparer.OrdinalIgnoreCase).Count();
+        score += wordMatchCount * 4;
+
+        if (queryWords.Count > 0)
+        {
+            score += ComputeKeywordMatchScore(ad.Subject, ad.Description, ad.KeyWords, queryWords);
+        }
+
+        score += 1;
+
+        return new AdMatchEvaluation(score, matchedKeywords);
+    }
+
+    private sealed record AdMatchEvaluation(int Score, IReadOnlyList<string> MatchedKeywords);
+
+    private static int ComputePairTextScore(string leftText, string rightText, int exactWeight, int partialWeight)
+    {
+        var leftWords = BuildWordSet(leftText);
+        var rightWords = BuildWordSet(rightText);
+        if (leftWords.Count == 0 || rightWords.Count == 0)
+        {
+            return 0;
+        }
+
+        var score = 0;
+        foreach (var leftWord in leftWords)
+        {
+            if (rightWords.Contains(leftWord))
+            {
+                score += exactWeight;
+                continue;
+            }
+
+            if (leftWord.Length < 3)
+            {
+                continue;
+            }
+
+            if (rightWords.Any(rightWord => rightWord.Contains(leftWord, StringComparison.OrdinalIgnoreCase)
+                || leftWord.Contains(rightWord, StringComparison.OrdinalIgnoreCase)))
+            {
+                score += partialWeight;
+            }
+        }
+
+        return score;
+    }
+
+    private static HashSet<string> BuildWordSet(params string?[] values)
+    {
+        var words = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var value in values)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            foreach (var token in value.Split([' ', ',', ';', '|', '/', '\\', '\t', '\r', '\n', '-', '_'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (token == "&")
+                {
+                    continue;
+                }
+
+                words.Add(token);
+            }
+        }
+
+        return words;
     }
 
     private static int CountOccurrences(string? source, string word)

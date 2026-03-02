@@ -360,7 +360,19 @@
                                                                         const isHomePage = currentPath === "/" || currentPath === "/home" || currentPath === "/home/index";
                                                                         const isListingIndexPage = currentPath === "/listing" || currentPath === "/listing/index";
 
+                                                                        const applyTopNavSearchVisibility = () => {
+                                                                            const collapseForHome = isHomePage;
+                                                                            advancedSection.classList.toggle("d-none", collapseForHome);
+                                                                            if (collapseForHome && geoStatus) {
+                                                                                geoStatus.classList.add("d-none");
+                                                                            }
+                                                                        };
+
                                                                         const showGeoStatus = () => {
+                                                                            if (isHomePage) {
+                                                                                return;
+                                                                            }
+
                                                                             if (geoStatus) {
                                                                                 geoStatus.classList.remove("d-none");
                                                                             }
@@ -676,6 +688,7 @@
 
                                                                         fillSubcategories(categorySelect.value, selectedSubcategoryName);
                                                                         fillCities(provinceSelect.value, selectedCityId);
+                                                                        applyTopNavSearchVisibility();
                                                                         applyStoredKeywordChoice();
 
                                                                         if (!provinceSelect.value && !citySelect.value) {
