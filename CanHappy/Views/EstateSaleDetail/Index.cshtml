@@ -246,6 +246,7 @@ else
                     <div class="col-md-4"><strong>Brand:</strong> @Model.ListingCard.Brand</div>
                     <div class="col-md-4"><strong>Model:</strong> @Model.ListingCard.Model</div>
                     <div class="col-md-4"><strong>Discount Percent:</strong> @Model.ListingCard.DiscountPercent</div>
+                    <div class="col-md-4"><strong>Sales Begin:</strong> @Model.ListingCard.DiscountBeginDate</div>
                     <div class="col-md-4"><strong>Sales Ending:</strong> @Model.ListingCard.DiscountEndDate</div>
                     <div class="col-md-4"><strong>Category:</strong> @Model.ListingCard.CategoryName</div>
                     <div class="col-md-4"><strong>Subcategory:</strong> @Model.ListingCard.SubcategoryName</div>
@@ -296,7 +297,6 @@ else
                 else
                 {
                     <div class="row g-2">
-                        <div class="col-lg-3 col-md-4"><strong>Address:</strong> @Model.FocusDetail.Address</div>
                         <div class="col-lg-3 col-md-4"><strong>Estate Type:</strong> @Model.FocusDetail.EstitateTypeName</div>
                         <div class="col-lg-3 col-md-4"><strong>Year Built:</strong> @Model.FocusDetail.YearBuilt</div>
                         <div class="col-lg-3 col-md-4"><strong>Square Feet:</strong> @Model.FocusDetail.SquareFeet</div>
@@ -305,6 +305,8 @@ else
                         </div>
                         <div class="col-lg-3 col-md-4"><strong>Storeys:</strong> @Model.FocusDetail.NumberOfStoreys</div>
                         <div class="col-lg-3 col-md-4"><strong>Annual Property Tax:</strong> @Model.FocusDetail.AnuualPropertyTax
+                        </div>
+                        <div class="col-lg-3 col-md-4"><strong>Annual Management Fee:</strong> @Model.FocusDetail.AnnualManagementFee
                         </div>
                         <div class="col-lg-3 col-md-4"><strong>Bedrooms:</strong> @Model.FocusDetail.Bedrooms</div>
                         <div class="col-lg-3 col-md-4"><strong>Washrooms:</strong> @Model.FocusDetail.Washrooms</div>

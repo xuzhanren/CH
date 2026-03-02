@@ -190,8 +190,8 @@
                                                                                         </li>
                                                                                     }
                                                                                 </ul>
-                                                                                <form asp-controller="ListingPage" asp-action="Index" method="get"
-                                                                                      class="top-nav-search-box me-lg-2" id="topNavSearchBox">
+                                                                                  <form asp-controller="ListingPage" asp-action="Index" method="get"
+                                                                                      class="top-nav-search-box" id="topNavSearchBox">
                                                                                     <div class="top-nav-search-primary">
                                                                                         <button type="button" id="topNavSearchButton" class="top-nav-search-icon" aria-label="Search" title="Click to search">
                                                                                             🔍
@@ -437,6 +437,7 @@
                                                                                 option.selected = existingValue === subcategory.Name;
                                                                                 subcategorySelect.appendChild(option);
                                                                             });
+
                                                                         };
 
                                                                         const fillCities = (provinceIdValue, preferredCityId) => {
@@ -460,6 +461,7 @@
                                                                                 option.selected = cityId === String(currentSelectedCity);
                                                                                 citySelect.appendChild(option);
                                                                             });
+
                                                                         };
 
                                                                         const autoSelectCategoryAndSubcategory = () => {

@@ -9,8 +9,7 @@ public class EstateSaleDetail
 
     public Guid ListingGUID { get; set; }
 
-    [StringLength(50)]
-    public string? Address { get; set; }
+    public decimal? AnnualManagementFee { get; set; }
 
     public int EstitateTypeId { get; set; }
 

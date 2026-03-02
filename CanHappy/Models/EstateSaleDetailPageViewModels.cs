@@ -45,8 +45,7 @@ public class EstateSaleDetailEditViewModel
     public string? ListingModel { get; set; }
     public int Quantity { get; set; }
 
-    [StringLength(50)]
-    public string? Address { get; set; }
+    public decimal? AnnualManagementFee { get; set; }
 
     public int EstitateTypeId { get; set; }
     public string? EstitateTypeName { get; set; }

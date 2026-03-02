@@ -190,14 +190,23 @@ body {
   }
 
   .top-nav-search-advanced .form-select {
-    width: 100px;
-    min-width: 100px;
+    width: 175px;
+    min-width: 175px;
+    max-width: 175px;
   }
 }
 
 .top-nav-search-advanced .form-select {
-  width: 110px;
-  min-width: 110px;
+  width: 175px;
+  min-width: 175px;
+  max-width: 175px;
+  padding-right: 2.25rem;
+  background-image:
+    linear-gradient(var(--bs-body-bg), var(--bs-body-bg)),
+    var(--bs-form-select-bg-img);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 0 center, right 0.7rem center;
+  background-size: 2.25rem 100%, 16px 12px;
 }
 
 .top-nav-search-box .form-control-sm,

@@ -77,6 +77,7 @@ public class CarVehicleDetailPageController(ApplicationDbContext context, IWebHo
                 PostalCode = listing.PostalCode,
                 Price = listing.Price,
                 DiscountPercent = listing.DiscountPercent,
+                DiscountBeginDate = listing.DiscountBeginDate,
                 DiscountEndDate = listing.DiscountEndDate,
                 Brand = listing.Brand,
                 Condition = listing.Condition,

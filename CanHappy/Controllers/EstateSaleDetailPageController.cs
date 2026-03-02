@@ -67,6 +67,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                 PostalCode = listing.PostalCode,
                 Price = listing.Price,
                 DiscountPercent = listing.DiscountPercent,
+                DiscountBeginDate = listing.DiscountBeginDate,
                 DiscountEndDate = listing.DiscountEndDate,
                 Brand = listing.Brand,
                 Condition = listing.Condition,
@@ -324,7 +325,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
     [HttpPost("Create")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ListingGUID,Address,EstitateTypeId,YearBuilt,SquareFeet,LandSizeSqFt,LandDimensionWxD,NumberOfStoreys,PriceNegotiableInd,AnuualPropertyTax,Bedrooms,Washrooms,Baths,ParkingSpots,ParkingType,FoundationType,HydroType,WaterType,SewerType,ExternalStructures,CoolingType,HeatingType,WaterFrontInd,SoldByOwnerInd,AppliancesIncluded,HasBasementInd,BasementFinishedInd,RentalEquipment,CommunityName,CloseToSchoolInd,CloseToDaycareInd,CloseToBusInd,CloseToShoppingCenterInd,FurnishedInd,HasFireplaceInd,AdditionalInfo")] EstateSaleDetailEditViewModel model)
+    public async Task<IActionResult> Create([Bind("ListingGUID,AnnualManagementFee,EstitateTypeId,YearBuilt,SquareFeet,LandSizeSqFt,LandDimensionWxD,NumberOfStoreys,PriceNegotiableInd,AnuualPropertyTax,Bedrooms,Washrooms,Baths,ParkingSpots,ParkingType,FoundationType,HydroType,WaterType,SewerType,ExternalStructures,CoolingType,HeatingType,WaterFrontInd,SoldByOwnerInd,AppliancesIncluded,HasBasementInd,BasementFinishedInd,RentalEquipment,CommunityName,CloseToSchoolInd,CloseToDaycareInd,CloseToBusInd,CloseToShoppingCenterInd,FurnishedInd,HasFireplaceInd,AdditionalInfo")] EstateSaleDetailEditViewModel model)
     {
         if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
         {
@@ -375,7 +376,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         {
             EstateSaleDetailGUID = Guid.NewGuid(),
             ListingGUID = model.ListingGUID,
-            Address = model.Address,
+            AnnualManagementFee = model.AnnualManagementFee,
             EstitateTypeId = model.EstitateTypeId,
             YearBuilt = model.YearBuilt,
             SquareFeet = model.SquareFeet,
@@ -459,7 +460,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
     [HttpPost("Edit/{id:guid}")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("EstateSaleDetailGUID,ListingGUID,Address,EstitateTypeId,YearBuilt,SquareFeet,LandSizeSqFt,LandDimensionWxD,NumberOfStoreys,PriceNegotiableInd,AnuualPropertyTax,Bedrooms,Washrooms,Baths,ParkingSpots,ParkingType,FoundationType,HydroType,WaterType,SewerType,ExternalStructures,CoolingType,HeatingType,WaterFrontInd,SoldByOwnerInd,AppliancesIncluded,HasBasementInd,BasementFinishedInd,RentalEquipment,CommunityName,CloseToSchoolInd,CloseToDaycareInd,CloseToBusInd,CloseToShoppingCenterInd,FurnishedInd,HasFireplaceInd,AdditionalInfo")] EstateSaleDetailEditViewModel model)
+    public async Task<IActionResult> Edit(Guid id, [Bind("EstateSaleDetailGUID,ListingGUID,AnnualManagementFee,EstitateTypeId,YearBuilt,SquareFeet,LandSizeSqFt,LandDimensionWxD,NumberOfStoreys,PriceNegotiableInd,AnuualPropertyTax,Bedrooms,Washrooms,Baths,ParkingSpots,ParkingType,FoundationType,HydroType,WaterType,SewerType,ExternalStructures,CoolingType,HeatingType,WaterFrontInd,SoldByOwnerInd,AppliancesIncluded,HasBasementInd,BasementFinishedInd,RentalEquipment,CommunityName,CloseToSchoolInd,CloseToDaycareInd,CloseToBusInd,CloseToShoppingCenterInd,FurnishedInd,HasFireplaceInd,AdditionalInfo")] EstateSaleDetailEditViewModel model)
     {
         if (model.EstateSaleDetailGUID != id)
         {
@@ -503,7 +504,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             await PopulateEstateTypeSelectListAsync(model.EstitateTypeId);
             var invalidModel = ToEditViewModel(entity, entity.Listing);
 
-            invalidModel.Address = model.Address;
+            invalidModel.AnnualManagementFee = model.AnnualManagementFee;
             invalidModel.EstitateTypeId = model.EstitateTypeId;
             invalidModel.YearBuilt = model.YearBuilt;
             invalidModel.SquareFeet = model.SquareFeet;
@@ -542,7 +543,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             return View("~/Views/EstateSaleDetail/Edit.cshtml", invalidModel);
         }
 
-        entity.Address = model.Address;
+        entity.AnnualManagementFee = model.AnnualManagementFee;
         entity.EstitateTypeId = model.EstitateTypeId;
         entity.YearBuilt = model.YearBuilt;
         entity.SquareFeet = model.SquareFeet;
@@ -1120,7 +1121,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             ManufactureYear = listing.ManufactureYear,
             ListingModel = listing.Model,
             Quantity = listing.Quantity,
-            Address = detail.Address,
+            AnnualManagementFee = detail.AnnualManagementFee,
             EstitateTypeId = detail.EstitateTypeId,
             EstitateTypeName = detail.EstateType?.Name,
             YearBuilt = detail.YearBuilt,

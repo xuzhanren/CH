@@ -181,7 +181,7 @@
                     <div class="col-md-4"><strong>Price:</strong> @Model.ListingCard.Price</div>
                     <div class="col-md-4"><strong>Quantity:</strong> @Model.ListingCard.Quantity</div>
                     <div class="col-md-4"><strong>Discount Percent:</strong> @Model.ListingCard.DiscountPercent</div>
-                    <div class="col-md-4"><strong>Sales Ending:</strong> @Model.ListingCard.DiscountEndDate</div>
+                    <div class="col-md-4"><strong>Sales Ending:</strong> @Model.ListingCard.DiscountEndDate?.ToString("yyyy-MM-dd")</div>
                     <div class="col-md-4"><strong>Category:</strong> @Model.ListingCard.CategoryName</div>
                     <div class="col-md-4"><strong>Subcategory:</strong> @Model.ListingCard.SubcategoryName</div>
                     <div class="col-md-4"><strong>Province:</strong> @Model.ListingCard.ProvinceName</div>
@@ -355,7 +355,7 @@
                             <div class="col-lg-3 col-md-4"><strong>Price Negotiable:</strong> @Model.FocusDetail.PriceNegotiableInd
                             </div>
                             <div class="col-lg-3 col-md-4"><strong>Preferred Start Date:</strong>
-                                @Model.FocusDetail.PreferredRentalStartDate</div>
+                                @Model.FocusDetail.PreferredRentalStartDate?.ToString("yyyy-MM-dd")</div>
                                 <div class="col-lg-3 col-md-4"><strong>Preferred Term:</strong> @Model.FocusDetail.PreferredRentalTerm</div>
                                 <div class="col-lg-3 col-md-4"><strong>Term Negotiable:</strong> @Model.FocusDetail.RentalTermNegotiableInd
                                 </div>

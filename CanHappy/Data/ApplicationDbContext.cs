@@ -1089,8 +1089,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.ToTable("EstateSaleDetail");
             entity.HasKey(e => e.EstateSaleDetailGUID);
 
-            entity.Property(e => e.Address)
-                .HasMaxLength(50);
+            entity.Property(e => e.AnnualManagementFee)
+                .HasPrecision(18, 2);
 
             entity.Property(e => e.LandDimensionWxD)
                 .HasMaxLength(50);

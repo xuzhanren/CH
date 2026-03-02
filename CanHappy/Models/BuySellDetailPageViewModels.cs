@@ -33,6 +33,7 @@ public class BuySellDetailListingCardViewModel
     public string? PostalCode { get; set; }
     public decimal? Price { get; set; }
     public decimal DiscountPercent { get; set; }
+    public DateTime? DiscountBeginDate { get; set; }
     public DateTime? DiscountEndDate { get; set; }
     public string? Brand { get; set; }
     public string Condition { get; set; } = "Used";
