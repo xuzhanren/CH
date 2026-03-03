@@ -9,11 +9,20 @@ using System.Security.Claims;
 namespace CanHappy.Controllers;
 
 [Route("BuySellDetail")]
-public class BuySellDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
+public class BuySellDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment, IConfiguration configuration) : Controller
 {
     [HttpGet("")]
     public async Task<IActionResult> Index(Guid? listingGuid)
     {
+        ViewData["BuySellSliderWaitSeconds"] = Math.Max(0, configuration.GetValue<int?>("BuySellSliderWaitSeconds") ?? 2);
+        ViewData["BuySellAdSlidingInterval"] = Math.Max(1, configuration.GetValue<int?>("BuySellAdSlidingInterval") ?? 5);
+        ViewData["BuySellAdSliderFadingMode"] = configuration.GetValue<string>("BuySellAdSliderFadingMode") ?? "homeAdFade";
+        ViewData["BuySellAdPixelResolveTransitionPeriodMiliSeconds"] = Math.Max(100, configuration.GetValue<int?>("buySellAdPixelResolveTransitionPeriodMiliSeconds") ?? 1000);
+        ViewData["BuySellAdFadeTransitionMilliSeconds"] = Math.Max(100, configuration.GetValue<int?>("buySellAdFadeTransitionMilliSeconds") ?? 450);
+        ViewData["BuySellSlideTransitionMilliSeconds"] = Math.Max(100, configuration.GetValue<int?>("buySellSlideTransitionMilliSeconds") ?? 650);
+        ViewData["BuySellAdSlideDistancePercent"] = Math.Clamp(configuration.GetValue<int?>("buySellAdSlideDistancePercent") ?? 8, 1, 30);
+        ViewData["BuySellAdTransitionEasing"] = configuration.GetValue<string>("buySellAdTransitionEasing") ?? "ease-in-out";
+
         var hasUserGuid = TryGetCurrentUserGuid(out var currentUserId);
         var canManageByRole = User.IsInRole("Admin") || User.IsInRole("Clerk");
 
@@ -186,6 +195,65 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         }
 
         return View("~/Views/BuySellDetail/Index.cshtml", model);
+    }
+
+    [HttpGet("DetailPageSliderAds/{listingGuid:guid}")]
+    public async Task<IActionResult> DetailPageSliderAds(Guid listingGuid)
+    {
+        var listing = await context.Listings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+
+        if (listing is null)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var today = CanHappy.Common.EasternTime.Now.Date;
+        var candidateAds = await context.Ads
+            .AsNoTracking()
+            .Include(item => item.AdSizeOption)
+            .Where(item => !item.DeletedInd
+                && item.ActiveInd
+                && item.AdStatusId == 3
+                && item.PublishDate < today
+                && (!item.ExpiryDate.HasValue || item.ExpiryDate.Value > today)
+                && item.AdSizeOption != null
+                && item.AdSizeOption.Name == "1200x300DetailPageSlider2Ads"
+                && !string.IsNullOrWhiteSpace(item.ImageURL)
+                && !string.IsNullOrWhiteSpace(item.TargetURL)
+                && (!item.ProvinceId.HasValue || item.ProvinceId.Value == listing.ProvinceId)
+                && (!item.CityId.HasValue || item.CityId.Value == listing.CityId)
+                && (!item.CategoryId.HasValue || item.CategoryId.Value == listing.CategoryId)
+                && (!item.SubcategoryId.HasValue || item.SubcategoryId.Value == listing.SubcategoryId))
+            .ToListAsync();
+
+        if (candidateAds.Count == 0)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var scoredAds = candidateAds
+            .Select(item => new
+            {
+                Ad = item,
+                Score = ComputeDetailPageAdScore(listing, item)
+            })
+            .OrderByDescending(item => item.Score)
+            .Take(24)
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(8)
+            .Select(item => new
+            {
+                adGuid = item.Ad.AdGUID,
+                subject = item.Ad.Subject,
+                imageURL = item.Ad.ImageURL,
+                targetURL = item.Ad.TargetURL,
+                score = item.Score
+            })
+            .ToList();
+
+        return Json(scoredAds);
     }
 
     [HttpGet("Create")]
@@ -665,6 +733,86 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
         return relativePath;
+    }
+
+    private static int ComputeDetailPageAdScore(Listing listing, Ad ad)
+    {
+        var listingWords = BuildWordSet(listing.Subject, listing.KeyWords, listing.Description);
+        var adWords = BuildWordSet(ad.Subject, ad.KeyWords, ad.Description);
+
+        var score = 0;
+        if (listingWords.Count > 0 && adWords.Count > 0)
+        {
+            score += listingWords.Intersect(adWords, StringComparer.OrdinalIgnoreCase).Count() * 10;
+        }
+
+        score += ComputePairTextScore(listing.Subject, ad.Subject, exactWeight: 4, partialWeight: 2);
+        score += ComputePairTextScore(listing.KeyWords, ad.KeyWords, exactWeight: 5, partialWeight: 2);
+        score += ComputePairTextScore(listing.Description, ad.Description, exactWeight: 3, partialWeight: 1);
+
+        return score;
+    }
+
+    private static int ComputePairTextScore(string? leftText, string? rightText, int exactWeight, int partialWeight)
+    {
+        if (string.IsNullOrWhiteSpace(leftText) || string.IsNullOrWhiteSpace(rightText))
+        {
+            return 0;
+        }
+
+        var leftWords = BuildWordSet(leftText);
+        var rightWords = BuildWordSet(rightText);
+        if (leftWords.Count == 0 || rightWords.Count == 0)
+        {
+            return 0;
+        }
+
+        var score = 0;
+        foreach (var leftWord in leftWords)
+        {
+            if (rightWords.Contains(leftWord))
+            {
+                score += exactWeight;
+                continue;
+            }
+
+            if (leftWord.Length < 3)
+            {
+                continue;
+            }
+
+            if (rightWords.Any(rightWord => rightWord.Contains(leftWord, StringComparison.OrdinalIgnoreCase)
+                || leftWord.Contains(rightWord, StringComparison.OrdinalIgnoreCase)))
+            {
+                score += partialWeight;
+            }
+        }
+
+        return score;
+    }
+
+    private static HashSet<string> BuildWordSet(params string?[] values)
+    {
+        var words = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var value in values)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            foreach (var token in value.Split([' ', ',', ';', '|', '/', '\\', '\t', '\r', '\n', '-', '_'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (token == "&")
+                {
+                    continue;
+                }
+
+                words.Add(token);
+            }
+        }
+
+        return words;
     }
 }
 

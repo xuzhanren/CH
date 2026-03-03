@@ -15,7 +15,7 @@ public class Ad
 
     public int? ProvinceId { get; set; }
 
-    public int CityId { get; set; }
+    public int? CityId { get; set; }
 
     [StringLength(15)]
     public string? PostalCode { get; set; }

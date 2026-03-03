@@ -4,6 +4,7 @@ obj/
 **/obj/
 out/
 **/out/
+wwwroot/images/ads
 wwwroot/ListImages
 wwwroot/ListingImages
 wwwroot/SampleImages

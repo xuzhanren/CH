@@ -762,7 +762,7 @@ public class ListingPageController(
             ad.Province?.Name,
             ad.City?.Name,
             ad.ProvinceId?.ToString(CultureInfo.InvariantCulture),
-            ad.CityId.ToString(CultureInfo.InvariantCulture));
+            ad.CityId?.ToString(CultureInfo.InvariantCulture));
 
         var matchedKeywords = preferredListingWords
             .Intersect(adWords, StringComparer.OrdinalIgnoreCase)
