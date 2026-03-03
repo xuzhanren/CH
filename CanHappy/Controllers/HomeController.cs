@@ -12,7 +12,12 @@ public class HomeController(ApplicationDbContext context, IConfiguration configu
     {
         ViewData["HomePageSliderAdWaitSeconds"] = Math.Max(0, configuration.GetValue<int?>("HomePageSliderAdWaitSeconds") ?? 2);
         ViewData["AdSlidingInterval"] = Math.Max(1, configuration.GetValue<int?>("AdSlidingInterval") ?? 5);
-        ViewData["AdSliderFadingMode"] = configuration.GetValue<string>("AdSliderFadingMode") ?? "fade";
+        ViewData["AdSliderFadingMode"] = configuration.GetValue<string>("AdSliderFadingMode") ?? "homeAdFade";
+        ViewData["HomeAdPixelResolveTransitionPeriodMiliSeconds"] = Math.Max(100, configuration.GetValue<int?>("homeAdPixelResolveTransitionPeriodMiliSeconds") ?? 1000);
+        ViewData["HomeAdFadeTransitionMilliSeconds"] = Math.Max(100, configuration.GetValue<int?>("homeAdFadeTransitionMilliSeconds") ?? 450);
+        ViewData["SlideTransitionMilliSeconds"] = Math.Max(100, configuration.GetValue<int?>("slideTransitionMilliSeconds") ?? 650);
+        ViewData["HomeAdSlideDistancePercent"] = Math.Clamp(configuration.GetValue<int?>("homeAdSlideDistancePercent") ?? 8, 1, 30);
+        ViewData["HomeAdTransitionEasing"] = configuration.GetValue<string>("homeAdTransitionEasing") ?? "ease-in-out";
         return View();
     }
 

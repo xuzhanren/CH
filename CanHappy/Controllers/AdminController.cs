@@ -312,8 +312,11 @@ public class AdminController(
     public async Task<IActionResult> CreateAd(
         [Bind("CategoryId,SubcategoryId,ProvinceId,CityId,PostalCode,Subject,Description,KeyWords,TargetURL,ImageURL,Price,CurrencyCode,AdStatusId,AdSizeId,IsFeatured,PublishDate,ExpiryDate,PaidInd,ActiveInd,ContactName,ContactEmail,ContactPhone,DeletedInd,SampleInd")]
         Ad model,
-        string? croppedImageData)
+        string? croppedImageData,
+        string? clearedImageUrl)
     {
+        TryDeleteWebRootFile(clearedImageUrl);
+
         if (!ModelState.IsValid)
         {
             await PopulateAdLookupSelectListsAsync(model.CategoryId, model.SubcategoryId, model.ProvinceId, model.CityId);
@@ -385,7 +388,8 @@ public class AdminController(
         Guid id,
         [Bind("AdGUID,CategoryId,SubcategoryId,ProvinceId,CityId,PostalCode,Subject,Description,KeyWords,TargetURL,ImageURL,Price,CurrencyCode,AdStatusId,AdSizeId,IsFeatured,PublishDate,ExpiryDate,PaidInd,ActiveInd,ContactName,ContactEmail,ContactPhone,DeletedInd,SampleInd")]
         Ad model,
-        string? croppedImageData)
+        string? croppedImageData,
+        string? clearedImageUrl)
     {
         var ad = await context.Ads.FirstOrDefaultAsync(item => item.AdGUID == id && !item.DeletedInd);
         if (ad is null)
@@ -400,12 +404,16 @@ public class AdminController(
             return Forbid();
         }
 
+        TryDeleteWebRootFile(clearedImageUrl);
+
         if (!ModelState.IsValid)
         {
             await PopulateAdLookupSelectListsAsync(model.CategoryId, model.SubcategoryId, model.ProvinceId, model.CityId, model.AdStatusId, model.AdSizeId);
             model.AdGUID = id;
             return View(model);
         }
+
+        var originalImageUrl = ad.ImageURL;
 
         if (!string.IsNullOrWhiteSpace(croppedImageData))
         {
@@ -459,6 +467,12 @@ public class AdminController(
         ad.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
         await context.SaveChangesAsync();
+
+        if (!string.Equals(originalImageUrl, ad.ImageURL, StringComparison.OrdinalIgnoreCase))
+        {
+            TryDeleteWebRootFile(originalImageUrl);
+        }
+
         return RedirectToAction(nameof(Ads));
     }
 
@@ -1195,5 +1209,54 @@ public class AdminController(
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
         return relativePath;
+    }
+
+    private void TryDeleteWebRootFile(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl)
+            || imageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
+        {
+            return;
+        }
+
+        var trimmedPath = imageUrl;
+        var queryOrFragmentIndex = trimmedPath.IndexOfAny(['?', '#']);
+        if (queryOrFragmentIndex >= 0)
+        {
+            trimmedPath = trimmedPath[..queryOrFragmentIndex];
+        }
+
+        var relativePath = trimmedPath
+            .Replace('/', Path.DirectorySeparatorChar)
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .TrimStart(Path.DirectorySeparatorChar);
+
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return;
+        }
+
+        try
+        {
+            var webRootPath = Path.GetFullPath(environment.WebRootPath);
+            var fullPath = Path.GetFullPath(Path.Combine(webRootPath, relativePath));
+            if (!fullPath.StartsWith(webRootPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
+        }
+        catch
+        {
+        }
     }
 }

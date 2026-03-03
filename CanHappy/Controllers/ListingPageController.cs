@@ -408,8 +408,10 @@ public class ListingPageController(
 
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData)
+    public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? clearedThumbnailUrl)
     {
+        TryDeleteWebRootFile(clearedThumbnailUrl);
+
         if (!ModelState.IsValid)
         {
             PopulateSelectLists(listing.CategoryId, listing.SubcategoryId, listing.ProvinceId, listing.CityId);
@@ -465,12 +467,14 @@ public class ListingPageController(
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? categoryName, string? subcategoryName)
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? clearedThumbnailUrl, string? categoryName, string? subcategoryName)
     {
         if (id != listing.ListingGUID)
         {
             return NotFound();
         }
+
+        TryDeleteWebRootFile(clearedThumbnailUrl);
 
         if (!ModelState.IsValid)
         {
@@ -485,6 +489,8 @@ public class ListingPageController(
         {
             return NotFound();
         }
+
+        var originalThumbnailUrl = existingListing.ThumbnailURL;
 
         if (!string.IsNullOrWhiteSpace(croppedThumbnailData))
         {
@@ -516,6 +522,11 @@ public class ListingPageController(
             existingListing.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
             await context.SaveChangesAsync();
+
+            if (!string.Equals(originalThumbnailUrl, existingListing.ThumbnailURL, StringComparison.OrdinalIgnoreCase))
+            {
+                TryDeleteWebRootFile(originalThumbnailUrl);
+            }
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -987,6 +998,55 @@ public class ListingPageController(
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
         return relativePath;
+    }
+
+    private void TryDeleteWebRootFile(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl)
+            || imageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
+        {
+            return;
+        }
+
+        var trimmedPath = imageUrl;
+        var queryOrFragmentIndex = trimmedPath.IndexOfAny(['?', '#']);
+        if (queryOrFragmentIndex >= 0)
+        {
+            trimmedPath = trimmedPath[..queryOrFragmentIndex];
+        }
+
+        var relativePath = trimmedPath
+            .Replace('/', Path.DirectorySeparatorChar)
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .TrimStart(Path.DirectorySeparatorChar);
+
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return;
+        }
+
+        try
+        {
+            var webRootPath = Path.GetFullPath(environment.WebRootPath);
+            var fullPath = Path.GetFullPath(Path.Combine(webRootPath, relativePath));
+            if (!fullPath.StartsWith(webRootPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
+        }
+        catch
+        {
+        }
     }
 }
 

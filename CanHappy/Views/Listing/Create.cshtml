@@ -171,6 +171,7 @@
                     <input type="hidden" asp-for="ModifiedDate" />
                     <input type="hidden" asp-for="ThumbnailURL" />
                     <input type="hidden" id="CroppedThumbnailData" name="croppedThumbnailData" />
+                    <input type="hidden" id="ClearedThumbnailUrl" name="clearedThumbnailUrl" />
 
                     <div class="d-flex gap-2">
                         <input type="submit" value="Create" class="btn btn-primary" />
@@ -339,6 +340,7 @@
                                         const thumbnailPreview = document.getElementById("thumbnailPreview");
                                         const thumbnailUrlInput = document.getElementById("ThumbnailURL");
                                         const croppedThumbnailDataInput = document.getElementById("CroppedThumbnailData");
+                                        const clearedThumbnailUrlInput = document.getElementById("ClearedThumbnailUrl");
 
                                         const cropModalElement = document.getElementById("thumbnailCropModal");
                                         const cropperImage = document.getElementById("cropperImage");
@@ -851,6 +853,9 @@
                                         });
 
                                         clearThumbnailButton.addEventListener("click", () => {
+                                        if (clearedThumbnailUrlInput) {
+                                        clearedThumbnailUrlInput.value = thumbnailUrlInput.value || thumbnailPreview.getAttribute("src") || "";
+                                        }
                                         thumbnailFileInput.value = "";
                                         sourceImageDataUrl = "";
                                         workingImageDataUrl = "";

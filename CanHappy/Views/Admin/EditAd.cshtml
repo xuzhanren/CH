@@ -248,6 +248,7 @@
 
         <input type="hidden" asp-for="ImageURL" />
         <input type="hidden" id="CroppedAdImageData" name="croppedImageData" />
+        <input type="hidden" id="ClearedImageUrl" name="clearedImageUrl" />
 
         <button type="submit" class="btn btn-primary">Save</button>
         <a asp-action="Ads" class="btn btn-secondary">Cancel</a>
@@ -414,6 +415,7 @@
                 const adImagePreview = document.getElementById("adImagePreview");
                 const imageUrlInput = document.getElementById("ImageURL");
                 const croppedAdImageDataInput = document.getElementById("CroppedAdImageData");
+                const clearedImageUrlInput = document.getElementById("ClearedImageUrl");
 
                 const cropModalElement = document.getElementById("adImageCropModal");
                 const cropperImage = document.getElementById("cropperImage");
@@ -773,6 +775,9 @@
                 });
 
                 clearAdImageButton.addEventListener("click", () => {
+                if (clearedImageUrlInput) {
+                clearedImageUrlInput.value = imageUrlInput.value || adImagePreview.getAttribute("src") || "";
+                }
                 adImageFileInput.value = "";
                 sourceImageDataUrl = "";
                 workingImageDataUrl = "";
