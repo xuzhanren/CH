@@ -424,7 +424,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasDefaultValue(1);
 
             entity.Property(e => e.Price)
-                .HasPrecision(18, 2);
+                .HasColumnType("money");
 
             entity.Property(e => e.DiscountPercent)
                 .HasPrecision(5, 2)

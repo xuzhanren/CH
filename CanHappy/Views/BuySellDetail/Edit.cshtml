@@ -30,7 +30,7 @@
                 <div class="col-md-3"><strong>Subcategory:</strong> @Model.SubcategoryId</div>
                 <div class="col-md-3"><strong>Province:</strong> @Model.ProvinceId</div>
                 <div class="col-md-3"><strong>City:</strong> @Model.CityId</div>
-                <div class="col-md-3"><strong>Price:</strong> @Model.Price</div>
+                <div class="col-md-3"><strong>Price:</strong> @(Model.Price.HasValue ? Model.Price.Value.ToString("C2") : "-")</div>
                 <div class="col-md-3"><strong>Brand:</strong> @Model.Brand</div>
                 <div class="col-md-3"><strong>Condition:</strong> @Model.Condition</div>
                 <div class="col-md-3"><strong>Manufacture Year:</strong> @Model.ManufactureYear</div>

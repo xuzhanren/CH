@@ -265,12 +265,12 @@ else
                                 @if (isSaleActive && discountedPrice.HasValue)
                                 {
                                     <span class="text-danger fw-bold ms-2">Sale</span>
-                                    <span class="text-danger fw-bold ms-1">@discountedPrice.Value.ToString("F2")</span>
+                                    <span class="text-danger fw-bold ms-1">@discountedPrice.Value.ToString("C2")</span>
                                 }
                             </div>
                             <div class="col-md-6"><strong>Description:</strong> @item.Description</div>
                             <div class="col-md-6"><strong>KeyWords:</strong> @item.KeyWords</div>
-                            <div class="col-md-6"><strong>Price:</strong> @item.Price</div>
+                            <div class="col-md-6"><strong>Price:</strong> @(item.Price.HasValue ? item.Price.Value.ToString("C2") : "-")</div>
                             <div class="col-md-6"><strong>Quantity:</strong> @item.Quantity</div>
                             <div class="col-md-6"><strong>Discount Percent:</strong> @item.DiscountPercent</div>
                             <div class="col-md-6"><strong>Sales Begin:</strong> @item.DiscountBeginDate</div>

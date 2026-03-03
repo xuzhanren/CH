@@ -443,12 +443,6 @@
                 let lastPoint = null;
                 let editHistory = [];
                 let redoHistory = [];
-                const MAX_FULL_IMAGE_BYTES = 3 * 1024 * 1024;
-
-                const estimateDataUrlSize = (dataUrl) => {
-                const payload = (dataUrl || "").split(",")[1] || "";
-                return Math.ceil((payload.length * 3) / 4);
-                };
 
                 const getAspectRatio = (value) => {
                 if (value === "custom") {
@@ -467,25 +461,6 @@
                 }
 
                 return width / height;
-                };
-
-                const getCanvasSize = (aspectRatio) => {
-                if (Math.abs(aspectRatio - (16 / 9)) < 0.001) {
-                return { width: 1280, height: 720 };
-                }
-
-                const base = 800;
-                if (aspectRatio >= 1) {
-                return {
-                width: base,
-                height: Math.round(base / aspectRatio)
-                };
-                }
-
-                return {
-                width: Math.round(base * aspectRatio),
-                height: base
-                };
                 };
 
                 const createCropper = () => {
@@ -553,44 +528,6 @@
                 }
                 };
                 image.src = imageDataUrl;
-                };
-
-                const buildCroppedImageDataUrl = (sourceCanvas, maxBytes = MAX_FULL_IMAGE_BYTES) => {
-                let width = sourceCanvas.width;
-                let height = sourceCanvas.height;
-                let quality = 0.9;
-
-                const workCanvas = document.createElement("canvas");
-                const workContext = workCanvas.getContext("2d");
-                if (!workContext || !width || !height) {
-                return sourceCanvas.toDataURL("image/jpeg", quality);
-                }
-
-                const render = () => {
-                workCanvas.width = width;
-                workCanvas.height = height;
-                workContext.clearRect(0, 0, width, height);
-                workContext.drawImage(sourceCanvas, 0, 0, width, height);
-                };
-
-                render();
-                let dataUrl = workCanvas.toDataURL("image/jpeg", quality);
-                let guard = 0;
-
-                while (estimateDataUrlSize(dataUrl) > maxBytes && guard < 24) {
-                guard += 1;
-                if (quality > 0.45) {
-                quality -= 0.07;
-                } else {
-                width = Math.max(640, Math.round(width * 0.9));
-                height = Math.max(640, Math.round(height * 0.9));
-                }
-
-                render();
-                dataUrl = workCanvas.toDataURL("image/jpeg", quality);
-                }
-
-                return dataUrl;
                 };
 
                 const pushCanvasHistory = () => {
@@ -822,18 +759,12 @@
                 return;
                 }
 
-                const canvas = Number.isFinite(currentAspectRatio)
-                ? (() => {
-                const canvasSize = getCanvasSize(currentAspectRatio);
-                return cropper.getCroppedCanvas({
-                width: canvasSize.width,
-                height: canvasSize.height,
+                const canvas = cropper.getCroppedCanvas({
+                imageSmoothingEnabled: true,
                 imageSmoothingQuality: "high"
                 });
-                })()
-                : cropper.getCroppedCanvas({ imageSmoothingQuality: "high" });
 
-                const croppedDataUrl = buildCroppedImageDataUrl(canvas);
+                const croppedDataUrl = canvas.toDataURL("image/png");
                 croppedAdImageDataInput.value = croppedDataUrl;
                 imageUrlInput.value = "";
                 adImagePreview.src = croppedDataUrl;

@@ -1,9 +1,12 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    var homePageSliderAdWaitSeconds = ViewData["HomePageSliderAdWaitSeconds"] as int? ?? 2;
+    var adSlidingInterval = ViewData["AdSlidingInterval"] as int? ?? 5;
+    var adSliderFadingMode = ViewData["AdSliderFadingMode"]?.ToString() ?? "fade";
 }
 
 <div class="py-4">
-    <div id="HomePageTopWelcomeDiv"  style="background: url('/images/BlueSkyClouds_1500x350.png') no-repeat center top; background-size: cover;"
+    <div id="HomePageTopWelcomeDiv"  
          class="p-4 p-md-5 mb-4 rounded-3 border">
         <div class="container-fluid p-2">
             <h1 class="display-6 fw-bold">Welcome to CanHappy</h1>
@@ -12,4 +15,156 @@
                 <p class="col-md-10 fs-6 mb-0">Wish you Happy living In Canada!</p>
             </div>
         </div>
+
+    <div id="homePageSliderWrapper" class="home-page-slider-wrapper d-none" aria-label="Home page promotions">
+        <a id="homePageSliderLink" href="#" target="_blank" rel="noopener noreferrer" class="home-page-slider-link">
+            <img id="homePageSliderImage" class="home-page-slider-image" src="" alt="Home page ad" />
+        </a>
     </div>
+    </div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const waitSeconds = @homePageSliderAdWaitSeconds;
+            const slidingIntervalSeconds = @adSlidingInterval;
+            const fadingMode = "@adSliderFadingMode".trim().toLowerCase();
+            const sliderWrapper = document.getElementById("homePageSliderWrapper");
+            const sliderLink = document.getElementById("homePageSliderLink");
+            const sliderImage = document.getElementById("homePageSliderImage");
+            const provinceSelect = document.getElementById("topNavProvinceSelect");
+            const citySelect = document.getElementById("topNavCitySelect");
+
+            if (!sliderWrapper || !sliderLink || !sliderImage) {
+                return;
+            }
+
+            let adItems = [];
+            let activeIndex = 0;
+
+            const clearFadingClasses = () => {
+                sliderImage.classList.remove("home-page-slider-fade-out", "home-page-slider-fade-in", "home-page-slider-pixel-out", "home-page-slider-pixel-in");
+            };
+
+            const showAdAt = (index) => {
+                if (!Array.isArray(adItems) || adItems.length === 0) {
+                    return;
+                }
+
+                const normalizedIndex = ((index % adItems.length) + adItems.length) % adItems.length;
+                const ad = adItems[normalizedIndex];
+                if (!ad) {
+                    return;
+                }
+
+                clearFadingClasses();
+                sliderImage.classList.add(fadingMode === "pixelresolve" ? "home-page-slider-pixel-out" : "home-page-slider-fade-out");
+
+                window.setTimeout(() => {
+                    sliderLink.href = ad.targetURL || "#";
+                    sliderImage.src = ad.imageURL || "";
+                    sliderImage.alt = ad.subject || "Home page ad";
+                    clearFadingClasses();
+                    sliderImage.classList.add(fadingMode === "pixelresolve" ? "home-page-slider-pixel-in" : "home-page-slider-fade-in");
+                    window.setTimeout(() => clearFadingClasses(), 560);
+                }, 240);
+            };
+
+            const startSlider = () => {
+                if (adItems.length === 0) {
+                    return;
+                }
+
+                showAdAt(activeIndex);
+                sliderWrapper.classList.remove("d-none");
+
+                if (adItems.length > 1) {
+                    window.setInterval(() => {
+                        activeIndex = (activeIndex + 1) % adItems.length;
+                        showAdAt(activeIndex);
+                    }, Math.max(1, slidingIntervalSeconds) * 1000);
+                }
+            };
+
+            const loadHomeSliderAdsAsync = async () => {
+                const provinceValue = provinceSelect ? String(provinceSelect.value || "") : "";
+                const cityValue = citySelect ? String(citySelect.value || "") : "";
+
+                const requestUrl = new URL("@Url.Action("HomePageSliderAds", "Home")", window.location.origin);
+                if (provinceValue && cityValue) {
+                    requestUrl.searchParams.set("provinceId", provinceValue);
+                    requestUrl.searchParams.set("cityId", cityValue);
+                }
+
+                try {
+                    const response = await fetch(requestUrl.toString(), { method: "GET" });
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const payload = await response.json();
+                    if (!Array.isArray(payload) || payload.length === 0) {
+                        return;
+                    }
+
+                    adItems = payload.filter((item) => item && item.imageURL && item.targetURL).slice(0, 3);
+                    if (adItems.length === 0) {
+                        return;
+                    }
+
+                    startSlider();
+                } catch {
+                }
+            };
+
+            window.addEventListener("load", () => {
+                window.setTimeout(() => {
+                    loadHomeSliderAdsAsync();
+                }, Math.max(0, waitSeconds) * 1000);
+            });
+        })();
+    </script>
+}
+
+<style>
+    .home-page-slider-wrapper {
+        width: 100%;
+        margin-top: 0.75rem;
+        overflow: hidden;
+        background-color: var(--bs-body-bg);
+    }
+
+    .home-page-slider-link {
+        display: block;
+        width: 100%;
+    }
+
+    .home-page-slider-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        object-fit: cover;
+        transition: opacity 0.45s ease-in-out;
+        opacity: 1;
+    }
+
+    .home-page-slider-fade-out {
+        opacity: 0;
+    }
+
+    .home-page-slider-fade-in {
+        opacity: 1;
+    }
+
+    .home-page-slider-pixel-out {
+        opacity: 0;
+        filter: blur(7px) saturate(0.8);
+        transform: scale(1.02);
+    }
+
+    .home-page-slider-pixel-in {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+    }
+</style>

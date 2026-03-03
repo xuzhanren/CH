@@ -178,7 +178,7 @@
                 <div class="row g-2">
                     <div class="col-md-6"><strong>Subject:</strong> @Model.ListingCard.Subject</div>
                     <div class="col-md-6"><strong>Description:</strong>@Model.ListingCard.Description</div>
-                    <div class="col-md-4"><strong>Price:</strong> @Model.ListingCard.Price</div>
+                    <div class="col-md-4"><strong>Price:</strong> @(Model.ListingCard.Price.HasValue ? Model.ListingCard.Price.Value.ToString("C2") : "-")</div>
                     <div class="col-md-4"><strong>Quantity:</strong> @Model.ListingCard.Quantity</div>
                     <div class="col-md-4"><strong>Discount Percent:</strong> @Model.ListingCard.DiscountPercent</div>
                     <div class="col-md-4"><strong>Sales Ending:</strong> @Model.ListingCard.DiscountEndDate</div>
@@ -685,7 +685,7 @@ else
                                     <td>@item.SubcategoryId</td>
                                     <td>@item.ProvinceId</td>
                                     <td>@item.CityId</td>
-                                    <td>@item.Price</td>
+                                    <td>@(item.Price.HasValue ? item.Price.Value.ToString("C2") : "-")</td>
                                     <td>@item.Brand</td>
                                     <td>@item.Condition</td>
                                     <td>@item.ManufactureYear</td>

@@ -30,7 +30,7 @@
         <dd class="col-sm-9">@Model.CityId</dd>
 
         <dt class="col-sm-3">Price</dt>
-        <dd class="col-sm-9">@Model.Price</dd>
+        <dd class="col-sm-9">@(Model.Price.HasValue ? Model.Price.Value.ToString("C2") : "-")</dd>
 
         <dt class="col-sm-3">Brand</dt>
         <dd class="col-sm-9">@Model.Brand</dd>

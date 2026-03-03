@@ -352,10 +352,10 @@
 
                                                                         const selectedSubcategoryName = subcategorySelect.dataset.selectedValue || "";
                                                                         const selectedCityId = citySelect.dataset.selectedValue || "";
-                                                                        const locationInitializedKey = "canhappy.topNav.locationInitialized";
                                                                         const storedProvinceKey = "canhappy.topNav.provinceId";
                                                                         const storedCityKey = "canhappy.topNav.cityId";
                                                                         const storedKeywordsKey = "canhappy.topNav.keywords";
+                                                                        const hasExplicitLocationSelection = @Html.Raw((selectedProvinceId.HasValue || selectedCityId.HasValue) ? "true" : "false");
                                                                         const currentPath = window.location.pathname.toLowerCase();
                                                                         const isHomePage = currentPath === "/" || currentPath === "/home" || currentPath === "/home/index";
                                                                         const isListingIndexPage = currentPath === "/listing" || currentPath === "/listing/index";
@@ -541,13 +541,13 @@
                                                                             return true;
                                                                         };
 
-                                                                        const autoSelectProvinceAndCityFromBrowserLocation = async () => {
-                                                                            if (provinceSelect.value || citySelect.value) {
-                                                                                return;
+                                                                        const autoSelectProvinceAndCityFromBrowserLocation = async (forceOverride = false) => {
+                                                                            if (!forceOverride && (provinceSelect.value || citySelect.value)) {
+                                                                                return false;
                                                                             }
 
                                                                             if (!navigator.geolocation) {
-                                                                                return;
+                                                                                return false;
                                                                             }
 
                                                                             showGeoStatus();
@@ -585,17 +585,20 @@
 
                                                                                 if (applyProvinceAndCitySelection(regionName, "", cityName)) {
                                                                                     persistProvinceAndCityChoice();
+                                                                                    return true;
                                                                                 }
                                                                             } catch {
                                                                             } finally {
                                                                                 hideGeoStatus();
                                                                             }
+
+                                                                            return false;
                                                                         };
 
-                                                                        const autoSelectProvinceAndCityFromIp = async () => {
-                                                                            if (provinceSelect.value || citySelect.value) {
+                                                                        const autoSelectProvinceAndCityFromIp = async (forceOverride = false) => {
+                                                                            if (!forceOverride && (provinceSelect.value || citySelect.value)) {
                                                                                 hideGeoStatus();
-                                                                                return;
+                                                                                return false;
                                                                             }
 
                                                                             showGeoStatus();
@@ -608,17 +611,15 @@
                                                                                     const cityName = normalize(ipData.city);
                                                                                     if (applyProvinceAndCitySelection(regionName, regionCode, cityName)) {
                                                                                         persistProvinceAndCityChoice();
+                                                                                        return true;
                                                                                     }
                                                                                 }
                                                                             } catch {
                                                                             } finally {
                                                                                 hideGeoStatus();
                                                                             }
-                                                                        };
 
-                                                                        const shouldRunInitialLocationDetection = () => {
-                                                                            const hasInitialized = localStorage.getItem(locationInitializedKey) === "1";
-                                                                            return isHomePage && !hasInitialized;
+                                                                            return false;
                                                                         };
 
                                                                         const syncListingIndexWithTopSearchProvinceAndCity = () => {
@@ -699,11 +700,11 @@
                                                                             autoSelectCategoryAndSubcategory();
                                                                         }
 
-                                                                        if (shouldRunInitialLocationDetection()) {
-                                                                            autoSelectProvinceAndCityFromBrowserLocation().finally(() => {
-                                                                                autoSelectProvinceAndCityFromIp().finally(() => {
-                                                                                    localStorage.setItem(locationInitializedKey, "1");
-                                                                                });
+                                                                        if (isHomePage && !hasExplicitLocationSelection) {
+                                                                            autoSelectProvinceAndCityFromBrowserLocation(true).then((appliedFromBrowser) => {
+                                                                                if (!appliedFromBrowser) {
+                                                                                    autoSelectProvinceAndCityFromIp(true);
+                                                                                }
                                                                             });
                                                                         }
 
