@@ -344,6 +344,7 @@ public class ListingPageController(
             var isCarVehicleCategory = string.Equals(listing.CategoryName, "Car & Vehicle", StringComparison.OrdinalIgnoreCase);
             var isHomeRentalCategory = string.Equals(listing.CategoryName, "Home Rental", StringComparison.OrdinalIgnoreCase);
             var isEstateSaleCategory = string.Equals(listing.CategoryName, "Estate Sale", StringComparison.OrdinalIgnoreCase);
+            var isCarPoolCategory = string.Equals(listing.CategoryName, "Car Pool", StringComparison.OrdinalIgnoreCase);
 
             var detailUrl = isBuySellCategory
                 ? Url.Action("Index", "BuySellDetailPage", new { listingGuid = listing.ListingGUID })
@@ -353,7 +354,9 @@ public class ListingPageController(
                         ? Url.Action("Index", "HomeRentalDetailPage", new { listingGuid = listing.ListingGUID })
                         : isEstateSaleCategory
                             ? Url.Action("Index", "EstateSaleDetailPage", new { listingGuid = listing.ListingGUID })
-                            : Url.Action("Details", "ListingPage", new { id = listing.ListingGUID });
+                            : isCarPoolCategory
+                                ? Url.Action("Index", "CarPoolDetailPage", new { listingGuid = listing.ListingGUID })
+                                : Url.Action("Details", "ListingPage", new { id = listing.ListingGUID });
 
             return new ListingMapMarkerViewModel
             {

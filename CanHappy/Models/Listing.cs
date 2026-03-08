@@ -102,6 +102,8 @@ public class Listing
 
     public EstateSaleDetail? EstateSaleDetail { get; set; }
 
+    public CarPoolDetail? CarPoolDetail { get; set; }
+
     public List<ListingImage> ListingImages { get; set; } = [];
 
     public List<ListingVideo> ListingVideos { get; set; } = [];

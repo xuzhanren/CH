@@ -1,0 +1,43 @@
+@model CanHappy.Models.RideRequest
+
+@{
+    ViewData["Title"] = "Edit Ride Request";
+}
+
+<h1 class="mb-3">Edit Ride Request</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.RideRequestGUID" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="RideRequestGUID" />
+    <input type="hidden" asp-for="RiderUserID" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="col-12">
+        <label asp-for="CarPoolDetailGUID" class="form-label">Car Pool Detail</label>
+        <select asp-for="CarPoolDetailGUID" class="form-select" asp-items="ViewBag.CarPoolDetailGUID"></select>
+        <span asp-validation-for="CarPoolDetailGUID" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="RideRequestStatusId" class="form-label">Status</label>
+        <select asp-for="RideRequestStatusId" class="form-select" asp-items="ViewBag.RideRequestStatusId"></select>
+        <span asp-validation-for="RideRequestStatusId" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="RequestMessage" class="form-label"></label>
+        <textarea asp-for="RequestMessage" class="form-control" rows="4" maxlength="200"></textarea>
+        <span asp-validation-for="RequestMessage" class="text-danger"></span>
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

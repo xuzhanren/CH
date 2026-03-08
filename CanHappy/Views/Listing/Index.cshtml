@@ -32,16 +32,15 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0 d-flex flex-wrap align-items-center gap-2">
         Listings
-          <a asp-action="Map"
-              asp-route-categoryName="@currentCategoryName"
-              asp-route-subcategoryName="@currentSubcategoryName"
-                            asp-route-keywords="@currentKeywords"
-                            asp-route-provinceId="@currentProvinceId"
-                            asp-route-cityId="@currentCityId"
-              target="_blank" rel="noopener noreferrer" class="ms-2 fs-6 text-decoration-none align-middle">
+        <a asp-action="Map" asp-route-categoryName="@currentCategoryName"
+               asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+               asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId" target="_blank"
+               rel="noopener noreferrer" class="ms-2 fs-6 text-decoration-none align-middle">
             <span class="d-inline-flex align-items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" class="me-1">
-                    <path d="M8 0a5 5 0 0 0-5 5c0 3.25 4.53 9.08 4.72 9.33a.35.35 0 0 0 .56 0C8.47 14.08 13 8.25 13 5a5 5 0 0 0-5-5m0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"
+                     aria-hidden="true" class="me-1">
+                    <path
+                    d="M8 0a5 5 0 0 0-5 5c0 3.25 4.53 9.08 4.72 9.33a.35.35 0 0 0 .56 0C8.47 14.08 13 8.25 13 5a5 5 0 0 0-5-5m0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4" />
                 </svg>
                 See locations in Map
             </span>
@@ -52,26 +51,18 @@
             <nav aria-label="Listings pagination header" class="ms-1">
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item @(currentPage <= 1 ? "disabled" : string.Empty)">
-                                <a class="page-link"
-                                    asp-route="ListingIndex"
-                           asp-route-categoryName="@currentCategoryName"
-                           asp-route-subcategoryName="@currentSubcategoryName"
-                           asp-route-keywords="@currentKeywords"
-                           asp-route-provinceId="@currentProvinceId"
-                           asp-route-cityId="@currentCityId"
+                        <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                           asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                           asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
                            asp-route-page="@(currentPage - 1)" aria-label="Previous">&lt;</a>
                     </li>
 
                     @if (startPage > 1)
                     {
                         <li class="page-item @(currentPage == 1 ? "active" : string.Empty)">
-                            <a class="page-link"
-                               asp-route="ListingIndex"
-                               asp-route-categoryName="@currentCategoryName"
-                               asp-route-subcategoryName="@currentSubcategoryName"
-                               asp-route-keywords="@currentKeywords"
-                               asp-route-provinceId="@currentProvinceId"
-                               asp-route-cityId="@currentCityId"
+                            <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
                                asp-route-page="1">1</a>
                         </li>
 
@@ -84,13 +75,9 @@
                     @for (var pageNumber = startPage; pageNumber <= endPage; pageNumber++)
                     {
                         <li class="page-item @(pageNumber == currentPage ? "active" : string.Empty)">
-                                     <a class="page-link"
-                                         asp-route="ListingIndex"
-                               asp-route-categoryName="@currentCategoryName"
-                               asp-route-subcategoryName="@currentSubcategoryName"
-                               asp-route-keywords="@currentKeywords"
-                               asp-route-provinceId="@currentProvinceId"
-                               asp-route-cityId="@currentCityId"
+                            <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
                                asp-route-page="@pageNumber">@pageNumber</a>
                         </li>
                     }
@@ -103,25 +90,17 @@
                         }
 
                         <li class="page-item @(currentPage == totalPages ? "active" : string.Empty)">
-                            <a class="page-link"
-                               asp-route="ListingIndex"
-                               asp-route-categoryName="@currentCategoryName"
-                               asp-route-subcategoryName="@currentSubcategoryName"
-                               asp-route-keywords="@currentKeywords"
-                               asp-route-provinceId="@currentProvinceId"
-                               asp-route-cityId="@currentCityId"
+                            <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
                                asp-route-page="@totalPages">@totalPages</a>
                         </li>
                     }
 
                     <li class="page-item @(currentPage >= totalPages ? "disabled" : string.Empty)">
-                                <a class="page-link"
-                                    asp-route="ListingIndex"
-                           asp-route-categoryName="@currentCategoryName"
-                           asp-route-subcategoryName="@currentSubcategoryName"
-                           asp-route-keywords="@currentKeywords"
-                           asp-route-provinceId="@currentProvinceId"
-                           asp-route-cityId="@currentCityId"
+                        <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                           asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                           asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
                            asp-route-page="@(currentPage + 1)" aria-label="Next">&gt;</a>
                     </li>
 
@@ -132,11 +111,7 @@
                             <input type="hidden" name="keywords" value="@currentKeywords" />
                             <input type="hidden" name="provinceId" value="@currentProvinceId" />
                             <input type="hidden" name="cityId" value="@currentCityId" />
-                            <input type="text"
-                                   name="page"
-                                   inputmode="numeric"
-                                   pattern="[0-9]*"
-                                   value="@currentPage"
+                            <input type="text" name="page" inputmode="numeric" pattern="[0-9]*" value="@currentPage"
                                    class="form-control form-control-sm"
                                    style="width: 1.65rem; height: 1.28rem; padding: 0 0.15rem; font-size: 0.72rem; line-height: 1; text-align: center;" />
                         </form>
@@ -177,12 +152,16 @@ else
                     StringComparison.OrdinalIgnoreCase);
                     var isEstateSaleCategory = string.Equals(item.Category?.Name, "Estate Sale",
                     StringComparison.OrdinalIgnoreCase);
+                    var isCarPoolCategory = string.Equals(item.Category?.Name, "Car Pool",
+                    StringComparison.OrdinalIgnoreCase);
                     var buySellDetailsUrl = Url.Action("Index", "BuySellDetailPage", new { listingGuid = item.ListingGUID }) ?? "#";
                     var carVehicleDetailsUrl = Url.Action("Index", "CarVehicleDetailPage", new { listingGuid = item.ListingGUID })
                     ?? "#";
                     var homeRentalDetailsUrl = Url.Action("Index", "HomeRentalDetailPage", new { listingGuid = item.ListingGUID })
                     ?? "#";
                     var estateSaleDetailsUrl = Url.Action("Index", "EstateSaleDetailPage", new { listingGuid = item.ListingGUID })
+                    ?? "#";
+                    var carPoolDetailsUrl = Url.Action("Index", "CarPoolDetailPage", new { listingGuid = item.ListingGUID })
                     ?? "#";
                     var listingDetailsUrl = isBuySellCategory
                     ? buySellDetailsUrl
@@ -192,6 +171,8 @@ else
                     ? homeRentalDetailsUrl
                     : isEstateSaleCategory
                     ? estateSaleDetailsUrl
+                    : isCarPoolCategory
+                    ? carPoolDetailsUrl
                     : Url.Action("Details", "ListingPage", new { id = item.ListingGUID }) ?? "#";
                     var reviewCount = reviewCountByListing.TryGetValue(item.ListingGUID, out var count) ? count : 0;
                     var ratingText = string.IsNullOrWhiteSpace(item.Rating) ? "3.5" : item.Rating;
@@ -211,7 +192,8 @@ else
                     && item.DiscountBeginDate.HasValue
                     && today > item.DiscountBeginDate.Value.Date
                     && (!item.DiscountEndDate.HasValue || today < item.DiscountEndDate.Value.Date);
-                    var listingCardAdUrl = Url.Action("TopCardAd", "ListingPage", new { listingGuid = item.ListingGUID }) ?? string.Empty;
+                    var listingCardAdUrl = Url.Action("TopCardAd", "ListingPage", new { listingGuid = item.ListingGUID }) ??
+                    string.Empty;
                     decimal? discountedPrice = null;
                     if (isSaleActive && item.Price is decimal basePrice)
                     {
@@ -224,7 +206,8 @@ else
                         {
                             <div class="row g-2 mb-3 align-items-start listing-card-media-row" data-listing-card-media-row="true">
                                 <div class="col-12 listing-card-media-main" data-listing-card-media-main="true">
-                                    @if (isBuySellCategory || isCarVehicleCategory || isHomeRentalCategory || isEstateSaleCategory)
+                                    @if (isBuySellCategory || isCarVehicleCategory || isHomeRentalCategory || isEstateSaleCategory
+                                                            || isCarPoolCategory)
                                     {
                                         <a href="@listingDetailsUrl">
                                             <img src="@item.ThumbnailURL" alt="@item.Subject" class="img-fluid rounded border"
@@ -240,12 +223,9 @@ else
                                     <h5 class="card-title mt-2 mb-0">@item.Subject</h5>
                                 </div>
                                 <div class="listing-card-media-ad d-none" data-listing-card-media-ad-wrapper="true">
-                                    <div class="listing-card-ad-slot d-none"
-                                         data-listing-card-ad-slot="true"
-                                         data-ad-endpoint="@listingCardAdUrl"
-                                         data-ad-delay-seconds="@listingCardAdWaitSeconds"
-                                         data-search-keywords="@currentKeywords"
-                                         data-listing-guid="@item.ListingGUID">
+                                    <div class="listing-card-ad-slot d-none" data-listing-card-ad-slot="true"
+                                         data-ad-endpoint="@listingCardAdUrl" data-ad-delay-seconds="@listingCardAdWaitSeconds"
+                                         data-search-keywords="@currentKeywords" data-listing-guid="@item.ListingGUID">
                                     </div>
                                 </div>
                             </div>
@@ -270,510 +250,487 @@ else
                             </div>
                             <div class="col-md-6"><strong>Description:</strong> @item.Description</div>
                             <div class="col-md-6"><strong>KeyWords:</strong> @item.KeyWords</div>
-                            <div class="col-md-6"><strong>Price:</strong> @(item.Price.HasValue ? item.Price.Value.ToString("C2") : "-")</div>
-                            <div class="col-md-6"><strong>Quantity:</strong> @item.Quantity</div>
-                            <div class="col-md-6"><strong>Discount Percent:</strong> @item.DiscountPercent</div>
-                            <div class="col-md-6"><strong>Sales Begin:</strong> @item.DiscountBeginDate</div>
-                            <div class="col-md-6"><strong>Sales Ending:</strong> @item.DiscountEndDate</div>
-                            <div class="col-md-6"><strong>Brand:</strong> @item.Brand</div>
-                            <div class="col-md-6"><strong>Model:</strong> @item.Model</div>
-                            <div class="col-md-6"><strong>Condition:</strong> @item.Condition</div>
-                            <div class="col-md-6"><strong>Manufacture Year:</strong> @item.ManufactureYear</div>
-                            <div class="col-md-6"><strong>Category:</strong> @item.Category?.Name</div>
-                            <div class="col-md-6"><strong>Subcategory:</strong> @item.Subcategory?.Name</div>
-                            <div class="col-md-6"><strong>Province:</strong> @item.Province?.Name</div>
-                            <div class="col-md-6"><strong>City:</strong> @item.City?.Name</div>
-                            <div class="col-md-6">
-                                <strong>Address:</strong> @item.Address
-                                @if (!string.IsNullOrWhiteSpace(item.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
-                                {
-                                    <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
-                                }
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Postal Code:</strong> @item.PostalCode
-                                @if (!string.IsNullOrWhiteSpace(item.PostalCode))
-                                {
-                                    <a href="#" class="ms-2 open-google-map" data-postal-code="@item.PostalCode">Google map</a>
-                                }
-                            </div>
-                            @if (item.ShowContactInd)
-                            {
-                                <div class="col-md-6"><strong>Contact Phone:</strong> @item.ContactPhone</div>
-                                <div class="col-md-6"><strong>Contact Name:</strong> @item.ContactName</div>
-                                <div class="col-md-6"><strong>Show Contact:</strong> @item.ShowContactInd</div>
-                            }
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        @{
-                            var canManageListing = User.IsInRole("Admin")
-                            || User.IsInRole("Clerk")
-                            || (isCurrentUserGuid
-                            && item.UserId != Guid.Empty
-                            && currentUserId == item.UserId);
-                            var isOwnerListing = isCurrentUserGuid
-                            && item.UserId != Guid.Empty
-                            && currentUserId == item.UserId;
-                            var messageModalId = $"sendMessageModal_{item.ListingGUID:N}";
-                            var messageListingKey = item.ListingGUID.ToString("N");
-                            var ownListingNoticeId = $"ownListingNotice_{item.ListingGUID:N}";
-                            var defaultMessageSubject = $"Message about: {item.Subject}";
-                            var actionLinkClass = "btn btn-link p-0 fs-5 align-baseline";
-                        }
-                        <a href="#" class="@actionLinkClass send-message-link" data-message-modal-id="@messageModalId"
-                               data-listing-guid="@messageListingKey" data-is-owner="@isOwnerListing.ToString().ToLowerInvariant()"
-                               data-notice-id="@ownListingNoticeId">
-                            Message seller
-                        </a>
-                        <span> | </span>
-                        @if (isBuySellCategory || isCarVehicleCategory || isHomeRentalCategory || isEstateSaleCategory)
-                        {
-                            <a href="@listingDetailsUrl" class="@actionLinkClass">Details</a>
-                        }
-                        else
-                        {
-                            <a asp-action="Details" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Details</a>
-                        }
-                        <span id="@ownListingNoticeId" class="small text-muted ms-2 d-none">You cannot message your own
-                            listing.</span>
-                            @if (canManageListing)
-                            {
-                                <span> | </span>
-                                <a asp-action="Edit" asp-route-id="@item.ListingGUID" asp-route-categoryName="@currentCategoryName"
-                                   asp-route-subcategoryName="@currentSubcategoryName" class="@actionLinkClass">Edit</a>
-                                <span> | </span>
-                                <a asp-action="Delete" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Delete</a>
-                            }
-                        </div>
-                    </div>
-
-                    <div class="modal fade" id="@messageModalId" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Message seller</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="col-md-6"><strong>Price:</strong> @(item.Price.HasValue ?
+                                                    item.Price.Value.ToString("C2") : "-")</div>
+                                <div class="col-md-6"><strong>Quantity:</strong> @item.Quantity</div>
+                                <div class="col-md-6"><strong>Discount Percent:</strong> @item.DiscountPercent</div>
+                                <div class="col-md-6"><strong>Sales Begin:</strong> @item.DiscountBeginDate</div>
+                                <div class="col-md-6"><strong>Sales Ending:</strong> @item.DiscountEndDate</div>
+                                <div class="col-md-6"><strong>Brand:</strong> @item.Brand</div>
+                                <div class="col-md-6"><strong>Model:</strong> @item.Model</div>
+                                <div class="col-md-6"><strong>Condition:</strong> @item.Condition</div>
+                                <div class="col-md-6"><strong>Manufacture Year:</strong> @item.ManufactureYear</div>
+                                <div class="col-md-6"><strong>Category:</strong> @item.Category?.Name</div>
+                                <div class="col-md-6"><strong>Subcategory:</strong> @item.Subcategory?.Name</div>
+                                <div class="col-md-6"><strong>Province:</strong> @item.Province?.Name</div>
+                                <div class="col-md-6"><strong>City:</strong> @item.City?.Name</div>
+                                <div class="col-md-6">
+                                    <strong>Address:</strong> @item.Address
+                                    @if (!string.IsNullOrWhiteSpace(item.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
+                                    {
+                                        <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
+                                    }
                                 </div>
-                                <form method="post"
-                                      action="@Url.Action("SendToSeller", "MessagePage", new { listingId = item.ListingGUID })">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="returnUrl" value="@currentReturnUrl" />
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label for="subject_@item.ListingGUID" class="form-label">Subject</label>
-                                            <input type="text" id="subject_@item.ListingGUID" name="subject" class="form-control"
-                                                   maxlength="120" value="@defaultMessageSubject" />
-                                        </div>
-                                        <div class="mb-0">
-                                            <label for="body_@item.ListingGUID" class="form-label">Message</label>
-                                            <textarea id="body_@item.ListingGUID" name="body" class="form-control" rows="5"
-                                                      maxlength="2000" required></textarea>
-                                        </div>
+                                <div class="col-md-6">
+                                    <strong>Postal Code:</strong> @item.PostalCode
+                                    @if (!string.IsNullOrWhiteSpace(item.PostalCode))
+                                    {
+                                        <a href="#" class="ms-2 open-google-map" data-postal-code="@item.PostalCode">Google map</a>
+                                    }
+                                </div>
+                                @if (item.ShowContactInd)
+                                {
+                                    <div class="col-md-6"><strong>Contact Phone:</strong> @item.ContactPhone</div>
+                                    <div class="col-md-6"><strong>Contact Name:</strong> @item.ContactName</div>
+                                    <div class="col-md-6"><strong>Show Contact:</strong> @item.ShowContactInd</div>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            @{
+                                var canManageListing = User.IsInRole("Admin")
+                                || User.IsInRole("Clerk")
+                                || (isCurrentUserGuid
+                                && item.UserId != Guid.Empty
+                                && currentUserId == item.UserId);
+                                var isOwnerListing = isCurrentUserGuid
+                                && item.UserId != Guid.Empty
+                                && currentUserId == item.UserId;
+                                var messageModalId = $"sendMessageModal_{item.ListingGUID:N}";
+                                var messageListingKey = item.ListingGUID.ToString("N");
+                                var ownListingNoticeId = $"ownListingNotice_{item.ListingGUID:N}";
+                                var defaultMessageSubject = $"Message about: {item.Subject}";
+                                var actionLinkClass = "btn btn-link p-0 fs-5 align-baseline";
+                            }
+                            <a href="#" class="@actionLinkClass send-message-link" data-message-modal-id="@messageModalId"
+                                   data-listing-guid="@messageListingKey" data-is-owner="@isOwnerListing.ToString().ToLowerInvariant()"
+                                   data-notice-id="@ownListingNoticeId">
+                                Message seller
+                            </a>
+                            <span> | </span>
+                            @if (isBuySellCategory || isCarVehicleCategory || isHomeRentalCategory || isEstateSaleCategory ||
+                                            isCarPoolCategory)
+                            {
+                                <a href="@listingDetailsUrl" class="@actionLinkClass">Details</a>
+                            }
+                            else
+                            {
+                                <a asp-action="Details" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Details</a>
+                            }
+                            <span id="@ownListingNoticeId" class="small text-muted ms-2 d-none">You cannot message your own
+                                listing.</span>
+                                @if (canManageListing)
+                                {
+                                    <span> | </span>
+                                    <a asp-action="Edit" asp-route-id="@item.ListingGUID" asp-route-categoryName="@currentCategoryName"
+                                       asp-route-subcategoryName="@currentSubcategoryName" class="@actionLinkClass">Edit</a>
+                                    <span> | </span>
+                                    <a asp-action="Delete" asp-route-id="@item.ListingGUID" class="@actionLinkClass">Delete</a>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="@messageModalId" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Message seller</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary"
-                                                data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Send</button>
-                                    </div>
-                                </form>
+                                    <form method="post"
+                                          action="@Url.Action("SendToSeller", "MessagePage", new { listingId = item.ListingGUID })">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="returnUrl" value="@currentReturnUrl" />
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="subject_@item.ListingGUID" class="form-label">Subject</label>
+                                                <input type="text" id="subject_@item.ListingGUID" name="subject" class="form-control"
+                                                       maxlength="120" value="@defaultMessageSubject" />
+                                            </div>
+                                            <div class="mb-0">
+                                                <label for="body_@item.ListingGUID" class="form-label">Message</label>
+                                                <textarea id="body_@item.ListingGUID" name="body" class="form-control" rows="5"
+                                                          maxlength="2000" required></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Send</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                }
+            </div>
+
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Listings pagination" class="mt-3">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        <li class="page-item @(currentPage <= 1 ? "disabled" : string.Empty)">
+                            <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
+                               asp-route-page="@(currentPage - 1)" aria-label="Previous">&lt;</a>
+                        </li>
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item @(currentPage == 1 ? "active" : string.Empty)">
+                                <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                                   asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                                   asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId" asp-route-page="1">1</a>
+                            </li>
+
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+                        }
+
+                        @for (var pageNumber = startPage; pageNumber <= endPage; pageNumber++)
+                        {
+                            <li class="page-item @(pageNumber == currentPage ? "active" : string.Empty)">
+                                <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                                   asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                                   asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
+                                   asp-route-page="@pageNumber">@pageNumber</a>
+                            </li>
+                        }
+
+                        @if (endPage < totalPages)
+                        {
+                            @if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+
+                            <li class="page-item @(currentPage == totalPages ? "active" : string.Empty)">
+                                <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                                   asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                                   asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
+                                   asp-route-page="@totalPages">@totalPages</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(currentPage >= totalPages ? "disabled" : string.Empty)">
+                            <a class="page-link" asp-route="ListingIndex" asp-route-categoryName="@currentCategoryName"
+                               asp-route-subcategoryName="@currentSubcategoryName" asp-route-keywords="@currentKeywords"
+                               asp-route-provinceId="@currentProvinceId" asp-route-cityId="@currentCityId"
+                               asp-route-page="@(currentPage + 1)" aria-label="Next">&gt;</a>
+                        </li>
+
+                        <li class="page-item">
+                            <form asp-route="ListingIndex" method="get" class="d-flex align-items-center ms-2">
+                                <input type="hidden" name="categoryName" value="@currentCategoryName" />
+                                <input type="hidden" name="subcategoryName" value="@currentSubcategoryName" />
+                                <input type="hidden" name="keywords" value="@currentKeywords" />
+                                <input type="hidden" name="provinceId" value="@currentProvinceId" />
+                                <input type="hidden" name="cityId" value="@currentCityId" />
+                                <input type="text" name="page" inputmode="numeric" pattern="[0-9]*" value="@currentPage"
+                                       class="form-control form-control-sm"
+                                       style="width: 1.65rem; height: 1.28rem; padding: 0 0.15rem; font-size: 0.72rem; line-height: 1; text-align: center;" />
+                            </form>
+                        </li>
+                    </ul>
+                </nav>
             }
-        </div>
 
-        @if (totalPages > 1)
-        {
-            <nav aria-label="Listings pagination" class="mt-3">
-                <ul class="pagination pagination-sm justify-content-center mb-0">
-                    <li class="page-item @(currentPage <= 1 ? "disabled" : string.Empty)">
-                                <a class="page-link"
-                                    asp-route="ListingIndex"
-                           asp-route-categoryName="@currentCategoryName"
-                           asp-route-subcategoryName="@currentSubcategoryName"
-                           asp-route-keywords="@currentKeywords"
-                           asp-route-provinceId="@currentProvinceId"
-                           asp-route-cityId="@currentCityId"
-                           asp-route-page="@(currentPage - 1)" aria-label="Previous">&lt;</a>
-                    </li>
-
-                    @if (startPage > 1)
-                    {
-                        <li class="page-item @(currentPage == 1 ? "active" : string.Empty)">
-                            <a class="page-link"
-                               asp-route="ListingIndex"
-                               asp-route-categoryName="@currentCategoryName"
-                               asp-route-subcategoryName="@currentSubcategoryName"
-                               asp-route-keywords="@currentKeywords"
-                               asp-route-provinceId="@currentProvinceId"
-                               asp-route-cityId="@currentCityId"
-                               asp-route-page="1">1</a>
-                        </li>
-
-                        @if (startPage > 2)
-                        {
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                        }
-                    }
-
-                    @for (var pageNumber = startPage; pageNumber <= endPage; pageNumber++)
-                    {
-                        <li class="page-item @(pageNumber == currentPage ? "active" : string.Empty)">
-                                     <a class="page-link"
-                                         asp-route="ListingIndex"
-                               asp-route-categoryName="@currentCategoryName"
-                               asp-route-subcategoryName="@currentSubcategoryName"
-                               asp-route-keywords="@currentKeywords"
-                               asp-route-provinceId="@currentProvinceId"
-                               asp-route-cityId="@currentCityId"
-                               asp-route-page="@pageNumber">@pageNumber</a>
-                        </li>
-                    }
-
-                    @if (endPage < totalPages)
-                    {
-                        @if (endPage < totalPages - 1)
-                        {
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                        }
-
-                        <li class="page-item @(currentPage == totalPages ? "active" : string.Empty)">
-                            <a class="page-link"
-                               asp-route="ListingIndex"
-                               asp-route-categoryName="@currentCategoryName"
-                               asp-route-subcategoryName="@currentSubcategoryName"
-                               asp-route-keywords="@currentKeywords"
-                               asp-route-provinceId="@currentProvinceId"
-                               asp-route-cityId="@currentCityId"
-                               asp-route-page="@totalPages">@totalPages</a>
-                        </li>
-                    }
-
-                    <li class="page-item @(currentPage >= totalPages ? "disabled" : string.Empty)">
-                                <a class="page-link"
-                                    asp-route="ListingIndex"
-                           asp-route-categoryName="@currentCategoryName"
-                           asp-route-subcategoryName="@currentSubcategoryName"
-                           asp-route-keywords="@currentKeywords"
-                           asp-route-provinceId="@currentProvinceId"
-                           asp-route-cityId="@currentCityId"
-                           asp-route-page="@(currentPage + 1)" aria-label="Next">&gt;</a>
-                    </li>
-
-                    <li class="page-item">
-                        <form asp-route="ListingIndex" method="get" class="d-flex align-items-center ms-2">
-                            <input type="hidden" name="categoryName" value="@currentCategoryName" />
-                            <input type="hidden" name="subcategoryName" value="@currentSubcategoryName" />
-                            <input type="hidden" name="keywords" value="@currentKeywords" />
-                            <input type="hidden" name="provinceId" value="@currentProvinceId" />
-                            <input type="hidden" name="cityId" value="@currentCityId" />
-                            <input type="text"
-                                   name="page"
-                                   inputmode="numeric"
-                                   pattern="[0-9]*"
-                                   value="@currentPage"
-                                   class="form-control form-control-sm"
-                                   style="width: 1.65rem; height: 1.28rem; padding: 0 0.15rem; font-size: 0.72rem; line-height: 1; text-align: center;" />
-                        </form>
-                    </li>
-                </ul>
-            </nav>
-        }
-
-        <div class="modal fade" id="postalCodeMapModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Google map</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body p-0">
-                        <iframe id="postalCodeMapFrame" title="Google map by postal code"
-                                style="width:100%;height:500px;border:0;" loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <div class="modal fade" id="postalCodeMapModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Google map</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-0">
+                            <iframe id="postalCodeMapFrame" title="Google map by postal code"
+                                    style="width:100%;height:500px;border:0;" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    }
+        }
 
-    @section Scripts {
-        <script>
-            (() => {
-                const isAuthenticated = @isAuthenticated.ToString().ToLowerInvariant();
-                const loginUrl = "@loginPageUrl";
-                const focusListingKey = "@focusListingKey";
+        @section Scripts {
+            <script>
+                (() => {
+                    const isAuthenticated = @isAuthenticated.ToString().ToLowerInvariant();
+                    const loginUrl = "@loginPageUrl";
+                    const focusListingKey = "@focusListingKey";
 
-                const scrollToFocusedListing = (listingKey) => {
-                    if (!listingKey) {
-                        return;
-                    }
-
-                    const card = document.getElementById(`listing-card-${listingKey}`);
-                    if (!card) {
-                        return;
-                    }
-
-                    card.scrollIntoView({ behavior: "smooth", block: "center" });
-                };
-                const isOwnerListing = (listingGuid) => {
-                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
-                    if (!link) {
-                        return false;
-                    }
-
-                    return link.getAttribute("data-is-owner") === "true";
-                };
-
-                const showOwnListingNotice = (listingGuid) => {
-                    const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
-                    if (!link) {
-                        return;
-                    }
-
-                    const noticeId = link.getAttribute("data-notice-id");
-                    if (!noticeId) {
-                        return;
-                    }
-
-                    const notice = document.getElementById(noticeId);
-                    if (!notice) {
-                        return;
-                    }
-
-                    notice.classList.remove("d-none");
-                };
-
-                const openMessageModal = (listingGuid) => {
-                    if (!listingGuid) {
-                        return;
-                    }
-
-                    if (isOwnerListing(listingGuid)) {
-                        showOwnListingNotice(listingGuid);
-                        return;
-                    }
-
-                    const modalElement = document.getElementById(`sendMessageModal_${listingGuid}`);
-                    if (!modalElement) {
-                        return;
-                    }
-
-                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
-                };
-
-                const mapModalElement = document.getElementById("postalCodeMapModal");
-                const mapFrame = document.getElementById("postalCodeMapFrame");
-
-                const openPostalMapModal = (postalCode) => {
-                    if (!mapModalElement || !mapFrame || !postalCode) {
-                        return;
-                    }
-
-                    mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(postalCode)}&output=embed`;
-                    bootstrap.Modal.getOrCreateInstance(mapModalElement).show();
-                };
-
-                document.querySelectorAll(".open-google-map").forEach((link) => {
-                    link.addEventListener("click", (event) => {
-                        event.preventDefault();
-                        const postalCode = link.getAttribute("data-postal-code");
-                        if (!postalCode) {
+                    const scrollToFocusedListing = (listingKey) => {
+                        if (!listingKey) {
                             return;
                         }
 
-                        openPostalMapModal(postalCode);
-                    });
-                });
+                        const card = document.getElementById(`listing-card-${listingKey}`);
+                        if (!card) {
+                            return;
+                        }
 
-                document.querySelectorAll(".send-message-link").forEach((link) => {
-                    link.addEventListener("click", (event) => {
-                        event.preventDefault();
+                        card.scrollIntoView({ behavior: "smooth", block: "center" });
+                    };
+                    const isOwnerListing = (listingGuid) => {
+                        const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
+                        if (!link) {
+                            return false;
+                        }
 
-                        const listingGuid = link.getAttribute("data-listing-guid");
+                        return link.getAttribute("data-is-owner") === "true";
+                    };
+
+                    const showOwnListingNotice = (listingGuid) => {
+                        const link = document.querySelector(`.send-message-link[data-listing-guid="${listingGuid}"]`);
+                        if (!link) {
+                            return;
+                        }
+
+                        const noticeId = link.getAttribute("data-notice-id");
+                        if (!noticeId) {
+                            return;
+                        }
+
+                        const notice = document.getElementById(noticeId);
+                        if (!notice) {
+                            return;
+                        }
+
+                        notice.classList.remove("d-none");
+                    };
+
+                    const openMessageModal = (listingGuid) => {
                         if (!listingGuid) {
                             return;
                         }
 
-                        if (isAuthenticated) {
-                            openMessageModal(listingGuid);
+                        if (isOwnerListing(listingGuid)) {
+                            showOwnListingNotice(listingGuid);
                             return;
                         }
 
-                        const currentUrl = new URL(window.location.href);
-                        currentUrl.searchParams.set("openMessageFor", listingGuid);
-                        const returnUrl = `${currentUrl.pathname}${currentUrl.search}`;
-                        const separator = loginUrl.includes("?") ? "&" : "?";
-                        window.location.href = `${loginUrl}${separator}returnUrl=${encodeURIComponent(returnUrl)}`;
-                    });
-                });
+                        const modalElement = document.getElementById(`sendMessageModal_${listingGuid}`);
+                        if (!modalElement) {
+                            return;
+                        }
 
-                if (isAuthenticated) {
-                    const pageUrl = new URL(window.location.href);
-                    const listingToOpen = pageUrl.searchParams.get("openMessageFor");
-                    if (listingToOpen) {
-                        openMessageModal(listingToOpen);
-                        pageUrl.searchParams.delete("openMessageFor");
-                        const cleanQuery = pageUrl.searchParams.toString();
-                        const cleanUrl = `${pageUrl.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${pageUrl.hash}`;
-                        window.history.replaceState({}, "", cleanUrl);
-                    }
-                }
+                        bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                    };
 
-                if (focusListingKey) {
-                    scrollToFocusedListing(focusListingKey);
-                }
+                    const mapModalElement = document.getElementById("postalCodeMapModal");
+                    const mapFrame = document.getElementById("postalCodeMapFrame");
 
-                if (window.location.hash && window.location.hash.startsWith("#listing-card-")) {
-                    const listingFromHash = window.location.hash.substring("#listing-card-".length);
-                    scrollToFocusedListing(listingFromHash);
-                }
+                    const openPostalMapModal = (postalCode) => {
+                        if (!mapModalElement || !mapFrame || !postalCode) {
+                            return;
+                        }
 
-                const adSlots = Array.from(document.querySelectorAll('[data-listing-card-ad-slot="true"]'));
-                const loadedAdSlotKeys = new Set();
+                        mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(postalCode)}&output=embed`;
+                        bootstrap.Modal.getOrCreateInstance(mapModalElement).show();
+                    };
 
-                const renderListingCardAd = (slotElement, adPayload) => {
-                    if (!slotElement || !adPayload || !adPayload.imageURL || !adPayload.targetURL || !adPayload.adGuid) {
-                        return;
-                    }
-
-                    const mediaRow = slotElement.closest("[data-listing-card-media-row='true']");
-                    const mediaMain = mediaRow ? mediaRow.querySelector("[data-listing-card-media-main='true']") : null;
-                    const adWrapper = mediaRow ? mediaRow.querySelector("[data-listing-card-media-ad-wrapper='true']") : null;
-
-                    if (mediaMain) {
-                        mediaMain.classList.remove("col-12");
-                        mediaMain.classList.add("col-lg-8");
-                    }
-
-                    if (adWrapper) {
-                        adWrapper.classList.remove("d-none");
-                        adWrapper.classList.add("col-lg-4");
-                    }
-
-                    slotElement.innerHTML = "";
-
-                    const adLink = document.createElement("a");
-                    adLink.href = adPayload.targetURL;
-                    adLink.target = "_blank";
-                    adLink.rel = "noopener noreferrer";
-
-                    const trackingUrl = `/Listing/TopCardAdClick/${encodeURIComponent(adPayload.adGuid)}`;
-                    adLink.addEventListener("click", () => {
-                        try {
-                            if (navigator.sendBeacon) {
-                                const payload = new Blob([], { type: "application/octet-stream" });
-                                navigator.sendBeacon(trackingUrl, payload);
+                    document.querySelectorAll(".open-google-map").forEach((link) => {
+                        link.addEventListener("click", (event) => {
+                            event.preventDefault();
+                            const postalCode = link.getAttribute("data-postal-code");
+                            if (!postalCode) {
                                 return;
                             }
 
-                            fetch(trackingUrl, { method: "POST", keepalive: true })
-                                .then((response) => {
-                                    if (response.status === 405) {
-                                        fetch(trackingUrl, { method: "GET", keepalive: true });
-                                    }
-                                });
+                            openPostalMapModal(postalCode);
+                        });
+                    });
+
+                    document.querySelectorAll(".send-message-link").forEach((link) => {
+                        link.addEventListener("click", (event) => {
+                            event.preventDefault();
+
+                            const listingGuid = link.getAttribute("data-listing-guid");
+                            if (!listingGuid) {
+                                return;
+                            }
+
+                            if (isAuthenticated) {
+                                openMessageModal(listingGuid);
+                                return;
+                            }
+
+                            const currentUrl = new URL(window.location.href);
+                            currentUrl.searchParams.set("openMessageFor", listingGuid);
+                            const returnUrl = `${currentUrl.pathname}${currentUrl.search}`;
+                            const separator = loginUrl.includes("?") ? "&" : "?";
+                            window.location.href = `${loginUrl}${separator}returnUrl=${encodeURIComponent(returnUrl)}`;
+                        });
+                    });
+
+                    if (isAuthenticated) {
+                        const pageUrl = new URL(window.location.href);
+                        const listingToOpen = pageUrl.searchParams.get("openMessageFor");
+                        if (listingToOpen) {
+                            openMessageModal(listingToOpen);
+                            pageUrl.searchParams.delete("openMessageFor");
+                            const cleanQuery = pageUrl.searchParams.toString();
+                            const cleanUrl = `${pageUrl.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${pageUrl.hash}`;
+                            window.history.replaceState({}, "", cleanUrl);
+                        }
+                    }
+
+                    if (focusListingKey) {
+                        scrollToFocusedListing(focusListingKey);
+                    }
+
+                    if (window.location.hash && window.location.hash.startsWith("#listing-card-")) {
+                        const listingFromHash = window.location.hash.substring("#listing-card-".length);
+                        scrollToFocusedListing(listingFromHash);
+                    }
+
+                    const adSlots = Array.from(document.querySelectorAll('[data-listing-card-ad-slot="true"]'));
+                    const loadedAdSlotKeys = new Set();
+
+                    const renderListingCardAd = (slotElement, adPayload) => {
+                        if (!slotElement || !adPayload || !adPayload.imageURL || !adPayload.targetURL || !adPayload.adGuid) {
+                            return;
+                        }
+
+                        const mediaRow = slotElement.closest("[data-listing-card-media-row='true']");
+                        const mediaMain = mediaRow ? mediaRow.querySelector("[data-listing-card-media-main='true']") : null;
+                        const adWrapper = mediaRow ? mediaRow.querySelector("[data-listing-card-media-ad-wrapper='true']") : null;
+
+                        if (mediaMain) {
+                            mediaMain.classList.remove("col-12");
+                            mediaMain.classList.add("col-lg-8");
+                        }
+
+                        if (adWrapper) {
+                            adWrapper.classList.remove("d-none");
+                            adWrapper.classList.add("col-lg-4");
+                        }
+
+                        slotElement.innerHTML = "";
+
+                        const adLink = document.createElement("a");
+                        adLink.href = adPayload.targetURL;
+                        adLink.target = "_blank";
+                        adLink.rel = "noopener noreferrer";
+
+                        const trackingUrl = `/Listing/TopCardAdClick/${encodeURIComponent(adPayload.adGuid)}`;
+                        adLink.addEventListener("click", () => {
+                            try {
+                                if (navigator.sendBeacon) {
+                                    const payload = new Blob([], { type: "application/octet-stream" });
+                                    navigator.sendBeacon(trackingUrl, payload);
+                                    return;
+                                }
+
+                                fetch(trackingUrl, { method: "POST", keepalive: true })
+                                    .then((response) => {
+                                        if (response.status === 405) {
+                                            fetch(trackingUrl, { method: "GET", keepalive: true });
+                                        }
+                                    });
+                            } catch {
+                            }
+                        });
+
+                        const adImage = document.createElement("img");
+                        adImage.src = adPayload.imageURL;
+                        adImage.alt = "Advertisement";
+                        adImage.className = "img-fluid rounded border";
+                        adImage.style.maxHeight = "220px";
+
+                        adLink.appendChild(adImage);
+                        slotElement.appendChild(adLink);
+
+                        const adSubject = typeof adPayload.subject === "string" ? adPayload.subject.trim() : "";
+                        if (adSubject.length > 0) {
+                            const adSubjectElement = document.createElement("h6");
+                            adSubjectElement.className = "card-title mt-2 mb-0";
+                            adSubjectElement.textContent = adSubject;
+                            slotElement.appendChild(adSubjectElement);
+                        }
+
+                        slotElement.classList.remove("d-none");
+                    };
+
+                    const loadListingCardAd = async (slotElement) => {
+                        const listingGuid = slotElement.getAttribute("data-listing-guid") || "";
+                        if (!listingGuid || loadedAdSlotKeys.has(listingGuid)) {
+                            return;
+                        }
+
+                        loadedAdSlotKeys.add(listingGuid);
+
+                        const endpoint = slotElement.getAttribute("data-ad-endpoint") || "";
+                        if (!endpoint) {
+                            return;
+                        }
+
+                        const searchKeywords = slotElement.getAttribute("data-search-keywords") || "";
+                        const endpointUrl = new URL(endpoint, window.location.origin);
+                        if (searchKeywords.trim().length > 0) {
+                            endpointUrl.searchParams.set("keywords", searchKeywords);
+                        }
+
+                        const delaySeconds = Number(slotElement.getAttribute("data-ad-delay-seconds") || "0");
+                        const delayMilliseconds = Number.isFinite(delaySeconds) && delaySeconds > 0
+                            ? Math.round(delaySeconds * 1000)
+                            : 0;
+
+                        if (delayMilliseconds > 0) {
+                            await new Promise((resolve) => {
+                                window.setTimeout(resolve, delayMilliseconds);
+                            });
+                        }
+
+                        try {
+                            const response = await fetch(endpointUrl.toString(), {
+                                method: "GET",
+                                headers: {
+                                    "Accept": "application/json"
+                                }
+                            });
+
+                            if (response.status === 204 || !response.ok) {
+                                return;
+                            }
+
+                            const payload = await response.json();
+                            renderListingCardAd(slotElement, payload);
                         } catch {
                         }
-                    });
+                    };
 
-                    const adImage = document.createElement("img");
-                    adImage.src = adPayload.imageURL;
-                    adImage.alt = "Advertisement";
-                    adImage.className = "img-fluid rounded border";
-                    adImage.style.maxHeight = "220px";
-
-                    adLink.appendChild(adImage);
-                    slotElement.appendChild(adLink);
-
-                    const adSubject = typeof adPayload.subject === "string" ? adPayload.subject.trim() : "";
-                    if (adSubject.length > 0) {
-                        const adSubjectElement = document.createElement("h6");
-                        adSubjectElement.className = "card-title mt-2 mb-0";
-                        adSubjectElement.textContent = adSubject;
-                        slotElement.appendChild(adSubjectElement);
-                    }
-
-                    slotElement.classList.remove("d-none");
-                };
-
-                const loadListingCardAd = async (slotElement) => {
-                    const listingGuid = slotElement.getAttribute("data-listing-guid") || "";
-                    if (!listingGuid || loadedAdSlotKeys.has(listingGuid)) {
-                        return;
-                    }
-
-                    loadedAdSlotKeys.add(listingGuid);
-
-                    const endpoint = slotElement.getAttribute("data-ad-endpoint") || "";
-                    if (!endpoint) {
-                        return;
-                    }
-
-                    const searchKeywords = slotElement.getAttribute("data-search-keywords") || "";
-                    const endpointUrl = new URL(endpoint, window.location.origin);
-                    if (searchKeywords.trim().length > 0) {
-                        endpointUrl.searchParams.set("keywords", searchKeywords);
-                    }
-
-                    const delaySeconds = Number(slotElement.getAttribute("data-ad-delay-seconds") || "0");
-                    const delayMilliseconds = Number.isFinite(delaySeconds) && delaySeconds > 0
-                        ? Math.round(delaySeconds * 1000)
-                        : 0;
-
-                    if (delayMilliseconds > 0) {
-                        await new Promise((resolve) => {
-                            window.setTimeout(resolve, delayMilliseconds);
-                        });
-                    }
-
-                    try {
-                        const response = await fetch(endpointUrl.toString(), {
-                            method: "GET",
-                            headers: {
-                                "Accept": "application/json"
+                    if (adSlots.length > 0) {
+                        const slotsByCardElement = new Map();
+                        adSlots.forEach((slotElement) => {
+                            const cardElement = slotElement.closest(".card");
+                            if (cardElement) {
+                                slotsByCardElement.set(cardElement, slotElement);
                             }
                         });
 
-                        if (response.status === 204 || !response.ok) {
-                            return;
-                        }
+                        const intersectionObserver = new IntersectionObserver((entries) => {
+                            entries.forEach((entry) => {
+                                if (!entry.isIntersecting) {
+                                    return;
+                                }
 
-                        const payload = await response.json();
-                        renderListingCardAd(slotElement, payload);
-                    } catch {
-                    }
-                };
+                                intersectionObserver.unobserve(entry.target);
+                                const slotElement = slotsByCardElement.get(entry.target);
+                                if (slotElement) {
+                                    loadListingCardAd(slotElement);
+                                }
+                            });
+                        }, { threshold: 0.35 });
 
-                if (adSlots.length > 0) {
-                    const slotsByCardElement = new Map();
-                    adSlots.forEach((slotElement) => {
-                        const cardElement = slotElement.closest(".card");
-                        if (cardElement) {
-                            slotsByCardElement.set(cardElement, slotElement);
-                        }
-                    });
-
-                    const intersectionObserver = new IntersectionObserver((entries) => {
-                        entries.forEach((entry) => {
-                            if (!entry.isIntersecting) {
-                                return;
-                            }
-
-                            intersectionObserver.unobserve(entry.target);
-                            const slotElement = slotsByCardElement.get(entry.target);
-                            if (slotElement) {
-                                loadListingCardAd(slotElement);
-                            }
+                        slotsByCardElement.forEach((_slotElement, cardElement) => {
+                            intersectionObserver.observe(cardElement);
                         });
-                    }, { threshold: 0.35 });
-
-                    slotsByCardElement.forEach((_slotElement, cardElement) => {
-                        intersectionObserver.observe(cardElement);
-                    });
-                }
-            })();
-        </script>
-    }
+                    }
+                })();
+            </script>
+        }

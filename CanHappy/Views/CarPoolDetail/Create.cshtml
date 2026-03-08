@@ -1,0 +1,131 @@
+@model CanHappy.Models.CarPoolDetailEditViewModel
+
+@{
+    ViewData["Title"] = "Create Car Pool Detail";
+}
+
+<h1 class="mb-3">Create Car Pool Detail</h1>
+
+<form asp-action="Create" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="col-md-6">
+        <label asp-for="ListingGUID" class="form-label">Listing</label>
+        <select asp-for="ListingGUID" class="form-select" asp-items="ViewBag.ListingGUID"></select>
+        <span asp-validation-for="ListingGUID" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-3">
+        <label asp-for="CarPoolTypeId" class="form-label">Car Pool Type</label>
+        <select asp-for="CarPoolTypeId" class="form-select" asp-items="ViewBag.CarPoolTypeId"></select>
+        <span asp-validation-for="CarPoolTypeId" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-3">
+        <label asp-for="CarPoolStatusId" class="form-label">Car Pool Status</label>
+        <select asp-for="CarPoolStatusId" class="form-select" asp-items="ViewBag.CarPoolStatusId"></select>
+        <span asp-validation-for="CarPoolStatusId" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="FromCity" class="form-label"></label>
+        <input asp-for="FromCity" class="form-control" />
+        <span asp-validation-for="FromCity" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="DestinationCity" class="form-label"></label>
+        <input asp-for="DestinationCity" class="form-control" />
+        <span asp-validation-for="DestinationCity" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="LeavingDate" class="form-label"></label>
+        <input asp-for="LeavingDate" type="date" class="form-control" />
+        <span asp-validation-for="LeavingDate" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="LeavingTime" class="form-label"></label>
+        <input asp-for="LeavingTime" class="form-control" />
+        <span asp-validation-for="LeavingTime" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="WeekDays" class="form-label"></label>
+        <input asp-for="WeekDays" class="form-control" />
+        <span asp-validation-for="WeekDays" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="PickupLocation" class="form-label"></label>
+        <input asp-for="PickupLocation" class="form-control" />
+        <span asp-validation-for="PickupLocation" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="DropoffLocation" class="form-label"></label>
+        <input asp-for="DropoffLocation" class="form-control" />
+        <span asp-validation-for="DropoffLocation" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="VehicleModelYear" class="form-label"></label>
+        <input asp-for="VehicleModelYear" class="form-control" />
+        <span asp-validation-for="VehicleModelYear" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="VehicleLicensePlateNumber" class="form-label"></label>
+        <input asp-for="VehicleLicensePlateNumber" class="form-control" />
+        <span asp-validation-for="VehicleLicensePlateNumber" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="VehicleColor" class="form-label"></label>
+        <input asp-for="VehicleColor" class="form-control" />
+        <span asp-validation-for="VehicleColor" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-12">
+        <label asp-for="TripStops" class="form-label"></label>
+        <input asp-for="TripStops" class="form-control" />
+        <span asp-validation-for="TripStops" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-12">
+        <label asp-for="AdditionalInfo" class="form-label"></label>
+        <textarea asp-for="AdditionalInfo" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="AdditionalInfo" class="text-danger"></span>
+    </div>
+
+    <div class="col-12 d-flex flex-wrap gap-3">
+        <div class="form-check">
+            <input asp-for="WeeklyScheduleInd" class="form-check-input" />
+            <label asp-for="WeeklyScheduleInd" class="form-check-label"></label>
+        </div>
+        <div class="form-check">
+            <input asp-for="SmallBagAllowedInd" class="form-check-input" />
+            <label asp-for="SmallBagAllowedInd" class="form-check-label"></label>
+        </div>
+        <div class="form-check">
+            <input asp-for="MediumBagAllowedInd" class="form-check-input" />
+            <label asp-for="MediumBagAllowedInd" class="form-check-label"></label>
+        </div>
+        <div class="form-check">
+            <input asp-for="OneLargeBagAllowedInd" class="form-check-input" />
+            <label asp-for="OneLargeBagAllowedInd" class="form-check-label"></label>
+        </div>
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" asp-route-listingGuid="@Model.ListingGUID" class="btn btn-outline-secondary">Back</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

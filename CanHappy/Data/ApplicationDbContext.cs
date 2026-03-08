@@ -31,6 +31,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<City> Cities => Set<City>();
     public DbSet<Area> Areas => Set<Area>();
     public DbSet<UserMessage> UserMessages => Set<UserMessage>();
+    public DbSet<CarPoolType> CarPoolTypes => Set<CarPoolType>();
+    public DbSet<RideRequestStatus> RideRequestStatuses => Set<RideRequestStatus>();
+    public DbSet<CarPoolStatus> CarPoolStatuses => Set<CarPoolStatus>();
+    public DbSet<CarPoolDetail> CarPoolDetails => Set<CarPoolDetail>();
+    public DbSet<RideRequest> RideRequests => Set<RideRequest>();
 
     public override int SaveChanges()
     {
@@ -1351,6 +1356,327 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.City)
                 .WithMany(e => e.Areas)
                 .HasForeignKey(e => e.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<CarPoolType>(entity =>
+        {
+            entity.ToTable("CarPoolType");
+            entity.HasKey(e => e.CarPoolTypeId);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+
+            entity.HasData(
+                new CarPoolType
+                {
+                    CarPoolTypeId = 1,
+                    Name = "Offer a Ride",
+                    Description = "Driver offers a ride.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new CarPoolType
+                {
+                    CarPoolTypeId = 2,
+                    Name = "Need a Ride",
+                    Description = "Rider needs a ride.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                });
+        });
+
+        builder.Entity<RideRequestStatus>(entity =>
+        {
+            entity.ToTable("RideRequestStatus");
+            entity.HasKey(e => e.RideRequestStatusId);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+
+            entity.HasData(
+                new RideRequestStatus
+                {
+                    RideRequestStatusId = 1,
+                    Name = "Ride Requested by Rider",
+                    Description = "Ride requested by rider.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new RideRequestStatus
+                {
+                    RideRequestStatusId = 2,
+                    Name = "Ride Accepted by Driver",
+                    Description = "Ride accepted by driver.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new RideRequestStatus
+                {
+                    RideRequestStatusId = 3,
+                    Name = "Ride Cancelled by Rider",
+                    Description = "Ride cancelled by rider.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new RideRequestStatus
+                {
+                    RideRequestStatusId = 4,
+                    Name = "Ride Cancelled by Driver",
+                    Description = "Ride cancelled by driver.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new RideRequestStatus
+                {
+                    RideRequestStatusId = 5,
+                    Name = "Ride Cancelled by Clerk",
+                    Description = "Ride cancelled by clerk.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                });
+        });
+
+        builder.Entity<CarPoolStatus>(entity =>
+        {
+            entity.ToTable("CarPoolStatus");
+            entity.HasKey(e => e.CarPoolStatusId);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+
+            entity.HasData(
+                new CarPoolStatus
+                {
+                    CarPoolStatusId = 1,
+                    Name = "Released",
+                    Description = "Car pool entry is released.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new CarPoolStatus
+                {
+                    CarPoolStatusId = 2,
+                    Name = "On Hold",
+                    Description = "Car pool entry is on hold.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new CarPoolStatus
+                {
+                    CarPoolStatusId = 3,
+                    Name = "Cancelled",
+                    Description = "Car pool entry is cancelled.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new CarPoolStatus
+                {
+                    CarPoolStatusId = 4,
+                    Name = "Suspended by Clerk",
+                    Description = "Car pool entry is suspended by clerk.",
+                    DeletedInd = false,
+                    CreatedBy = "system",
+                    CreatedDate = new DateTime(2026, 3, 7, 0, 0, 0, DateTimeKind.Utc)
+                });
+        });
+
+        builder.Entity<CarPoolDetail>(entity =>
+        {
+            entity.ToTable("CarPoolDetail");
+            entity.HasKey(e => e.CarPoolDetailGUID);
+
+            entity.Property(e => e.CarPoolTypeId)
+                .HasDefaultValue(1);
+
+            entity.Property(e => e.CarPoolStatusId)
+                .HasDefaultValue(1);
+
+            entity.Property(e => e.FromCity)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.LeavingDate)
+                .HasColumnType("date");
+
+            entity.Property(e => e.WeekDays)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.LeavingTime)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.PickupLocation)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.DestinationCity)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.DropoffLocation)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.TripStops)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.VehicleModelYear)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.VehicleLicensePlateNumber)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.VehicleColor)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.AdditionalInfo)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.WeeklyScheduleInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.SmallBagAllowedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.MediumBagAllowedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.OneLargeBagAllowedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID)
+                .IsUnique();
+
+            entity.HasIndex(e => e.CarPoolTypeId);
+            entity.HasIndex(e => e.CarPoolStatusId);
+
+            entity.HasOne(e => e.Listing)
+                .WithOne(e => e.CarPoolDetail)
+                .HasForeignKey<CarPoolDetail>(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.CarPoolType)
+                .WithMany(e => e.CarPoolDetails)
+                .HasForeignKey(e => e.CarPoolTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.CarPoolStatus)
+                .WithMany(e => e.CarPoolDetails)
+                .HasForeignKey(e => e.CarPoolStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<RideRequest>(entity =>
+        {
+            entity.ToTable("RideRequest");
+            entity.HasKey(e => e.RideRequestGUID);
+
+            entity.Property(e => e.RideRequestStatusId)
+                .HasDefaultValue(1);
+
+            entity.Property(e => e.RequestMessage)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.CarPoolDetailGUID);
+            entity.HasIndex(e => e.RideRequestStatusId);
+            entity.HasIndex(e => e.RiderUserID);
+            entity.HasIndex(e => new { e.RiderUserID, e.DeletedInd, e.CreatedDate });
+
+            entity.HasOne(e => e.CarPoolDetail)
+                .WithMany(e => e.RideRequests)
+                .HasForeignKey(e => e.CarPoolDetailGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.RideRequestStatus)
+                .WithMany(e => e.RideRequests)
+                .HasForeignKey(e => e.RideRequestStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
