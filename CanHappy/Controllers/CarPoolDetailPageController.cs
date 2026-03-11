@@ -74,6 +74,7 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
                 Address = listing.Address,
                 PostalCode = listing.PostalCode,
                 Price = listing.Price,
+                Quantity = listing.Quantity,
                 ContactPhone = listing.ContactPhone,
                 ContactName = listing.ContactName,
                 ShowContactInd = listing.ShowContactInd
@@ -121,6 +122,28 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
 
         if (listingGuid.HasValue && model.ListingCard is not null)
         {
+            model.CarPoolTypes = await context.CarPoolTypes
+                .AsNoTracking()
+                .Where(item => !item.DeletedInd)
+                .OrderBy(item => item.CarPoolTypeId)
+                .Select(item => new CarPoolLookupOptionViewModel
+                {
+                    Id = item.CarPoolTypeId,
+                    Name = item.Name ?? string.Empty
+                })
+                .ToListAsync();
+
+            model.CarPoolStatuses = await context.CarPoolStatuses
+                .AsNoTracking()
+                .Where(item => !item.DeletedInd)
+                .OrderBy(item => item.CarPoolStatusId)
+                .Select(item => new CarPoolLookupOptionViewModel
+                {
+                    Id = item.CarPoolStatusId,
+                    Name = item.Name ?? string.Empty
+                })
+                .ToListAsync();
+
             var focusDetail = model.Items.FirstOrDefault(item => item.ListingGUID == listingGuid.Value);
             if (focusDetail is not null)
             {
@@ -136,15 +159,39 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
                     model.FocusDetail = ToEditViewModel(detailEntity);
                     model.FocusCarPoolTypeName = detailEntity.CarPoolType?.Name;
                     model.FocusCarPoolStatusName = detailEntity.CarPoolStatus?.Name;
+
+                    var relatedRideRequestsQuery = context.RideRequests
+                        .AsNoTracking()
+                        .Include(item => item.RideRequestStatus)
+                        .Where(item => !item.DeletedInd && item.CarPoolDetailGUID == detailEntity.CarPoolDetailGUID);
+
+                    if (!model.CanManageFocusedListing)
+                    {
+                        relatedRideRequestsQuery = relatedRideRequestsQuery.Where(item => hasUserGuid && item.RiderUserID == currentUserId);
+                    }
+
+                    model.RelatedRideRequests = await relatedRideRequestsQuery
+                        .OrderByDescending(item => item.CreatedDate)
+                        .Select(item => new CarPoolRelatedRideRequestViewModel
+                        {
+                            RideRequestGUID = item.RideRequestGUID,
+                            RiderUserID = item.RiderUserID,
+                            RiderName = item.CreatedBy,
+                            RequestMessage = item.RequestMessage,
+                            RideRequestStatusName = item.RideRequestStatus != null ? item.RideRequestStatus.Name : null,
+                            CreatedDate = item.CreatedDate
+                        })
+                        .ToListAsync();
                 }
             }
             else
             {
+                var (defaultTypeId, defaultStatusId) = await GetDefaultCarPoolSelectionsAsync();
                 model.FocusDetail = new CarPoolDetailEditViewModel
                 {
                     ListingGUID = model.ListingCard.ListingGUID,
-                    CarPoolTypeId = 1,
-                    CarPoolStatusId = 1
+                    CarPoolTypeId = defaultTypeId,
+                    CarPoolStatusId = defaultStatusId
                 };
             }
         }
@@ -161,40 +208,44 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
             return Forbid();
         }
 
-        if (listingGuid.HasValue)
+        if (!listingGuid.HasValue)
         {
-            var listing = await context.Listings
-                .AsNoTracking()
-                .Include(item => item.Category)
-                .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
-
-            if (listing is null)
-            {
-                return NotFound();
-            }
-
-            if (!CanManageListing(listing, currentUserId))
-            {
-                return Forbid();
-            }
-
-            var hasExisting = await context.CarPoolDetails
-                .AsNoTracking()
-                .AnyAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
-
-            if (hasExisting)
-            {
-                TempData["MessageError"] = "The listing details already exist! Edit them if changes needed.";
-                return RedirectToAction(nameof(Index), new { listingGuid = listingGuid.Value });
-            }
+            TempData["MessageError"] = "Please open Create from a Car Pool listing.";
+            return RedirectToAction(nameof(Index));
         }
 
-        await PopulateSelectListsAsync(currentUserId, listingGuid);
+        var listing = await context.Listings
+            .AsNoTracking()
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
+
+        if (listing is null)
+        {
+            return NotFound();
+        }
+
+        if (!CanManageListing(listing, currentUserId))
+        {
+            return Forbid();
+        }
+
+        var hasExisting = await context.CarPoolDetails
+            .AsNoTracking()
+            .AnyAsync(item => item.ListingGUID == listingGuid.Value && !item.DeletedInd);
+
+        if (hasExisting)
+        {
+            TempData["MessageError"] = "The listing details already exist! Edit them if changes needed.";
+            return RedirectToAction(nameof(Index), new { listingGuid = listingGuid.Value });
+        }
+
+        var (defaultTypeId, defaultStatusId) = await GetDefaultCarPoolSelectionsAsync();
+        await PopulateSelectListsAsync(currentUserId, listingGuid, defaultTypeId, defaultStatusId);
         return View("~/Views/CarPoolDetail/Create.cshtml", new CarPoolDetailEditViewModel
         {
-            ListingGUID = listingGuid ?? Guid.Empty,
-            CarPoolTypeId = 1,
-            CarPoolStatusId = 1
+            ListingGUID = listingGuid.Value,
+            CarPoolTypeId = defaultTypeId,
+            CarPoolStatusId = defaultStatusId
         });
     }
 
@@ -206,6 +257,11 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
         if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
         {
             return Forbid();
+        }
+
+        if (model.ListingGUID == Guid.Empty)
+        {
+            ModelState.AddModelError(nameof(model.ListingGUID), "Listing not found.");
         }
 
         var listing = await context.Listings
@@ -326,6 +382,7 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
 
         if (!ModelState.IsValid)
         {
+            model.ListingGUID = entity.ListingGUID;
             await PopulateSelectListsAsync(currentUserId, entity.ListingGUID, model.CarPoolTypeId, model.CarPoolStatusId);
             return View("~/Views/CarPoolDetail/Edit.cshtml", model);
         }
@@ -470,9 +527,9 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
         if (listingImage is null)
         {
             var imageCount = await context.ListingImages.CountAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
-            if (imageCount >= 30)
+            if (imageCount >= 6)
             {
-                TempData["MessageError"] = "You can upload up to 30 photos for a listing.";
+                TempData["MessageError"] = "You can upload up to 6 photos for a listing.";
                 return RedirectToAction(nameof(Index), new { listingGuid });
             }
 
@@ -623,6 +680,45 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
 
         ViewData["CarPoolTypeId"] = new SelectList(carPoolTypes, "CarPoolTypeId", "Name", selectedTypeId);
         ViewData["CarPoolStatusId"] = new SelectList(carPoolStatuses, "CarPoolStatusId", "Name", selectedStatusId);
+    }
+
+    private async Task<(int TypeId, int StatusId)> GetDefaultCarPoolSelectionsAsync()
+    {
+        var defaultTypeId = await context.CarPoolTypes
+            .AsNoTracking()
+            .Where(item => !item.DeletedInd)
+            .Where(item => item.Name == "Offer a Ride")
+            .Select(item => item.CarPoolTypeId)
+            .FirstOrDefaultAsync();
+
+        if (defaultTypeId == 0)
+        {
+            defaultTypeId = await context.CarPoolTypes
+                .AsNoTracking()
+                .Where(item => !item.DeletedInd)
+                .OrderBy(item => item.CarPoolTypeId)
+                .Select(item => item.CarPoolTypeId)
+                .FirstOrDefaultAsync();
+        }
+
+        var defaultStatusId = await context.CarPoolStatuses
+            .AsNoTracking()
+            .Where(item => !item.DeletedInd)
+            .Where(item => item.Name == "Released")
+            .Select(item => item.CarPoolStatusId)
+            .FirstOrDefaultAsync();
+
+        if (defaultStatusId == 0)
+        {
+            defaultStatusId = await context.CarPoolStatuses
+                .AsNoTracking()
+                .Where(item => !item.DeletedInd)
+                .OrderBy(item => item.CarPoolStatusId)
+                .Select(item => item.CarPoolStatusId)
+                .FirstOrDefaultAsync();
+        }
+
+        return (defaultTypeId, defaultStatusId);
     }
 
     private async Task<string?> SaveListingImageFromDataUrlAsync(string dataUrl)

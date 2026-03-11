@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Create Ride Request";
-    var lockCarPoolDetail = ViewData["LockCarPoolDetail"] as bool? ?? false;
 }
 
 <h1 class="mb-3">Create Ride Request</h1>
@@ -12,35 +11,19 @@
 
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    @if (lockCarPoolDetail)
-    {
-        <input type="hidden" asp-for="CarPoolDetailGUID" />
-        <div class="col-12">
-            <label class="form-label">Car Pool Detail</label>
-            <select class="form-select" asp-items="ViewBag.CarPoolDetailGUID" disabled></select>
-        </div>
-    }
-    else
-    {
-        <div class="col-12">
-            <label asp-for="CarPoolDetailGUID" class="form-label">Car Pool Detail</label>
-            <select asp-for="CarPoolDetailGUID" class="form-select" asp-items="ViewBag.CarPoolDetailGUID">
-                <option value="">Select a car pool detail</option>
-            </select>
-            <span asp-validation-for="CarPoolDetailGUID" class="text-danger"></span>
-        </div>
-    }
+    <input type="hidden" asp-for="CarPoolDetailGUID" />
+    <span asp-validation-for="CarPoolDetailGUID" class="text-danger"></span>
 
     <input type="hidden" asp-for="RideRequestStatusId" />
     <input type="hidden" asp-for="RiderUserID" />
 
     <div class="col-12">
-        <label class="form-label">Initial Status</label>
+        <label class="form-label fw-bold">Initial Status</label>
         <input class="form-control" value="Ride Requested by Rider" readonly />
     </div>
 
     <div class="col-12">
-        <label asp-for="RequestMessage" class="form-label"></label>
+        <label asp-for="RequestMessage" class="form-label fw-bold">Request Message</label>
         <textarea asp-for="RequestMessage" class="form-control" rows="4" maxlength="200"></textarea>
         <span asp-validation-for="RequestMessage" class="text-danger"></span>
     </div>

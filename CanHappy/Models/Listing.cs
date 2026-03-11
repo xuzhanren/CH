@@ -49,7 +49,7 @@ public class Listing
     public string? Brand { get; set; }
 
     [StringLength(10)]
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
 
     [StringLength(30)]
     public string? Model { get; set; }
@@ -60,7 +60,7 @@ public class Listing
 
     public decimal? Price { get; set; }
 
-    public decimal DiscountPercent { get; set; }
+    public decimal? DiscountPercent { get; set; }
 
     public DateTime? DiscountBeginDate { get; set; }
 

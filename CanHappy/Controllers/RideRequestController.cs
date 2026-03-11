@@ -42,14 +42,35 @@ public class RideRequestController(
     [HttpGet("Create")]
     public async Task<IActionResult> Create(Guid? carPoolDetailGuid)
     {
+        if (!carPoolDetailGuid.HasValue)
+        {
+            TempData["MessageError"] = "Please open Request a Ride from a Car Pool detail page.";
+            return RedirectToAction("Index", "CarPoolDetailPage");
+        }
+
+        var carPoolDetail = await context.CarPoolDetails
+            .AsNoTracking()
+            .Include(item => item.Listing)
+            .FirstOrDefaultAsync(item => item.CarPoolDetailGUID == carPoolDetailGuid.Value && !item.DeletedInd);
+
+        if (carPoolDetail is null || carPoolDetail.Listing is null || carPoolDetail.Listing.DeletedInd)
+        {
+            TempData["MessageError"] = "Selected car pool detail is not available.";
+            return RedirectToAction("Index", "CarPoolDetailPage");
+        }
+
+        var carPoolDetailUrl = BuildCarPoolDetailUrl(carPoolDetail.ListingGUID);
+
         var model = new RideRequest
         {
-            CarPoolDetailGUID = carPoolDetailGuid ?? Guid.Empty,
+            CarPoolDetailGUID = carPoolDetailGuid.Value,
             RideRequestStatusId = 1,
-            RiderUserID = TryGetCurrentUserGuid(out var currentUserId) ? currentUserId : Guid.Empty
+            RiderUserID = TryGetCurrentUserGuid(out var currentUserId) ? currentUserId : Guid.Empty,
+            RequestMessage = $"CarPoolDetail URL: {carPoolDetailUrl}"
         };
 
-        await PopulateSelectionsAsync(model.CarPoolDetailGUID, model.RideRequestStatusId, carPoolDetailGuid.HasValue);
+        await PopulateSelectionsAsync(model.CarPoolDetailGUID, model.RideRequestStatusId, true);
+        ViewData["CarPoolDetailUrl"] = carPoolDetailUrl;
         return View("~/Views/RideRequest/Create.cshtml", model);
     }
 
@@ -69,6 +90,7 @@ public class RideRequestController(
 
         if (!ModelState.IsValid)
         {
+            ViewData["CarPoolDetailUrl"] = await ResolveCarPoolDetailUrlAsync(model.CarPoolDetailGUID);
             await PopulateSelectionsAsync(model.CarPoolDetailGUID, 1, model.CarPoolDetailGUID != Guid.Empty);
             return View("~/Views/RideRequest/Create.cshtml", model);
         }
@@ -81,8 +103,18 @@ public class RideRequestController(
         if (carPoolDetail is null || carPoolDetail.Listing is null || carPoolDetail.Listing.DeletedInd)
         {
             ModelState.AddModelError(nameof(RideRequest.CarPoolDetailGUID), "Selected car pool detail is not available.");
+            ViewData["CarPoolDetailUrl"] = await ResolveCarPoolDetailUrlAsync(model.CarPoolDetailGUID);
             await PopulateSelectionsAsync(model.CarPoolDetailGUID, 1, model.CarPoolDetailGUID != Guid.Empty);
             return View("~/Views/RideRequest/Create.cshtml", model);
+        }
+
+        var carPoolDetailUrl = BuildCarPoolDetailUrl(carPoolDetail.ListingGUID);
+        if (string.IsNullOrWhiteSpace(model.RequestMessage) || !model.RequestMessage.Contains(carPoolDetailUrl, StringComparison.OrdinalIgnoreCase))
+        {
+            var trimmed = model.RequestMessage?.Trim();
+            model.RequestMessage = string.IsNullOrWhiteSpace(trimmed)
+                ? $"CarPoolDetail URL: {carPoolDetailUrl}"
+                : $"{trimmed}{Environment.NewLine}CarPoolDetail URL: {carPoolDetailUrl}";
         }
 
         model.RideRequestGUID = Guid.NewGuid();
@@ -313,5 +345,35 @@ public class RideRequestController(
         userId = Guid.Empty;
         var userIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return !string.IsNullOrWhiteSpace(userIdText) && Guid.TryParse(userIdText, out userId);
+    }
+
+    private string BuildCarPoolDetailUrl(Guid? listingGuid)
+    {
+        if (!listingGuid.HasValue || listingGuid.Value == Guid.Empty)
+        {
+            return $"{Request.Scheme}://{Request.Host}/CarPoolDetail";
+        }
+
+        return Url.Action(
+            "Index",
+            "CarPoolDetailPage",
+            new { listingGuid = listingGuid.Value },
+            Request.Scheme) ?? $"{Request.Scheme}://{Request.Host}/CarPoolDetail/Index?listingGuid={listingGuid.Value}";
+    }
+
+    private async Task<string> ResolveCarPoolDetailUrlAsync(Guid carPoolDetailGuid)
+    {
+        if (carPoolDetailGuid == Guid.Empty)
+        {
+            return BuildCarPoolDetailUrl(null);
+        }
+
+        var listingGuid = await context.CarPoolDetails
+            .AsNoTracking()
+            .Where(item => item.CarPoolDetailGUID == carPoolDetailGuid && !item.DeletedInd)
+            .Select(item => (Guid?)item.ListingGUID)
+            .FirstOrDefaultAsync();
+
+        return BuildCarPoolDetailUrl(listingGuid);
     }
 }

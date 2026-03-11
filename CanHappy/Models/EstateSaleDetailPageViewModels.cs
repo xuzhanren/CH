@@ -40,7 +40,7 @@ public class EstateSaleDetailEditViewModel
     public int CityId { get; set; }
     public decimal? Price { get; set; }
     public string? Brand { get; set; }
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
     public int? ManufactureYear { get; set; }
     public string? ListingModel { get; set; }
     public int Quantity { get; set; }

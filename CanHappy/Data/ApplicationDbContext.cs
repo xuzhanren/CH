@@ -419,8 +419,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasMaxLength(50);
 
             entity.Property(e => e.Condition)
-                .HasMaxLength(10)
-                .HasDefaultValue("Used");
+                .HasMaxLength(10);
 
             entity.Property(e => e.Model)
                 .HasMaxLength(30);
@@ -432,8 +431,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasColumnType("money");
 
             entity.Property(e => e.DiscountPercent)
-                .HasPrecision(5, 2)
-                .HasDefaultValue(0.00m);
+                .HasPrecision(5, 2);
 
             entity.Property(e => e.CreatedBy)
                 .HasMaxLength(100);

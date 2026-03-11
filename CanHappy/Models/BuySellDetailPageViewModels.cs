@@ -32,11 +32,11 @@ public class BuySellDetailListingCardViewModel
     public string? Address { get; set; }
     public string? PostalCode { get; set; }
     public decimal? Price { get; set; }
-    public decimal DiscountPercent { get; set; }
+    public decimal? DiscountPercent { get; set; }
     public DateTime? DiscountBeginDate { get; set; }
     public DateTime? DiscountEndDate { get; set; }
     public string? Brand { get; set; }
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
     public int? ManufactureYear { get; set; }
     public string? Model { get; set; }
     public int Quantity { get; set; }
@@ -65,7 +65,7 @@ public class BuySellDetailIndexItemViewModel
     public int CityId { get; set; }
     public decimal? Price { get; set; }
     public string? Brand { get; set; }
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
     public int? ManufactureYear { get; set; }
     public string? ListingModel { get; set; }
     public int Quantity { get; set; }
@@ -98,7 +98,7 @@ public class BuySellDetailEditViewModel
     public int CityId { get; set; }
     public decimal? Price { get; set; }
     public string? Brand { get; set; }
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
     public int? ManufactureYear { get; set; }
     public string? ListingModel { get; set; }
     public int Quantity { get; set; }
@@ -152,7 +152,7 @@ public class CarVehicleDetailIndexItemViewModel
     public int CityId { get; set; }
     public decimal? Price { get; set; }
     public string? Brand { get; set; }
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
     public int? ManufactureYear { get; set; }
     public string? ListingModel { get; set; }
     public int Quantity { get; set; }
@@ -202,7 +202,7 @@ public class CarVehicleDetailEditViewModel
     public int CityId { get; set; }
     public decimal? Price { get; set; }
     public string? Brand { get; set; }
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
     public int? ManufactureYear { get; set; }
     public string? ListingModel { get; set; }
     public int Quantity { get; set; }
@@ -277,7 +277,7 @@ public class HomeRentalDetailIndexItemViewModel
     public int CityId { get; set; }
     public decimal? Price { get; set; }
     public string? Brand { get; set; }
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
     public int? ManufactureYear { get; set; }
     public string? ListingModel { get; set; }
     public int Quantity { get; set; }
@@ -324,7 +324,7 @@ public class HomeRentalDetailEditViewModel
     public int CityId { get; set; }
     public decimal? Price { get; set; }
     public string? Brand { get; set; }
-    public string Condition { get; set; } = "Used";
+    public string? Condition { get; set; }
     public int? ManufactureYear { get; set; }
     public string? ListingModel { get; set; }
     public int Quantity { get; set; }

@@ -11,23 +11,18 @@
 
     <input type="hidden" asp-for="RideRequestGUID" />
     <input type="hidden" asp-for="RiderUserID" />
+    <input type="hidden" asp-for="CarPoolDetailGUID" />
 
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="col-12">
-        <label asp-for="CarPoolDetailGUID" class="form-label">Car Pool Detail</label>
-        <select asp-for="CarPoolDetailGUID" class="form-select" asp-items="ViewBag.CarPoolDetailGUID"></select>
-        <span asp-validation-for="CarPoolDetailGUID" class="text-danger"></span>
-    </div>
-
-    <div class="col-12">
-        <label asp-for="RideRequestStatusId" class="form-label">Status</label>
+        <label asp-for="RideRequestStatusId" class="form-label fw-bold">Status</label>
         <select asp-for="RideRequestStatusId" class="form-select" asp-items="ViewBag.RideRequestStatusId"></select>
         <span asp-validation-for="RideRequestStatusId" class="text-danger"></span>
     </div>
 
     <div class="col-12">
-        <label asp-for="RequestMessage" class="form-label"></label>
+        <label asp-for="RequestMessage" class="form-label fw-bold">Request Message</label>
         <textarea asp-for="RequestMessage" class="form-control" rows="4" maxlength="200"></textarea>
         <span asp-validation-for="RequestMessage" class="text-danger"></span>
     </div>

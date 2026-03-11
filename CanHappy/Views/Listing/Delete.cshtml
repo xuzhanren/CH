@@ -4,8 +4,8 @@
     ViewData["Title"] = "Delete";
     var addressMapQuery = $"{Model.Address} {Model.City?.Name} {Model.Province?.Name} {Model.PostalCode}".Trim();
     var addressMapUrl = string.IsNullOrWhiteSpace(addressMapQuery)
-        ? string.Empty
-        : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
+    ? string.Empty
+    : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
 }
 
 <h1>Delete</h1>
@@ -25,26 +25,28 @@
             <div class="col-md-6"><strong>Description:</strong> @Model.Description</div>
             <div class="col-md-6"><strong>KeyWords:</strong> @Model.KeyWords</div>
             <div class="col-md-6"><strong>Postal Code:</strong> @Model.PostalCode</div>
-            <div class="col-md-6"><strong>Price:</strong> @(Model.Price.HasValue ? Model.Price.Value.ToString("C2") : "-")</div>
-            <div class="col-md-6"><strong>Discount Percent:</strong> @Model.DiscountPercent</div>
-            <div class="col-md-6"><strong>Category:</strong> @Model.Category?.Name</div>
-            <div class="col-md-6"><strong>Subcategory:</strong> @Model.Subcategory?.Name</div>
-            <div class="col-md-6"><strong>Province:</strong> @Model.Province?.Name</div>
-            <div class="col-md-6"><strong>City:</strong> @Model.City?.Name</div>
-            <div class="col-md-6">
-                <strong>Address:</strong> @Model.Address
-                @if (!string.IsNullOrWhiteSpace(Model.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
-                {
-                    <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
-                }
+            <div class="col-md-6"><strong>Price:</strong> @(Model.Price.HasValue ? Model.Price.Value.ToString("C2") :
+                "-")</div>
+                <div class="col-md-6"><strong>Discount Percent:</strong> @(Model.DiscountPercent.HasValue ?
+                                Model.DiscountPercent.Value.ToString("0.##") : "-")</div>
+                    <div class="col-md-6"><strong>Category:</strong> @Model.Category?.Name</div>
+                    <div class="col-md-6"><strong>Subcategory:</strong> @Model.Subcategory?.Name</div>
+                    <div class="col-md-6"><strong>Province:</strong> @Model.Province?.Name</div>
+                    <div class="col-md-6"><strong>City:</strong> @Model.City?.Name</div>
+                    <div class="col-md-6">
+                        <strong>Address:</strong> @Model.Address
+                        @if (!string.IsNullOrWhiteSpace(Model.Address) && !string.IsNullOrWhiteSpace(addressMapUrl))
+                        {
+                            <a href="@addressMapUrl" target="_blank" rel="noopener noreferrer" class="ms-2">Google map</a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <form asp-action="Delete" class="d-inline">
+                    <input type="hidden" asp-for="ListingGUID" />
+                    <input type="submit" value="Delete" class="btn btn-danger" />
+                </form>
+                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
             </div>
         </div>
-    </div>
-    <div class="card-footer bg-transparent">
-        <form asp-action="Delete" class="d-inline">
-            <input type="hidden" asp-for="ListingGUID" />
-            <input type="submit" value="Delete" class="btn btn-danger" />
-        </form>
-        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
-    </div>
-</div>

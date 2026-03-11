@@ -12,8 +12,27 @@ public class CarPoolDetailIndexPageViewModel
     public string? FocusCarPoolStatusName { get; set; }
     public bool CanManageFocusedListing { get; set; }
     public bool HasExistingFocusDetail { get; set; }
+    public List<CarPoolLookupOptionViewModel> CarPoolTypes { get; set; } = [];
+    public List<CarPoolLookupOptionViewModel> CarPoolStatuses { get; set; } = [];
+    public List<CarPoolRelatedRideRequestViewModel> RelatedRideRequests { get; set; } = [];
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
     public List<CarPoolDetailIndexItemViewModel> Items { get; set; } = [];
+}
+
+public class CarPoolRelatedRideRequestViewModel
+{
+    public Guid RideRequestGUID { get; set; }
+    public Guid RiderUserID { get; set; }
+    public string? RiderName { get; set; }
+    public string? RequestMessage { get; set; }
+    public string? RideRequestStatusName { get; set; }
+    public DateTime CreatedDate { get; set; }
+}
+
+public class CarPoolLookupOptionViewModel
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }
 
 public class CarPoolListingCardViewModel
@@ -30,6 +49,7 @@ public class CarPoolListingCardViewModel
     public string? Address { get; set; }
     public string? PostalCode { get; set; }
     public decimal? Price { get; set; }
+    public int Quantity { get; set; }
     public string? ContactPhone { get; set; }
     public string? ContactName { get; set; }
     public bool ShowContactInd { get; set; }
