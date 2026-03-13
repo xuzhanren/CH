@@ -73,6 +73,50 @@
         opacity: 1;
         will-change: opacity, transform, filter;
     }
+
+    .similar-car-pool-offers-scroller {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .similar-car-pool-offers-track {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.75rem;
+        min-height: 1px;
+    }
+
+    .similar-car-pool-offer-item {
+        flex: 0 0 150px;
+        width: 150px;
+    }
+
+    .similar-car-pool-offer-thumb-link {
+        display: block;
+        width: 150px;
+        height: 110px;
+        border: 1px solid var(--bs-border-color);
+        background-color: #f8f9fa;
+        text-decoration: none;
+    }
+
+    .similar-car-pool-offer-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
+    .similar-car-pool-offer-subject {
+        margin-top: 0.35rem;
+        font-size: 0.85rem;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -576,7 +620,7 @@
 
                     <div class="card shadow-sm mb-3">
                         <div class="card-header">
-                            <strong>Related Ride Requests</strong>
+                            <strong>Ride Requests</strong>
                         </div>
                         <div class="card-body">
                             @if (!Model.HasExistingFocusDetail)
@@ -629,6 +673,110 @@
                                     }
                                 </div>
                             </div>
+
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-header">
+                                    <strong>Similar Car Pool Offers</strong>
+                                </div>
+                                <div class="card-body">
+                                    <div id="similarCarPoolOffersLoading" class="text-muted">Loading similar offers...</div>
+                                    <div id="similarCarPoolOffersEmpty" class="text-muted d-none">No similar offers found.</div>
+                                    <div id="similarCarPoolOffersScroller" class="similar-car-pool-offers-scroller d-none">
+                                        <div id="similarCarPoolOffersTrack" class="similar-car-pool-offers-track"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <script>
+                                (() => {
+                                    const loadingElement = document.getElementById("similarCarPoolOffersLoading");
+                                    const emptyElement = document.getElementById("similarCarPoolOffersEmpty");
+                                    const scrollerElement = document.getElementById("similarCarPoolOffersScroller");
+                                    const trackElement = document.getElementById("similarCarPoolOffersTrack");
+                                    const similarOffersUrl = "@Url.Action("SimilarOffers", "CarPoolDetailPage", new { listingGuid = Model.ListingCard.ListingGUID })";
+
+                                    if (!loadingElement || !emptyElement || !scrollerElement || !trackElement) {
+                                        return;
+                                    }
+
+                                    const buildOfferItem = (item) => {
+                                        const offerItem = document.createElement("div");
+                                        offerItem.className = "similar-car-pool-offer-item";
+
+                                        const offerLink = document.createElement("a");
+                                        offerLink.className = "similar-car-pool-offer-thumb-link";
+                                        offerLink.href = "@Url.Action("Index", "CarPoolDetailPage")" + "?listingGuid=" + encodeURIComponent(item.listingGuid);
+                                        offerLink.title = item.subject || "Open listing";
+
+                                        if (item.thumbnailURL) {
+                                            const offerImage = document.createElement("img");
+                                            offerImage.className = "similar-car-pool-offer-thumb";
+                                            offerImage.src = item.thumbnailURL;
+                                            offerImage.alt = item.subject || "Listing thumbnail";
+                                            offerLink.appendChild(offerImage);
+                                        } else {
+                                            const placeholder = document.createElement("div");
+                                            placeholder.className = "w-100 h-100 d-flex align-items-center justify-content-center text-muted small";
+                                            placeholder.textContent = "No image";
+                                            offerLink.appendChild(placeholder);
+                                        }
+
+                                        const offerSubject = document.createElement("div");
+                                        offerSubject.className = "similar-car-pool-offer-subject";
+                                        offerSubject.textContent = item.subject || "(No subject)";
+
+                                        offerItem.appendChild(offerLink);
+                                        offerItem.appendChild(offerSubject);
+
+                                        return offerItem;
+                                    };
+
+                                    const loadSimilarOffers = async () => {
+                                        try {
+                                            const response = await fetch(similarOffersUrl, { method: "GET" });
+                                            if (!response.ok) {
+                                                loadingElement.classList.add("d-none");
+                                                emptyElement.classList.remove("d-none");
+                                                return;
+                                            }
+
+                                            const payload = await response.json();
+                                            if (!Array.isArray(payload) || payload.length === 0) {
+                                                loadingElement.classList.add("d-none");
+                                                emptyElement.classList.remove("d-none");
+                                                return;
+                                            }
+
+                                            const offerItems = payload
+                                                .filter((item) => item && item.listingGuid)
+                                                .filter((item, index, array) => array.findIndex((candidate) => candidate.listingGuid === item.listingGuid) === index)
+                                                .slice(0, 8);
+
+                                            if (offerItems.length === 0) {
+                                                loadingElement.classList.add("d-none");
+                                                emptyElement.classList.remove("d-none");
+                                                return;
+                                            }
+
+                                            trackElement.innerHTML = "";
+                                            offerItems.forEach((item) => {
+                                                trackElement.appendChild(buildOfferItem(item));
+                                            });
+
+                                            loadingElement.classList.add("d-none");
+                                            emptyElement.classList.add("d-none");
+                                            scrollerElement.classList.remove("d-none");
+                                        } catch {
+                                            loadingElement.classList.add("d-none");
+                                            emptyElement.classList.remove("d-none");
+                                        }
+                                    };
+
+                                    window.addEventListener("load", () => {
+                                        loadSimilarOffers();
+                                    });
+                                })();
+                            </script>
 
                             <div class="modal fade" id="postalCodeMapModal" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-lg modal-dialog-centered">

@@ -267,6 +267,67 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
         return Json(scoredAds);
     }
 
+    [HttpGet("SimilarOffers/{listingGuid:guid}")]
+    public async Task<IActionResult> SimilarOffers(Guid listingGuid)
+    {
+        var listing = await context.Listings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+
+        if (listing is null)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var candidateListings = await context.Listings
+            .AsNoTracking()
+            .Where(item => !item.DeletedInd
+                && item.ListingGUID != listing.ListingGUID
+                && context.CarPoolDetails.Any(detail => detail.ListingGUID == item.ListingGUID && !detail.DeletedInd)
+                && item.ProvinceId == listing.ProvinceId
+                && item.CityId == listing.CityId
+                && item.CategoryId == listing.CategoryId
+                && item.SubcategoryId == listing.SubcategoryId)
+            .Select(item => new
+            {
+                Listing = item,
+                ThumbnailURL = context.ListingImages
+                    .Where(image => image.ListingGUID == item.ListingGUID && !image.DeletedInd)
+                    .OrderBy(image => image.SorOrder)
+                    .ThenBy(image => image.CreatedDate)
+                    .Select(image => !string.IsNullOrWhiteSpace(image.ThumbnailURL) ? image.ThumbnailURL : image.ImageURL)
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
+
+        if (candidateListings.Count == 0)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var similarListings = candidateListings
+            .Select(item => new
+            {
+                item.Listing,
+                item.ThumbnailURL,
+                Score = ComputeListingSimilarityScore(listing, item.Listing)
+            })
+            .OrderByDescending(item => item.Score)
+            .Take(24)
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(8)
+            .Select(item => new
+            {
+                listingGuid = item.Listing.ListingGUID,
+                subject = item.Listing.Subject,
+                thumbnailURL = item.ThumbnailURL,
+                score = item.Score
+            })
+            .ToList();
+
+        return Json(similarListings);
+    }
+
     [HttpGet("Create")]
     [Authorize]
     public async Task<IActionResult> Create(Guid? listingGuid)
@@ -803,6 +864,24 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
         score += ComputePairTextScore(listing.Subject, ad.Subject, exactWeight: 4, partialWeight: 2);
         score += ComputePairTextScore(listing.KeyWords, ad.KeyWords, exactWeight: 5, partialWeight: 2);
         score += ComputePairTextScore(listing.Description, ad.Description, exactWeight: 3, partialWeight: 1);
+
+        return score;
+    }
+
+    private static int ComputeListingSimilarityScore(Listing sourceListing, Listing candidateListing)
+    {
+        var sourceWords = BuildWordSet(sourceListing.Subject, sourceListing.KeyWords, sourceListing.Description);
+        var candidateWords = BuildWordSet(candidateListing.Subject, candidateListing.KeyWords, candidateListing.Description);
+
+        var score = 0;
+        if (sourceWords.Count > 0 && candidateWords.Count > 0)
+        {
+            score += sourceWords.Intersect(candidateWords, StringComparer.OrdinalIgnoreCase).Count() * 10;
+        }
+
+        score += ComputePairTextScore(sourceListing.Subject, candidateListing.Subject, exactWeight: 4, partialWeight: 2);
+        score += ComputePairTextScore(sourceListing.KeyWords, candidateListing.KeyWords, exactWeight: 5, partialWeight: 2);
+        score += ComputePairTextScore(sourceListing.Description, candidateListing.Description, exactWeight: 3, partialWeight: 1);
 
         return score;
     }
