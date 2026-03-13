@@ -847,23 +847,23 @@ public class AdminController(
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> CreateListing(Listing model)
+    public async Task<IActionResult> CreateListing(Listing listingInput)
     {
         if (!ModelState.IsValid)
         {
-            await PopulateListingLookupSelectListsAsync(model.CategoryId, model.SubcategoryId, model.ProvinceId, model.CityId);
-            return View(model);
+            await PopulateListingLookupSelectListsAsync(listingInput.CategoryId, listingInput.SubcategoryId, listingInput.ProvinceId, listingInput.CityId);
+            return View(listingInput);
         }
 
-        model.ListingGUID = Guid.NewGuid();
-        model.UserId = model.UserId == Guid.Empty ? Guid.NewGuid() : model.UserId;
-        model.CreatedBy = User.Identity?.Name ?? "admin";
-        model.CreatedDate = CanHappy.Common.EasternTime.Now;
-        model.ModifiedBY = null;
-        model.ModifiedDate = null;
-        model.DeletedInd = false;
+        listingInput.ListingGUID = Guid.NewGuid();
+        listingInput.UserId = listingInput.UserId == Guid.Empty ? Guid.NewGuid() : listingInput.UserId;
+        listingInput.CreatedBy = User.Identity?.Name ?? "admin";
+        listingInput.CreatedDate = CanHappy.Common.EasternTime.Now;
+        listingInput.ModifiedBY = null;
+        listingInput.ModifiedDate = null;
+        listingInput.DeletedInd = false;
 
-        context.Listings.Add(model);
+        context.Listings.Add(listingInput);
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Listings));
     }
@@ -885,7 +885,7 @@ public class AdminController(
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> EditListing(Guid id, Listing model)
+    public async Task<IActionResult> EditListing(Guid id, Listing listingInput)
     {
         var listing = await context.Listings.FirstOrDefaultAsync(item => item.ListingGUID == id && !item.DeletedInd);
         if (listing is null)
@@ -895,24 +895,24 @@ public class AdminController(
 
         if (!ModelState.IsValid)
         {
-            await PopulateListingLookupSelectListsAsync(model.CategoryId, model.SubcategoryId, model.ProvinceId, model.CityId);
-            model.ListingGUID = id;
-            return View(model);
+            await PopulateListingLookupSelectListsAsync(listingInput.CategoryId, listingInput.SubcategoryId, listingInput.ProvinceId, listingInput.CityId);
+            listingInput.ListingGUID = id;
+            return View(listingInput);
         }
 
-        listing.CategoryId = model.CategoryId;
-        listing.SubcategoryId = model.SubcategoryId;
-        listing.Subject = model.Subject;
-        listing.Description = model.Description;
-        listing.KeyWords = model.KeyWords;
-        listing.ProvinceId = model.ProvinceId;
-        listing.CityId = model.CityId;
-        listing.Address = model.Address;
-        listing.PostalCode = model.PostalCode;
-        listing.ViewCount = model.ViewCount;
-        listing.ClickCount = model.ClickCount;
-        listing.SampleInd = model.SampleInd;
-        listing.UserId = model.UserId == Guid.Empty ? listing.UserId : model.UserId;
+        listing.CategoryId = listingInput.CategoryId;
+        listing.SubcategoryId = listingInput.SubcategoryId;
+        listing.Subject = listingInput.Subject;
+        listing.Description = listingInput.Description;
+        listing.KeyWords = listingInput.KeyWords;
+        listing.ProvinceId = listingInput.ProvinceId;
+        listing.CityId = listingInput.CityId;
+        listing.Address = listingInput.Address;
+        listing.PostalCode = listingInput.PostalCode;
+        listing.ViewCount = listingInput.ViewCount;
+        listing.ClickCount = listingInput.ClickCount;
+        listing.SampleInd = listingInput.SampleInd;
+        listing.UserId = listingInput.UserId == Guid.Empty ? listing.UserId : listingInput.UserId;
         listing.ModifiedBY = User.Identity?.Name ?? "admin";
         listing.ModifiedDate = CanHappy.Common.EasternTime.Now;
 

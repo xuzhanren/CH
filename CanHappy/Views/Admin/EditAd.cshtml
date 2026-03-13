@@ -40,7 +40,7 @@
 
 <h1>@ViewData["Title"]</h1>
 
-<form asp-action="EditAd" method="post" asp-route-id="@Model.AdGUID">
+<form asp-action="EditAd" method="post" asp-route-id="@Model?.AdGUID">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="AdGUID" />
@@ -347,70 +347,70 @@
         @section Scripts {
             <partial name="_ValidationScriptsPartial" />
             <script>
-                            (() => {
-                                const subcategories = @Html.Raw(JsonSerializer.Serialize(subcategoryLookup));
-                                const cities = @Html.Raw(JsonSerializer.Serialize(cityLookup));
+                                        (() => {
+                                            const subcategories = @Html.Raw(JsonSerializer.Serialize(subcategoryLookup));
+                                            const cities = @Html.Raw(JsonSerializer.Serialize(cityLookup));
 
-                                const categorySelect = document.getElementById("CategoryId");
-                                const subcategorySelect = document.getElementById("SubcategoryId");
-                                const provinceSelect = document.getElementById("ProvinceId");
-                                const citySelect = document.getElementById("CityId");
+                                            const categorySelect = document.getElementById("CategoryId");
+                                            const subcategorySelect = document.getElementById("SubcategoryId");
+                                            const provinceSelect = document.getElementById("ProvinceId");
+                                            const citySelect = document.getElementById("CityId");
 
-                                const selectedSubcategoryId = Number(subcategorySelect?.value || 0);
-                                const selectedCityId = Number(citySelect?.value || 0);
+                                            const selectedSubcategoryId = Number(subcategorySelect?.value || 0);
+                                            const selectedCityId = Number(citySelect?.value || 0);
 
-                                const populate = (target, items, placeholder, valueKey = "id") => {
-                                    if (!target) {
-                                        return;
-                                    }
+                                            const populate = (target, items, placeholder, valueKey = "id") => {
+                                                if (!target) {
+                                                    return;
+                                                }
 
-                                    target.innerHTML = "";
+                                                target.innerHTML = "";
 
-                                    const placeholderOption = document.createElement("option");
-                                    placeholderOption.value = "";
-                                    placeholderOption.textContent = placeholder;
-                                    target.appendChild(placeholderOption);
+                                                const placeholderOption = document.createElement("option");
+                                                placeholderOption.value = "";
+                                                placeholderOption.textContent = placeholder;
+                                                target.appendChild(placeholderOption);
 
-                                    items.forEach(item => {
-                                        const option = document.createElement("option");
-                                        option.value = item[valueKey];
-                                        option.textContent = item.name;
-                                        target.appendChild(option);
-                                    });
-                                };
+                                                items.forEach(item => {
+                                                    const option = document.createElement("option");
+                                                    option.value = item[valueKey];
+                                                    option.textContent = item.name;
+                                                    target.appendChild(option);
+                                                });
+                                            };
 
-                                const refreshSubcategories = (selectedId = 0) => {
-                                    const categoryId = Number(categorySelect?.value || 0);
-                                    const filtered = categoryId > 0
-                                        ? subcategories.filter(item => item.categoryId === categoryId)
-                                        : [];
+                                            const refreshSubcategories = (selectedId = 0) => {
+                                                const categoryId = Number(categorySelect?.value || 0);
+                                                const filtered = categoryId > 0
+                                                    ? subcategories.filter(item => item.categoryId === categoryId)
+                                                    : [];
 
-                                    populate(subcategorySelect, filtered, "Select Subcategory");
+                                                populate(subcategorySelect, filtered, "Select Subcategory");
 
-                                    if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
-                                        subcategorySelect.value = String(selectedId);
-                                    }
-                                };
+                                                if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                                                    subcategorySelect.value = String(selectedId);
+                                                }
+                                            };
 
-                                const refreshCities = (selectedId = 0) => {
-                                    const provinceId = Number(provinceSelect?.value || 0);
-                                    const filtered = provinceId > 0
-                                        ? cities.filter(item => item.provinceId === provinceId)
-                                        : [];
+                                            const refreshCities = (selectedId = 0) => {
+                                                const provinceId = Number(provinceSelect?.value || 0);
+                                                const filtered = provinceId > 0
+                                                    ? cities.filter(item => item.provinceId === provinceId)
+                                                    : [];
 
-                                    populate(citySelect, filtered, "Select City");
+                                                populate(citySelect, filtered, "Select City");
 
-                                    if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
-                                        citySelect.value = String(selectedId);
-                                    }
-                                };
+                                                if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                                                    citySelect.value = String(selectedId);
+                                                }
+                                            };
 
-                                categorySelect?.addEventListener("change", () => refreshSubcategories());
-                                provinceSelect?.addEventListener("change", () => refreshCities());
+                                            categorySelect?.addEventListener("change", () => refreshSubcategories());
+                                            provinceSelect?.addEventListener("change", () => refreshCities());
 
-                                refreshSubcategories(selectedSubcategoryId);
-                                refreshCities(selectedCityId);
-                            })();
+                                            refreshSubcategories(selectedSubcategoryId);
+                                            refreshCities(selectedCityId);
+                                        })();
             </script>
             <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
             <script>

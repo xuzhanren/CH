@@ -9,12 +9,21 @@ using System.Security.Claims;
 namespace CanHappy.Controllers;
 
 [Route("CarPoolDetail")]
-public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
+public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment, IConfiguration configuration) : Controller
 {
     [HttpGet("")]
     [HttpGet("Index")]
     public async Task<IActionResult> Index(Guid? listingGuid, bool mine = false)
     {
+        ViewData["CarPoolDetailSliderWaitSeconds"] = Math.Max(0, configuration.GetValue<int?>("CarPoolDetailSliderWaitSeconds") ?? 2);
+        ViewData["CarPoolDetailAdSlidingInterval"] = Math.Max(1, configuration.GetValue<int?>("CarPoolDetailAdSlidingInterval") ?? 5);
+        ViewData["CarPoolDetailAdSliderFadingMode"] = configuration.GetValue<string>("CarPoolDetailAdSliderFadingMode") ?? "homeAdFade";
+        ViewData["CarPoolDetailAdPixelResolveTransitionPeriodMiliSeconds"] = Math.Max(100, configuration.GetValue<int?>("carPoolDetailAdPixelResolveTransitionPeriodMiliSeconds") ?? 1000);
+        ViewData["CarPoolDetailAdFadeTransitionMilliSeconds"] = Math.Max(100, configuration.GetValue<int?>("carPoolDetailAdFadeTransitionMilliSeconds") ?? 450);
+        ViewData["CarPoolDetailSlideTransitionMilliSeconds"] = Math.Max(100, configuration.GetValue<int?>("carPoolDetailSlideTransitionMilliSeconds") ?? 650);
+        ViewData["CarPoolDetailAdSlideDistancePercent"] = Math.Clamp(configuration.GetValue<int?>("carPoolDetailAdSlideDistancePercent") ?? 8, 1, 30);
+        ViewData["CarPoolDetailAdTransitionEasing"] = configuration.GetValue<string>("carPoolDetailAdTransitionEasing") ?? "ease-in-out";
+
         var hasUserGuid = TryGetCurrentUserGuid(out var currentUserId);
         var canManageByRole = User.IsInRole("Admin") || User.IsInRole("Clerk");
 
@@ -197,6 +206,65 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
         }
 
         return View("~/Views/CarPoolDetail/Index.cshtml", model);
+    }
+
+    [HttpGet("DetailPageSliderAds/{listingGuid:guid}")]
+    public async Task<IActionResult> DetailPageSliderAds(Guid listingGuid)
+    {
+        var listing = await context.Listings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+
+        if (listing is null)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var today = CanHappy.Common.EasternTime.Now.Date;
+        var candidateAds = await context.Ads
+            .AsNoTracking()
+            .Include(item => item.AdSizeOption)
+            .Where(item => !item.DeletedInd
+                && item.ActiveInd
+                && item.AdStatusId == 3
+                && item.PublishDate < today
+                && (!item.ExpiryDate.HasValue || item.ExpiryDate.Value > today)
+                && item.AdSizeOption != null
+                && item.AdSizeOption.Name == "1200x300DetailPageSlider2Ads"
+                && !string.IsNullOrWhiteSpace(item.ImageURL)
+                && !string.IsNullOrWhiteSpace(item.TargetURL)
+                && (!item.ProvinceId.HasValue || item.ProvinceId.Value == listing.ProvinceId)
+                && (!item.CityId.HasValue || item.CityId.Value == listing.CityId)
+                && (!item.CategoryId.HasValue || item.CategoryId.Value == listing.CategoryId)
+                && (!item.SubcategoryId.HasValue || item.SubcategoryId.Value == listing.SubcategoryId))
+            .ToListAsync();
+
+        if (candidateAds.Count == 0)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var scoredAds = candidateAds
+            .Select(item => new
+            {
+                Ad = item,
+                Score = ComputeDetailPageAdScore(listing, item)
+            })
+            .OrderByDescending(item => item.Score)
+            .Take(24)
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(8)
+            .Select(item => new
+            {
+                adGuid = item.Ad.AdGUID,
+                subject = item.Ad.Subject,
+                imageURL = item.Ad.ImageURL,
+                targetURL = item.Ad.TargetURL,
+                score = item.Score
+            })
+            .ToList();
+
+        return Json(scoredAds);
     }
 
     [HttpGet("Create")]
@@ -719,6 +787,86 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
         }
 
         return (defaultTypeId, defaultStatusId);
+    }
+
+    private static int ComputeDetailPageAdScore(Listing listing, Ad ad)
+    {
+        var listingWords = BuildWordSet(listing.Subject, listing.KeyWords, listing.Description);
+        var adWords = BuildWordSet(ad.Subject, ad.KeyWords, ad.Description);
+
+        var score = 0;
+        if (listingWords.Count > 0 && adWords.Count > 0)
+        {
+            score += listingWords.Intersect(adWords, StringComparer.OrdinalIgnoreCase).Count() * 10;
+        }
+
+        score += ComputePairTextScore(listing.Subject, ad.Subject, exactWeight: 4, partialWeight: 2);
+        score += ComputePairTextScore(listing.KeyWords, ad.KeyWords, exactWeight: 5, partialWeight: 2);
+        score += ComputePairTextScore(listing.Description, ad.Description, exactWeight: 3, partialWeight: 1);
+
+        return score;
+    }
+
+    private static int ComputePairTextScore(string? leftText, string? rightText, int exactWeight, int partialWeight)
+    {
+        if (string.IsNullOrWhiteSpace(leftText) || string.IsNullOrWhiteSpace(rightText))
+        {
+            return 0;
+        }
+
+        var leftWords = BuildWordSet(leftText);
+        var rightWords = BuildWordSet(rightText);
+        if (leftWords.Count == 0 || rightWords.Count == 0)
+        {
+            return 0;
+        }
+
+        var score = 0;
+        foreach (var leftWord in leftWords)
+        {
+            if (rightWords.Contains(leftWord))
+            {
+                score += exactWeight;
+                continue;
+            }
+
+            if (leftWord.Length < 3)
+            {
+                continue;
+            }
+
+            if (rightWords.Any(rightWord => rightWord.Contains(leftWord, StringComparison.OrdinalIgnoreCase)
+                || leftWord.Contains(rightWord, StringComparison.OrdinalIgnoreCase)))
+            {
+                score += partialWeight;
+            }
+        }
+
+        return score;
+    }
+
+    private static HashSet<string> BuildWordSet(params string?[] values)
+    {
+        var words = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var value in values)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            foreach (var token in value.Split([' ', ',', ';', '|', '/', '\\', '\t', '\r', '\n', '-', '_'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (token == "&")
+                {
+                    continue;
+                }
+
+                words.Add(token);
+            }
+        }
+
+        return words;
     }
 
     private async Task<string?> SaveListingImageFromDataUrlAsync(string dataUrl)

@@ -47,6 +47,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
     if (enableDebug)
     {
+        options.LogTo(
+            message => Log.Information("{EFDatabaseCommand}", message),
+            new[] { DbLoggerCategory.Database.Command.Name },
+            Microsoft.Extensions.Logging.LogLevel.Information);
         options.EnableDetailedErrors();
         options.EnableSensitiveDataLogging();
     }

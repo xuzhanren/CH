@@ -12,6 +12,15 @@
     var addressMapUrl = string.IsNullOrWhiteSpace(addressMapQuery)
     ? string.Empty
     : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
+    var carPoolDetailSliderWaitSeconds = ViewData["CarPoolDetailSliderWaitSeconds"] as int? ?? 2;
+    var carPoolDetailAdSlidingInterval = ViewData["CarPoolDetailAdSlidingInterval"] as int? ?? 5;
+    var carPoolDetailAdSliderFadingMode = ViewData["CarPoolDetailAdSliderFadingMode"]?.ToString() ?? "homeAdFade";
+    var carPoolDetailAdPixelResolveTransitionPeriodMiliSeconds =
+    ViewData["CarPoolDetailAdPixelResolveTransitionPeriodMiliSeconds"] as int? ?? 1000;
+    var carPoolDetailAdFadeTransitionMilliSeconds = ViewData["CarPoolDetailAdFadeTransitionMilliSeconds"] as int? ?? 450;
+    var carPoolDetailSlideTransitionMilliSeconds = ViewData["CarPoolDetailSlideTransitionMilliSeconds"] as int? ?? 650;
+    var carPoolDetailAdSlideDistancePercent = ViewData["CarPoolDetailAdSlideDistancePercent"] as int? ?? 8;
+    var carPoolDetailAdTransitionEasing = ViewData["CarPoolDetailAdTransitionEasing"]?.ToString() ?? "ease-in-out";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
@@ -36,6 +45,33 @@
     #listingPhotoCropModal .cropper-line {
         background-color: #0d6efd;
         opacity: 0.55;
+    }
+
+    .car-pool-detail-slider-wrapper {
+        width: 100%;
+        height: clamp(120px, 14vw, 190px);
+        overflow: hidden;
+        background-color: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .car-pool-detail-slider-link {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .car-pool-detail-slider-image {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: contain;
+        opacity: 1;
+        will-change: opacity, transform, filter;
     }
 </style>
 
@@ -171,6 +207,287 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-lg-6 col-md-6 col-12">
+                    <div id="carPoolDetailSliderWrapperLeft" class="car-pool-detail-slider-wrapper d-none"
+                         aria-label="Car pool page ads left slider">
+                        <a id="carPoolDetailSliderLinkLeft" href="#" target="_blank" rel="noopener noreferrer"
+                               class="car-pool-detail-slider-link">
+                            <img id="carPoolDetailSliderImageLeft" class="car-pool-detail-slider-image" src=""
+                                 alt="Car pool page ad left" />
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-12">
+                    <div id="carPoolDetailSliderWrapperRight" class="car-pool-detail-slider-wrapper d-none"
+                         aria-label="Car pool page ads right slider">
+                        <a id="carPoolDetailSliderLinkRight" href="#" target="_blank" rel="noopener noreferrer"
+                               class="car-pool-detail-slider-link">
+                            <img id="carPoolDetailSliderImageRight" class="car-pool-detail-slider-image" src=""
+                                 alt="Car pool page ad right" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                (() => {
+                    const waitSeconds = @carPoolDetailSliderWaitSeconds;
+                    const slidingIntervalSeconds = @carPoolDetailAdSlidingInterval;
+                    const fadingMode = "@carPoolDetailAdSliderFadingMode".trim().toLowerCase();
+                    const pixelResolveTransitionMs = @carPoolDetailAdPixelResolveTransitionPeriodMiliSeconds;
+                    const fadeTransitionMs = @carPoolDetailAdFadeTransitionMilliSeconds;
+                    const slideTransitionMs = @carPoolDetailSlideTransitionMilliSeconds;
+                    const slideDistancePercent = @carPoolDetailAdSlideDistancePercent;
+                    const transitionEasing = "@carPoolDetailAdTransitionEasing".trim() || "ease-in-out";
+                    const requestUrl = "@Url.Action("DetailPageSliderAds", "CarPoolDetailPage", new { listingGuid = Model.ListingCard.ListingGUID })";
+
+                    const normalizeFadingMode = (mode) => {
+                        if (mode === "fade" || mode === "homeadfade") {
+                            return "homeadfade";
+                        }
+
+                        if (mode === "pixelresolve" || mode === "homeadpixelresolve") {
+                            return "homeadpixelresolve";
+                        }
+
+                        if (mode === "homeadslidedown" || mode === "homeadslideup" || mode === "homeadslideleft" || mode === "homeadslideright") {
+                            return mode;
+                        }
+
+                        return "homeadfade";
+                    };
+
+                    const normalizedFadingMode = normalizeFadingMode(fadingMode);
+
+                    const getTransitionDuration = () => {
+                        if (normalizedFadingMode === "homeadpixelresolve") {
+                            return Math.max(100, pixelResolveTransitionMs);
+                        }
+
+                        if (normalizedFadingMode === "homeadfade") {
+                            return Math.max(100, fadeTransitionMs);
+                        }
+
+                        return Math.max(100, slideTransitionMs);
+                    };
+
+                    const getOutKeyframes = () => {
+                        switch (normalizedFadingMode) {
+                            case "homeadpixelresolve":
+                                return [
+                                    { opacity: 1, filter: "blur(0) saturate(1)", transform: "translate3d(0,0,0) scale(1)" },
+                                    { opacity: 0, filter: "blur(8px) saturate(0.8)", transform: "translate3d(0,0,0) scale(1.015)" }
+                                ];
+                            case "homeadslideleft":
+                                return [
+                                    { opacity: 1, transform: "translate3d(0,0,0)" },
+                                    { opacity: 0, transform: `translate3d(-${slideDistancePercent}%,0,0)` }
+                                ];
+                            case "homeadslideright":
+                                return [
+                                    { opacity: 1, transform: "translate3d(0,0,0)" },
+                                    { opacity: 0, transform: `translate3d(${slideDistancePercent}%,0,0)` }
+                                ];
+                            case "homeadslideup":
+                                return [
+                                    { opacity: 1, transform: "translate3d(0,0,0)" },
+                                    { opacity: 0, transform: `translate3d(0,-${slideDistancePercent}%,0)` }
+                                ];
+                            case "homeadslidedown":
+                                return [
+                                    { opacity: 1, transform: "translate3d(0,0,0)" },
+                                    { opacity: 0, transform: `translate3d(0,${slideDistancePercent}%,0)` }
+                                ];
+                            default:
+                                return [
+                                    { opacity: 1, transform: "translate3d(0,0,0)", filter: "none" },
+                                    { opacity: 0, transform: "translate3d(0,0,0)", filter: "none" }
+                                ];
+                        }
+                    };
+
+                    const getInKeyframes = () => {
+                        switch (normalizedFadingMode) {
+                            case "homeadpixelresolve":
+                                return [
+                                    { opacity: 0, filter: "blur(8px) saturate(0.8)", transform: "translate3d(0,0,0) scale(1.015)" },
+                                    { opacity: 1, filter: "blur(0) saturate(1)", transform: "translate3d(0,0,0) scale(1)" }
+                                ];
+                            case "homeadslideleft":
+                                return [
+                                    { opacity: 0, transform: `translate3d(${slideDistancePercent}%,0,0)` },
+                                    { opacity: 1, transform: "translate3d(0,0,0)" }
+                                ];
+                            case "homeadslideright":
+                                return [
+                                    { opacity: 0, transform: `translate3d(-${slideDistancePercent}%,0,0)` },
+                                    { opacity: 1, transform: "translate3d(0,0,0)" }
+                                ];
+                            case "homeadslideup":
+                                return [
+                                    { opacity: 0, transform: `translate3d(0,${slideDistancePercent}%,0)` },
+                                    { opacity: 1, transform: "translate3d(0,0,0)" }
+                                ];
+                            case "homeadslidedown":
+                                return [
+                                    { opacity: 0, transform: `translate3d(0,-${slideDistancePercent}%,0)` },
+                                    { opacity: 1, transform: "translate3d(0,0,0)" }
+                                ];
+                            default:
+                                return [
+                                    { opacity: 0, transform: "translate3d(0,0,0)", filter: "none" },
+                                    { opacity: 1, transform: "translate3d(0,0,0)", filter: "none" }
+                                ];
+                        }
+                    };
+
+                    const createSlider = (wrapperId, linkId, imageId, adItems) => {
+                        const sliderWrapper = document.getElementById(wrapperId);
+                        const sliderLink = document.getElementById(linkId);
+                        const sliderImage = document.getElementById(imageId);
+
+                        if (!sliderWrapper || !sliderLink || !sliderImage || !Array.isArray(adItems)) {
+                            return;
+                        }
+
+                        if (adItems.length === 0) {
+                            sliderLink.removeAttribute("href");
+                            sliderLink.style.pointerEvents = "none";
+                            sliderImage.src = "";
+                            sliderImage.alt = "";
+                            sliderImage.style.visibility = "hidden";
+                            sliderWrapper.classList.remove("d-none");
+                            return;
+                        }
+
+                        sliderLink.style.pointerEvents = "auto";
+                        sliderImage.style.visibility = "visible";
+
+                        let activeIndex = 0;
+                        let isTransitioning = false;
+                        let queuedIndex = null;
+
+                        const applyAdSource = (ad) => {
+                            sliderLink.href = ad.targetURL || "#";
+                            sliderImage.src = ad.imageURL || "";
+                            sliderImage.alt = ad.subject || "Car pool page ad";
+                        };
+
+                        const resetImageStyles = () => {
+                            sliderImage.style.opacity = "1";
+                            sliderImage.style.transform = "translate3d(0,0,0)";
+                            sliderImage.style.filter = "none";
+                        };
+
+                        const transitionToAd = async (ad) => {
+                            const durationMs = getTransitionDuration();
+
+                            if (!sliderImage.getAttribute("src")) {
+                                applyAdSource(ad);
+                                resetImageStyles();
+                                return;
+                            }
+
+                            try {
+                                await sliderImage.animate(getOutKeyframes(), {
+                                    duration: durationMs,
+                                    easing: transitionEasing,
+                                    fill: "forwards"
+                                }).finished;
+                            } catch {
+                            }
+
+                            applyAdSource(ad);
+
+                            try {
+                                await sliderImage.animate(getInKeyframes(), {
+                                    duration: durationMs,
+                                    easing: transitionEasing,
+                                    fill: "forwards"
+                                }).finished;
+                            } catch {
+                            }
+
+                            resetImageStyles();
+                        };
+
+                        const showAdAt = async (index) => {
+                            const normalizedIndex = ((index % adItems.length) + adItems.length) % adItems.length;
+                            const ad = adItems[normalizedIndex];
+                            if (!ad) {
+                                return;
+                            }
+
+                            if (isTransitioning) {
+                                queuedIndex = normalizedIndex;
+                                return;
+                            }
+
+                            isTransitioning = true;
+                            activeIndex = normalizedIndex;
+
+                            await transitionToAd(ad);
+
+                            isTransitioning = false;
+                            if (queuedIndex !== null && queuedIndex !== activeIndex) {
+                                const nextIndex = queuedIndex;
+                                queuedIndex = null;
+                                await showAdAt(nextIndex);
+                            } else {
+                                queuedIndex = null;
+                            }
+                        };
+
+                        showAdAt(activeIndex);
+                        sliderWrapper.classList.remove("d-none");
+
+                        if (adItems.length > 1) {
+                            window.setInterval(() => {
+                                showAdAt(activeIndex + 1);
+                            }, Math.max(1, slidingIntervalSeconds) * 1000);
+                        }
+                    };
+
+                    const loadAndStart = async () => {
+                        try {
+                            const response = await fetch(requestUrl, { method: "GET" });
+                            if (!response.ok) {
+                                return;
+                            }
+
+                            const payload = await response.json();
+                            if (!Array.isArray(payload) || payload.length === 0) {
+                                return;
+                            }
+
+                            const adItems = payload
+                                .filter((item) => item && item.imageURL && item.targetURL && item.adGuid)
+                                .filter((item, index, array) => array.findIndex((candidate) => candidate.adGuid === item.adGuid) === index)
+                                .slice(0, 8);
+
+                            if (adItems.length === 0) {
+                                return;
+                            }
+
+                            const midpoint = Math.ceil(adItems.length / 2);
+                            const leftItems = adItems.slice(0, midpoint);
+                            const rightItems = adItems.slice(midpoint);
+
+                            createSlider("carPoolDetailSliderWrapperLeft", "carPoolDetailSliderLinkLeft", "carPoolDetailSliderImageLeft", leftItems);
+                            createSlider("carPoolDetailSliderWrapperRight", "carPoolDetailSliderLinkRight", "carPoolDetailSliderImageRight", rightItems);
+                        } catch {
+                        }
+                    };
+
+                    window.addEventListener("load", () => {
+                        window.setTimeout(() => {
+                            loadAndStart();
+                        }, Math.max(0, waitSeconds) * 1000);
+                    });
+                })();
+            </script>
 
             <div class="card shadow-sm mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">

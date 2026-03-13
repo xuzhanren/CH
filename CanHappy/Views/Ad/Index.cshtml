@@ -107,7 +107,7 @@
                     @Html.DisplayFor(modelItem => item.CurrencyCode)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.AdStatus.Name)
+                    @(item.AdStatus?.Name)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.IsFeatured)
@@ -149,7 +149,7 @@
                     @Html.DisplayFor(modelItem => item.ModifiedDate)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.City.Name)
+                    @(item.City?.Name)
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.AdGUID">Edit</a> |
