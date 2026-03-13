@@ -104,6 +104,8 @@ public class Listing
 
     public CarPoolDetail? CarPoolDetail { get; set; }
 
+    public BusinessYellowPageDetail? BusinessYellowPageDetail { get; set; }
+
     public List<ListingImage> ListingImages { get; set; } = [];
 
     public List<ListingVideo> ListingVideos { get; set; } = [];

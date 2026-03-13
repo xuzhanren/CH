@@ -36,6 +36,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<CarPoolStatus> CarPoolStatuses => Set<CarPoolStatus>();
     public DbSet<CarPoolDetail> CarPoolDetails => Set<CarPoolDetail>();
     public DbSet<RideRequest> RideRequests => Set<RideRequest>();
+    public DbSet<BusinessYellowPageDetail> BusinessYellowPageDetails => Set<BusinessYellowPageDetail>();
 
     public override int SaveChanges()
     {
@@ -1675,6 +1676,65 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.RideRequestStatus)
                 .WithMany(e => e.RideRequests)
                 .HasForeignKey(e => e.RideRequestStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<BusinessYellowPageDetail>(entity =>
+        {
+            entity.ToTable("BusinessYellowPageDetail");
+            entity.HasKey(e => e.BusinessYellowPageDetailGUID);
+
+            entity.Property(e => e.BusinessHours)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.BusinessStyle)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ProductsAndServices)
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.Specialties)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.LanguagesSpoken)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.GeneralBeforeTaxPayPerPerson)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.MethodOfPayments)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.HowToGetThere)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.AdditionalInfo)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.WebSiteURL)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ActiveInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.DeletedInd)
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasIndex(e => e.ListingGUID)
+                .IsUnique();
+
+            entity.HasOne(e => e.Listing)
+                .WithOne(e => e.BusinessYellowPageDetail)
+                .HasForeignKey<BusinessYellowPageDetail>(e => e.ListingGUID)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

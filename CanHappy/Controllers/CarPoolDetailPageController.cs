@@ -279,20 +279,48 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
             return Json(Array.Empty<object>());
         }
 
-        var candidateListings = await context.Listings
+        var currentCarPoolDetail = await context.CarPoolDetails
             .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.ListingGUID == listing.ListingGUID && !item.DeletedInd);
+
+        if (currentCarPoolDetail is null)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var currentFromCity = currentCarPoolDetail.FromCity?.Trim();
+        var currentDestinationCity = currentCarPoolDetail.DestinationCity?.Trim();
+
+        var candidateDetailsQuery = context.CarPoolDetails
+            .AsNoTracking()
+            .Include(item => item.Listing)
             .Where(item => !item.DeletedInd
+                && item.Listing != null
+                && !item.Listing.DeletedInd
                 && item.ListingGUID != listing.ListingGUID
-                && context.CarPoolDetails.Any(detail => detail.ListingGUID == item.ListingGUID && !detail.DeletedInd)
-                && item.ProvinceId == listing.ProvinceId
-                && item.CityId == listing.CityId
-                && item.CategoryId == listing.CategoryId
-                && item.SubcategoryId == listing.SubcategoryId)
+                && item.Listing.ProvinceId == listing.ProvinceId
+                && item.Listing.CityId == listing.CityId
+                && item.Listing.CategoryId == listing.CategoryId
+                && item.Listing.SubcategoryId == listing.SubcategoryId);
+
+        if (!string.IsNullOrWhiteSpace(currentFromCity))
+        {
+            var currentFromCityLower = currentFromCity.ToLower();
+            candidateDetailsQuery = candidateDetailsQuery.Where(item => item.FromCity != null && item.FromCity.ToLower() == currentFromCityLower);
+        }
+
+        if (!string.IsNullOrWhiteSpace(currentDestinationCity))
+        {
+            var currentDestinationCityLower = currentDestinationCity.ToLower();
+            candidateDetailsQuery = candidateDetailsQuery.Where(item => item.DestinationCity != null && item.DestinationCity.ToLower() == currentDestinationCityLower);
+        }
+
+        var candidateListings = await candidateDetailsQuery
             .Select(item => new
             {
-                Listing = item,
+                Listing = item.Listing!,
                 ThumbnailURL = context.ListingImages
-                    .Where(image => image.ListingGUID == item.ListingGUID && !image.DeletedInd)
+                    .Where(image => image.ListingGUID == item.Listing!.ListingGUID && !image.DeletedInd)
                     .OrderBy(image => image.SorOrder)
                     .ThenBy(image => image.CreatedDate)
                     .Select(image => !string.IsNullOrWhiteSpace(image.ThumbnailURL) ? image.ThumbnailURL : image.ImageURL)
