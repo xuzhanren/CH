@@ -13,6 +13,7 @@ public class EstateSaleDetailIndexPageViewModel
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
     public List<ListingVideoCardViewModel> ListingVideos { get; set; } = new();
     public List<EstateRoomEditViewModel> Rooms { get; set; } = [];
+    public List<SimilarListingItemViewModel> SimilarItems { get; set; } = [];
 }
 
 public class ListingVideoCardViewModel

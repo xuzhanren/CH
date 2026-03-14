@@ -12,6 +12,14 @@ public class BuySellDetailIndexPageViewModel
     public bool HasExistingFocusDetail { get; set; }
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
     public List<BuySellDetailIndexItemViewModel> Items { get; set; } = [];
+    public List<SimilarListingItemViewModel> SimilarItems { get; set; } = [];
+}
+
+public class SimilarListingItemViewModel
+{
+    public Guid ListingGUID { get; set; }
+    public string? Subject { get; set; }
+    public string? ThumbnailURL { get; set; }
 }
 
 public class BuySellDetailListingCardViewModel
@@ -137,6 +145,7 @@ public class CarVehicleDetailIndexPageViewModel
     public bool HasExistingFocusDetail { get; set; }
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
     public List<CarVehicleDetailIndexItemViewModel> Items { get; set; } = [];
+    public List<SimilarListingItemViewModel> SimilarItems { get; set; } = [];
 }
 
 public class CarVehicleDetailIndexItemViewModel
@@ -262,6 +271,14 @@ public class HomeRentalDetailIndexPageViewModel
     public bool HasExistingFocusDetail { get; set; }
     public List<BuySellDetailListingImageViewModel> ListingImages { get; set; } = [];
     public List<HomeRentalDetailIndexItemViewModel> Items { get; set; } = [];
+    public List<HomeRentalSimilarListingViewModel> SimilarRentals { get; set; } = [];
+}
+
+public class HomeRentalSimilarListingViewModel
+{
+    public Guid ListingGUID { get; set; }
+    public string? Subject { get; set; }
+    public string? ThumbnailURL { get; set; }
 }
 
 public class HomeRentalDetailIndexItemViewModel

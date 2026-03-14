@@ -280,16 +280,16 @@ else
                                             <div class="col-md-6"><strong>Sales Begin:</strong> @item.DiscountBeginDate</div>
                                             <div class="col-md-6"><strong>Sales Ending:</strong> @item.DiscountEndDate</div>
                                         }
-                                        @if (!isBusinessYellowPageCategory)
+                                        @if (!isBusinessYellowPageCategory && !isHomeRentalCategory)
                                         {
                                             <div class="col-md-6"><strong>Brand:</strong> @item.Brand</div>
                                             <div class="col-md-6"><strong>Model:</strong> @item.Model</div>
                                         }
-                                        @if (!isCarPoolCategory && !isBusinessYellowPageCategory)
+                                        @if (!isCarPoolCategory && !isBusinessYellowPageCategory && !isHomeRentalCategory)
                                         {
                                             <div class="col-md-6"><strong>Condition:</strong> @(string.IsNullOrWhiteSpace(item.Condition) ? "-" : item.Condition)</div>
                                         }
-                                        @if (!isBusinessYellowPageCategory)
+                                        @if (!isBusinessYellowPageCategory && !isHomeRentalCategory)
                                         {
                                             <div class="col-md-6"><strong>Manufacture Year:</strong> @item.ManufactureYear</div>
                                         }

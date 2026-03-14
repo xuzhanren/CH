@@ -14,12 +14,18 @@
     : $"https://www.google.com/maps?q={Uri.EscapeDataString(addressMapQuery)}";
     var businessYellowPageDetailSliderWaitSeconds = ViewData["BusinessYellowPageDetailSliderWaitSeconds"] as int? ?? 2;
     var businessYellowPageDetailAdSlidingInterval = ViewData["BusinessYellowPageDetailAdSlidingInterval"] as int? ?? 5;
-    var businessYellowPageDetailAdSliderFadingMode = ViewData["BusinessYellowPageDetailAdSliderFadingMode"]?.ToString() ?? "homeAdFade";
-    var businessYellowPageDetailAdPixelResolveTransitionPeriodMiliSeconds = ViewData["BusinessYellowPageDetailAdPixelResolveTransitionPeriodMiliSeconds"] as int? ?? 1000;
-    var businessYellowPageDetailAdFadeTransitionMilliSeconds = ViewData["BusinessYellowPageDetailAdFadeTransitionMilliSeconds"] as int? ?? 450;
-    var businessYellowPageDetailSlideTransitionMilliSeconds = ViewData["BusinessYellowPageDetailSlideTransitionMilliSeconds"] as int? ?? 650;
-    var businessYellowPageDetailAdSlideDistancePercent = ViewData["BusinessYellowPageDetailAdSlideDistancePercent"] as int? ?? 8;
-    var businessYellowPageDetailAdTransitionEasing = ViewData["BusinessYellowPageDetailAdTransitionEasing"]?.ToString() ?? "ease-in-out";
+    var businessYellowPageDetailAdSliderFadingMode = ViewData["BusinessYellowPageDetailAdSliderFadingMode"]?.ToString() ??
+    "homeAdFade";
+    var businessYellowPageDetailAdPixelResolveTransitionPeriodMiliSeconds =
+    ViewData["BusinessYellowPageDetailAdPixelResolveTransitionPeriodMiliSeconds"] as int? ?? 1000;
+    var businessYellowPageDetailAdFadeTransitionMilliSeconds =
+    ViewData["BusinessYellowPageDetailAdFadeTransitionMilliSeconds"] as int? ?? 450;
+    var businessYellowPageDetailSlideTransitionMilliSeconds =
+    ViewData["BusinessYellowPageDetailSlideTransitionMilliSeconds"] as int? ?? 650;
+    var businessYellowPageDetailAdSlideDistancePercent = ViewData["BusinessYellowPageDetailAdSlideDistancePercent"] as int?
+    ?? 8;
+    var businessYellowPageDetailAdTransitionEasing = ViewData["BusinessYellowPageDetailAdTransitionEasing"]?.ToString() ??
+    "ease-in-out";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
@@ -45,12 +51,13 @@
 
     .business-yellow-page-detail-slider-wrapper {
         width: 100%;
-        height: 300px;
-        min-height: 300px;
-        max-height: 300px;
+        height: clamp(120px, 14vw, 190px);
         overflow: hidden;
         background-color: var(--bs-body-bg);
         border: 1px solid var(--bs-border-color);
+        border-radius: 0;
+        padding: 5px;
+        box-sizing: border-box;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -164,7 +171,7 @@
                                     </button>
                                     <div class="card-body p-2">
                                         <div class="small text-truncate">@(string.IsNullOrWhiteSpace(image.value.Title) ? "Photo" :
-                                                                                                                        image.value.Title)</div>
+                                                                            image.value.Title)</div>
                                             @if (Model.CanManageFocusedListing)
                                             {
                                                 <div class="d-flex gap-1 mt-1 flex-wrap">
@@ -220,9 +227,9 @@
                 <div id="businessYellowPageDetailSliderWrapperLeft" class="business-yellow-page-detail-slider-wrapper d-none"
                      aria-label="Business yellow page ads left slider">
                     <a id="businessYellowPageDetailSliderLinkLeft" href="#" target="_blank" rel="noopener noreferrer"
-                       class="business-yellow-page-detail-slider-link">
-                        <img id="businessYellowPageDetailSliderImageLeft" class="business-yellow-page-detail-slider-image" src=""
-                             alt="Business yellow page ad left" />
+                           class="business-yellow-page-detail-slider-link">
+                        <img id="businessYellowPageDetailSliderImageLeft" class="business-yellow-page-detail-slider-image"
+                             src="" alt="Business yellow page ad left" />
                     </a>
                 </div>
             </div>
@@ -230,9 +237,9 @@
                 <div id="businessYellowPageDetailSliderWrapperRight" class="business-yellow-page-detail-slider-wrapper d-none"
                      aria-label="Business yellow page ads right slider">
                     <a id="businessYellowPageDetailSliderLinkRight" href="#" target="_blank" rel="noopener noreferrer"
-                       class="business-yellow-page-detail-slider-link">
-                        <img id="businessYellowPageDetailSliderImageRight" class="business-yellow-page-detail-slider-image" src=""
-                             alt="Business yellow page ad right" />
+                           class="business-yellow-page-detail-slider-link">
+                        <img id="businessYellowPageDetailSliderImageRight" class="business-yellow-page-detail-slider-image"
+                             src="" alt="Business yellow page ad right" />
                     </a>
                 </div>
             </div>
@@ -265,9 +272,9 @@
                 else
                 {
                     var businessHourLines = (Model.FocusDetail.BusinessHours ?? string.Empty)
-                        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                        .Where(item => !string.IsNullOrWhiteSpace(item))
-                        .ToList();
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Where(item => !string.IsNullOrWhiteSpace(item))
+                    .ToList();
 
                     <div class="row g-2">
                         <div class="col-lg-6">
@@ -322,7 +329,11 @@
                         <div class="d-flex flex-nowrap gap-3 overflow-auto pb-1">
                             @foreach (var similarBusiness in Model.SimilarBusinesses)
                             {
-                                var similarListingUrl = Url.Action("Index", "BusinessYellowPageDetailPage", new { listingGuid = similarBusiness.ListingGUID }) ?? "#";
+                                var similarListingUrl = Url.Action("Index", "BusinessYellowPageDetailPage", new
+                                {
+                                    listingGuid =
+                                similarBusiness.ListingGUID
+                                }) ?? "#";
                                 <div style="min-width: 140px; max-width: 140px;">
                                     <a href="@similarListingUrl" class="text-decoration-none">
                                         @if (!string.IsNullOrWhiteSpace(similarBusiness.ThumbnailURL))

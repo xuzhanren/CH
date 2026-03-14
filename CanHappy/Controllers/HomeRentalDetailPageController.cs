@@ -259,10 +259,10 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
             .Where(item => !item.DeletedInd
                 && item.ActiveInd
                 && item.AdStatusId == 3
-                && item.PublishDate < today
-                && (!item.ExpiryDate.HasValue || item.ExpiryDate.Value > today)
+                && item.PublishDate.Date <= today
+                && (!item.ExpiryDate.HasValue || item.ExpiryDate.Value.Date >= today)
                 && item.AdSizeOption != null
-                && item.AdSizeOption.Name == "1200x300DetailPageSlider2Ads"
+                && (item.AdSizeOption.Name == "1200x300DetailPageSlider2Ads" || item.AdSizeOption.Name.Contains("1200x300"))
                 && !string.IsNullOrWhiteSpace(item.ImageURL)
                 && !string.IsNullOrWhiteSpace(item.TargetURL)
                 && (!item.ProvinceId.HasValue || item.ProvinceId.Value == listing.ProvinceId)
@@ -270,6 +270,21 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
                 && (!item.CategoryId.HasValue || item.CategoryId.Value == listing.CategoryId)
                 && (!item.SubcategoryId.HasValue || item.SubcategoryId.Value == listing.SubcategoryId))
             .ToListAsync();
+
+        if (candidateAds.Count == 0)
+        {
+            candidateAds = await context.Ads
+                .AsNoTracking()
+                .Include(item => item.AdSizeOption)
+                .Where(item => !item.DeletedInd
+                    && item.ActiveInd
+                    && item.AdStatusId == 3
+                    && item.PublishDate.Date <= today
+                    && (!item.ExpiryDate.HasValue || item.ExpiryDate.Value.Date >= today)
+                    && !string.IsNullOrWhiteSpace(item.ImageURL)
+                    && !string.IsNullOrWhiteSpace(item.TargetURL))
+                .ToListAsync();
+        }
 
         if (candidateAds.Count == 0)
         {
@@ -297,6 +312,96 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
             .ToList();
 
         return Json(scoredAds);
+    }
+
+    [HttpGet("SimilarRentals/{listingGuid:guid}")]
+    public async Task<IActionResult> SimilarRentals(Guid listingGuid)
+    {
+        var listing = await context.Listings
+            .AsNoTracking()
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+
+        if (listing is null || !string.Equals(listing.Category?.Name, HomeRentalCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var similarCandidates = await context.Listings
+            .AsNoTracking()
+            .Where(item => !item.DeletedInd && item.ListingGUID != listing.ListingGUID)
+            .Where(item => listing.ProvinceId <= 0 || item.ProvinceId == listing.ProvinceId)
+            .Where(item => listing.CityId <= 0 || item.CityId == listing.CityId)
+            .Where(item => listing.CategoryId <= 0 || item.CategoryId == listing.CategoryId)
+            .Where(item => !listing.SubcategoryId.HasValue || item.SubcategoryId == listing.SubcategoryId)
+            .ToListAsync();
+
+        if (similarCandidates.Count == 0)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var sourceListingWords = BuildWordSet(listing.Subject, listing.KeyWords, listing.Description);
+        var scoredSimilarCandidates = similarCandidates
+            .Select(item => new
+            {
+                Listing = item,
+                Score = sourceListingWords.Intersect(BuildWordSet(item.Subject, item.KeyWords, item.Description), StringComparer.OrdinalIgnoreCase).Count() * 10
+                    + ComputePairTextScore(listing.Subject, item.Subject, exactWeight: 4, partialWeight: 2)
+                    + ComputePairTextScore(listing.KeyWords, item.KeyWords, exactWeight: 5, partialWeight: 2)
+                    + ComputePairTextScore(listing.Description, item.Description, exactWeight: 3, partialWeight: 1)
+            })
+            .OrderByDescending(item => item.Score)
+            .Take(24)
+            .ToList();
+
+        var selectedSimilarListings = scoredSimilarCandidates
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(8)
+            .Select(item => item.Listing)
+            .ToList();
+
+        if (selectedSimilarListings.Count == 0)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var selectedListingGuids = selectedSimilarListings
+            .Select(item => item.ListingGUID)
+            .ToHashSet();
+
+        var similarListingImages = await context.ListingImages
+            .AsNoTracking()
+            .Where(item => !item.DeletedInd && selectedListingGuids.Contains(item.ListingGUID))
+            .OrderBy(item => item.SorOrder)
+            .ThenBy(item => item.CreatedDate)
+            .Select(item => new
+            {
+                item.ListingGUID,
+                item.ThumbnailURL,
+                item.ImageURL
+            })
+            .ToListAsync();
+
+        var thumbnailByListing = similarListingImages
+            .GroupBy(item => item.ListingGUID)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(item => !string.IsNullOrWhiteSpace(item.ThumbnailURL) ? item.ThumbnailURL : item.ImageURL)
+                    .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)));
+
+        var result = selectedSimilarListings
+            .Select(item => new HomeRentalSimilarListingViewModel
+            {
+                ListingGUID = item.ListingGUID,
+                Subject = item.Subject,
+                ThumbnailURL = !string.IsNullOrWhiteSpace(item.ThumbnailURL)
+                    ? item.ThumbnailURL
+                    : (thumbnailByListing.TryGetValue(item.ListingGUID, out var thumbnailUrl) ? thumbnailUrl : null)
+            })
+            .ToList();
+
+        return Json(result);
     }
 
     [HttpGet("Create")]

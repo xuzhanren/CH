@@ -83,11 +83,13 @@
 
     .estate-sale-detail-slider-wrapper {
         width: 100%;
-        aspect-ratio: 4 / 1;
+        height: clamp(120px, 14vw, 190px);
+        padding: 5px;
         overflow: hidden;
         background-color: var(--bs-body-bg);
         border: 1px solid var(--bs-border-color);
         border-radius: 0;
+        box-sizing: border-box;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -106,6 +108,50 @@
         object-fit: contain;
         opacity: 1;
         will-change: opacity, transform, filter;
+    }
+
+    .estate-sale-similar-items-scroller {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .estate-sale-similar-items-track {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.75rem;
+        min-height: 1px;
+    }
+
+    .estate-sale-similar-item {
+        flex: 0 0 150px;
+        width: 150px;
+    }
+
+    .estate-sale-similar-thumb-link {
+        display: block;
+        width: 150px;
+        height: 110px;
+        border: 1px solid var(--bs-border-color);
+        background-color: #f8f9fa;
+        text-decoration: none;
+    }
+
+    .estate-sale-similar-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
+    .estate-sale-similar-subject {
+        margin-top: 0.35rem;
+        font-size: 0.85rem;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 </style>
 
@@ -738,6 +784,128 @@ else
                                 }
                             </div>
                         </div>
+
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <strong>Similar Items</strong>
+                            </div>
+                            <div class="card-body">
+                                <div id="estateSaleSimilarItemsLoadingState" class="text-muted">Loading similar items...</div>
+                                <div id="estateSaleSimilarItemsEmptyState" class="text-muted d-none">No similar items found.</div>
+                                <div id="estateSaleSimilarItemsScroller" class="estate-sale-similar-items-scroller d-none">
+                                    <div id="estateSaleSimilarItemsTrack" class="estate-sale-similar-items-track"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            (() => {
+                                const waitSeconds = 2;
+                                const requestUrl = "@Url.Action("SimilarItems", "EstateSaleDetailPage", new { listingGuid = Model.ListingCard.ListingGUID })";
+                                const loadingState = document.getElementById("estateSaleSimilarItemsLoadingState");
+                                const emptyState = document.getElementById("estateSaleSimilarItemsEmptyState");
+                                const scroller = document.getElementById("estateSaleSimilarItemsScroller");
+                                const track = document.getElementById("estateSaleSimilarItemsTrack");
+
+                                if (!loadingState || !emptyState || !scroller || !track) {
+                                    return;
+                                }
+
+                                const showEmpty = () => {
+                                    loadingState.classList.add("d-none");
+                                    scroller.classList.add("d-none");
+                                    emptyState.classList.remove("d-none");
+                                };
+
+                                const renderItems = (items) => {
+                                    track.innerHTML = "";
+
+                                    items.forEach((item) => {
+                                        const listingGuid = item.listingGUID || item.ListingGUID;
+                                        if (!listingGuid) {
+                                            return;
+                                        }
+
+                                        const subject = item.subject || item.Subject || "Item";
+                                        const thumbnailUrl = item.thumbnailURL || item.ThumbnailURL || "";
+                                        const detailsUrl = `/EstateSaleDetail/Index?listingGuid=${encodeURIComponent(listingGuid)}`;
+
+                                        const card = document.createElement("div");
+                                        card.className = "estate-sale-similar-item";
+
+                                        const link = document.createElement("a");
+                                        link.className = "estate-sale-similar-thumb-link";
+                                        link.href = detailsUrl;
+
+                                        if (thumbnailUrl) {
+                                            const image = document.createElement("img");
+                                            image.className = "estate-sale-similar-thumb";
+                                            image.src = thumbnailUrl;
+                                            image.alt = subject;
+                                            link.appendChild(image);
+                                        } else {
+                                            const placeholder = document.createElement("div");
+                                            placeholder.className = "estate-sale-similar-thumb d-flex align-items-center justify-content-center text-muted";
+                                            placeholder.textContent = "No image";
+                                            link.appendChild(placeholder);
+                                        }
+
+                                        const subjectElement = document.createElement("a");
+                                        subjectElement.className = "estate-sale-similar-subject text-decoration-none d-block";
+                                        subjectElement.href = detailsUrl;
+                                        subjectElement.textContent = subject;
+
+                                        card.appendChild(link);
+                                        card.appendChild(subjectElement);
+                                        track.appendChild(card);
+                                    });
+
+                                    if (track.children.length === 0) {
+                                        showEmpty();
+                                        return;
+                                    }
+
+                                    loadingState.classList.add("d-none");
+                                    emptyState.classList.add("d-none");
+                                    scroller.classList.remove("d-none");
+                                };
+
+                                const loadSimilarItems = async () => {
+                                    try {
+                                        const response = await fetch(requestUrl, { method: "GET" });
+                                        if (!response.ok) {
+                                            showEmpty();
+                                            return;
+                                        }
+
+                                        const payload = await response.json();
+                                        if (!Array.isArray(payload) || payload.length === 0) {
+                                            showEmpty();
+                                            return;
+                                        }
+
+                                        const items = payload
+                                            .filter((item) => item && (item.listingGUID || item.ListingGUID))
+                                            .slice(0, 8);
+
+                                        if (items.length === 0) {
+                                            showEmpty();
+                                            return;
+                                        }
+
+                                        renderItems(items);
+                                    } catch {
+                                        showEmpty();
+                                    }
+                                };
+
+                                window.addEventListener("load", () => {
+                                    window.setTimeout(() => {
+                                        loadSimilarItems();
+                                    }, Math.max(0, waitSeconds) * 1000);
+                                });
+                            })();
+                        </script>
 
                         <div class="modal fade" id="listingPhotoViewerModal" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-fullscreen">
