@@ -9,7 +9,7 @@ public class Listing
 
     public int CategoryId { get; set; }
 
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
 
     [Required]
     [StringLength(50)]

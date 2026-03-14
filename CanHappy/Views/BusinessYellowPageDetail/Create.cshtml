@@ -1,0 +1,126 @@
+@model CanHappy.Models.BusinessYellowPageDetailEditViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Create Business Yellow Page Detail";
+    var subcategoryLookup = ViewData["SubcategoryLookup"] ?? Array.Empty<object>();
+    var cityLookup = ViewData["CityLookup"] ?? Array.Empty<object>();
+}
+
+<style>
+    .form-label,
+    .form-check-label {
+        font-weight: 700;
+    }
+</style>
+
+<h1>Create Business Yellow Page Detail</h1>
+
+<form asp-action="Create" method="post" class="mt-3">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="ListingGUID" class="form-label"></label>
+        <select asp-for="ListingGUID" class="form-select" asp-items="ViewBag.ListingGUID"></select>
+        <span asp-validation-for="ListingGUID" class="text-danger"></span>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6"><label asp-for="BusinessHours" class="form-label"></label><input asp-for="BusinessHours"
+                                                                                                   class="form-control" /></div>
+            <div class="col-md-6"><label asp-for="BusinessStyle" class="form-label"></label><input asp-for="BusinessStyle"
+                                                                                                       class="form-control" /></div>
+                <div class="col-md-6"><label asp-for="Specialties" class="form-label"></label><input asp-for="Specialties"
+                                                                                                         class="form-control" /></div>
+                    <div class="col-md-6"><label asp-for="LanguagesSpoken" class="form-label"></label><input
+                        asp-for="LanguagesSpoken" class="form-control" /></div>
+                        <div class="col-md-6"><label asp-for="GeneralBeforeTaxPayPerPerson" class="form-label"></label><input
+                            asp-for="GeneralBeforeTaxPayPerPerson" class="form-control" /></div>
+                            <div class="col-md-6"><label asp-for="MethodOfPayments" class="form-label"></label><input
+                                asp-for="MethodOfPayments" class="form-control" /></div>
+                                <div class="col-md-6"><label asp-for="HowToGetThere" class="form-label"></label><input asp-for="HowToGetThere"
+                                                                                                                           class="form-control" /></div>
+                                    <div class="col-md-6"><label asp-for="WebSiteURL" class="form-label"></label><input asp-for="WebSiteURL"
+                                                                                                                            class="form-control" /></div>
+                                        <div class="col-12"><label asp-for="ProductsAndServices" class="form-label"></label><textarea
+                                            asp-for="ProductsAndServices" class="form-control" rows="3"></textarea></div>
+                                            <div class="col-12"><label asp-for="AdditionalInfo" class="form-label"></label><textarea
+                                                asp-for="AdditionalInfo" class="form-control" rows="3"></textarea></div>
+                                                <div class="col-12 form-check">
+                                                    <input asp-for="ActiveInd" class="form-check-input" />
+                                                    <label asp-for="ActiveInd" class="form-check-label"></label>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 d-flex gap-2">
+                                                <button type="submit" class="btn btn-primary">Create</button>
+                                                <a asp-action="Index" asp-route-listingGuid="@Model.ListingGUID" class="btn btn-outline-secondary">Cancel</a>
+                                            </div>
+                                        </form>
+
+                                        @section Scripts {
+                                            <partial name="_ValidationScriptsPartial" />
+                                            <script>
+                                                (() => {
+                                                    const subcategories = @Html.Raw(JsonSerializer.Serialize(subcategoryLookup));
+                                                    const cities = @Html.Raw(JsonSerializer.Serialize(cityLookup));
+
+                                                    const categorySelect = document.getElementById("CategoryId");
+                                                    const subcategorySelect = document.getElementById("SubcategoryId");
+                                                    const provinceSelect = document.getElementById("ProvinceId");
+                                                    const citySelect = document.getElementById("CityId");
+
+                                                    if (!categorySelect || !subcategorySelect || !provinceSelect || !citySelect) {
+                                                        return;
+                                                    }
+
+                                                    const populate = (target, items, placeholder, valueKey = "id") => {
+                                                        target.innerHTML = "";
+
+                                                        const placeholderOption = document.createElement("option");
+                                                        placeholderOption.value = "";
+                                                        placeholderOption.textContent = placeholder;
+                                                        target.appendChild(placeholderOption);
+
+                                                        items.forEach((item) => {
+                                                            const option = document.createElement("option");
+                                                            option.value = item[valueKey];
+                                                            option.textContent = item.name;
+                                                            target.appendChild(option);
+                                                        });
+                                                    };
+
+                                                    const refreshSubcategories = (selectedId = 0) => {
+                                                        const categoryId = Number(categorySelect.value || 0);
+                                                        const filtered = categoryId > 0
+                                                            ? subcategories.filter((item) => item.categoryId === categoryId)
+                                                            : [];
+
+                                                        populate(subcategorySelect, filtered, "Select Subcategory");
+
+                                                        if (selectedId > 0 && filtered.some((item) => item.id === selectedId)) {
+                                                            subcategorySelect.value = String(selectedId);
+                                                        }
+                                                    };
+
+                                                    const refreshCities = (selectedId = 0) => {
+                                                        const provinceId = Number(provinceSelect.value || 0);
+                                                        const filtered = provinceId > 0
+                                                            ? cities.filter((item) => item.provinceId === provinceId)
+                                                            : [];
+
+                                                        populate(citySelect, filtered, "Select City");
+
+                                                        if (selectedId > 0 && filtered.some((item) => item.id === selectedId)) {
+                                                            citySelect.value = String(selectedId);
+                                                        }
+                                                    };
+
+                                                    subcategorySelect.addEventListener("click", () => refreshSubcategories(Number(subcategorySelect.value || 0)));
+                                                    citySelect.addEventListener("click", () => refreshCities(Number(citySelect.value || 0)));
+                                                    categorySelect.addEventListener("change", () => refreshSubcategories());
+                                                    provinceSelect.addEventListener("change", () => refreshCities());
+                                                })();
+                                            </script>
+                                        }

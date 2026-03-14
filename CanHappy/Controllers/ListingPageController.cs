@@ -345,6 +345,7 @@ public class ListingPageController(
             var isHomeRentalCategory = string.Equals(listing.CategoryName, "Home Rental", StringComparison.OrdinalIgnoreCase);
             var isEstateSaleCategory = string.Equals(listing.CategoryName, "Estate Sale", StringComparison.OrdinalIgnoreCase);
             var isCarPoolCategory = string.Equals(listing.CategoryName, "Car Pool", StringComparison.OrdinalIgnoreCase);
+            var isBusinessYellowPageCategory = string.Equals(listing.CategoryName, "Business Yellow Page", StringComparison.OrdinalIgnoreCase);
 
             var detailUrl = isBuySellCategory
                 ? Url.Action("Index", "BuySellDetailPage", new { listingGuid = listing.ListingGUID })
@@ -356,6 +357,8 @@ public class ListingPageController(
                             ? Url.Action("Index", "EstateSaleDetailPage", new { listingGuid = listing.ListingGUID })
                             : isCarPoolCategory
                                 ? Url.Action("Index", "CarPoolDetailPage", new { listingGuid = listing.ListingGUID })
+                                : isBusinessYellowPageCategory
+                                    ? Url.Action("Index", "BusinessYellowPageDetailPage", new { listingGuid = listing.ListingGUID })
                                 : Url.Action("Details", "ListingPage", new { id = listing.ListingGUID });
 
             return new ListingMapMarkerViewModel
@@ -546,10 +549,12 @@ public class ListingPageController(
             .Select(category => category.Name)
             .FirstOrDefaultAsync();
 
-        var resolvedSubcategoryName = await context.Subcategories
-            .Where(subcategory => subcategory.SubcategoryId == existingListing.SubcategoryId)
-            .Select(subcategory => subcategory.Name)
-            .FirstOrDefaultAsync();
+        var resolvedSubcategoryName = existingListing.SubcategoryId.HasValue
+            ? await context.Subcategories
+                .Where(subcategory => subcategory.SubcategoryId == existingListing.SubcategoryId.Value)
+                .Select(subcategory => subcategory.Name)
+                .FirstOrDefaultAsync()
+            : null;
 
         return RedirectToAction(nameof(Index), new
         {

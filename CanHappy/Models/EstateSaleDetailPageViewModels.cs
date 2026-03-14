@@ -35,7 +35,7 @@ public class EstateSaleDetailEditViewModel
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CategoryId { get; set; }
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
     public decimal? Price { get; set; }

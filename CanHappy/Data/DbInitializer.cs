@@ -304,7 +304,8 @@ public static class DbInitializer
                 listing.SampleInd &&
                 listing.CreatedBy == "system" &&
                 categoryIds.Contains(listing.CategoryId) &&
-                subcategoryIds.Contains(listing.SubcategoryId))
+                listing.SubcategoryId.HasValue &&
+                subcategoryIds.Contains(listing.SubcategoryId.Value))
             .GroupBy(listing => new { listing.CategoryId, listing.SubcategoryId })
             .Select(group => new
             {
@@ -315,7 +316,7 @@ public static class DbInitializer
             .ToListAsync();
 
         var existingCountByCombination = existingSampleCounts.ToDictionary(
-            item => (item.CategoryId, item.SubcategoryId),
+            item => (item.CategoryId, item.SubcategoryId!.Value),
             item => item.Count);
 
         var listingsToAdd = new List<Listing>();

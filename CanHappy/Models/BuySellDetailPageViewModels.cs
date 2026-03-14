@@ -21,7 +21,7 @@ public class BuySellDetailListingCardViewModel
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CategoryId { get; set; }
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
     public string? KeyWords { get; set; }
@@ -60,7 +60,7 @@ public class BuySellDetailIndexItemViewModel
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CategoryId { get; set; }
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
     public decimal? Price { get; set; }
@@ -93,7 +93,7 @@ public class BuySellDetailEditViewModel
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CategoryId { get; set; }
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
     public decimal? Price { get; set; }
@@ -147,7 +147,7 @@ public class CarVehicleDetailIndexItemViewModel
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CategoryId { get; set; }
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
     public decimal? Price { get; set; }
@@ -197,7 +197,7 @@ public class CarVehicleDetailEditViewModel
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CategoryId { get; set; }
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
     public decimal? Price { get; set; }
@@ -272,7 +272,7 @@ public class HomeRentalDetailIndexItemViewModel
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CategoryId { get; set; }
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
     public decimal? Price { get; set; }
@@ -319,7 +319,7 @@ public class HomeRentalDetailEditViewModel
     public string Subject { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int CategoryId { get; set; }
-    public int SubcategoryId { get; set; }
+    public int? SubcategoryId { get; set; }
     public int ProvinceId { get; set; }
     public int CityId { get; set; }
     public decimal? Price { get; set; }
