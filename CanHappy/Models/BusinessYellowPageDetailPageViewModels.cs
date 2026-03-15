@@ -21,6 +21,22 @@ public class BusinessYellowPageSimilarListingViewModel
     public string? ThumbnailURL { get; set; }
 }
 
+public class SalesSpecialsImageViewModel
+{
+    public Guid SalesSpecialsImageGUID { get; set; }
+    public Guid ListingGUID { get; set; }
+    public string? Title { get; set; }
+    public int SortOrder { get; set; }
+    public decimal? Price { get; set; }
+    public decimal? SalePrice { get; set; }
+    public string? PercentOff { get; set; }
+    public DateTime? SaleBegin { get; set; }
+    public DateTime? SaleEnd { get; set; }
+    public string? Description { get; set; }
+    public string? ThumbnailURL { get; set; }
+    public string? ImageURL { get; set; }
+}
+
 public class BusinessYellowPageDetailEditViewModel
 {
     public Guid? BusinessYellowPageDetailGUID { get; set; }

@@ -21,6 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<PropertyType> PropertyTypes => Set<PropertyType>();
     public DbSet<EstateType> EstateTypes => Set<EstateType>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
+    public DbSet<SalesSpecialsImage> SalesSpecialsImages => Set<SalesSpecialsImage>();
     public DbSet<ListingVideo> ListingVideos => Set<ListingVideo>();
     public DbSet<FavoriteListing> FavoriteListings => Set<FavoriteListing>();
     public DbSet<Ad> Ads => Set<Ad>();
@@ -597,6 +598,67 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             entity.HasOne(e => e.Listing)
                 .WithMany(listing => listing.ListingImages)
+                .HasForeignKey(e => e.ListingGUID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<SalesSpecialsImage>(entity =>
+        {
+            entity.ToTable("SalesSpecialsImage");
+            entity.HasKey(e => e.SalesSpecialsImageGUID);
+
+            entity.Property(e => e.Title)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.SortOrder)
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.Price)
+                .HasColumnType("money");
+
+            entity.Property(e => e.SalePrice)
+                .HasColumnType("money");
+
+            entity.Property(e => e.PercentOff)
+                .HasMaxLength(10)
+                .HasColumnType("varchar(10)");
+
+            entity.Property(e => e.SaleBegin)
+                .HasColumnType("date");
+
+            entity.Property(e => e.SaleEnd)
+                .HasColumnType("date");
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ThumbnailURL)
+                .HasMaxLength(200)
+                .HasColumnType("varchar(200)");
+
+            entity.Property(e => e.ImageURL)
+                .HasMaxLength(200)
+                .HasColumnType("varchar(200)");
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(50)
+                .HasColumnType("varchar(50)");
+
+            entity.Property(e => e.CreatedDate)
+                .HasColumnType("date")
+                .HasDefaultValueSql("CURRENT_DATE");
+
+            entity.Property(e => e.ModifiedBy)
+                .HasMaxLength(50)
+                .HasColumnType("varchar(50)");
+
+            entity.Property(e => e.ModifiedDate)
+                .HasColumnType("date");
+
+            entity.HasIndex(e => e.ListingGUID);
+
+            entity.HasOne(e => e.Listing)
+                .WithMany(listing => listing.SalesSpecialsImages)
                 .HasForeignKey(e => e.ListingGUID)
                 .OnDelete(DeleteBehavior.Restrict);
         });

@@ -607,6 +607,208 @@ public class BusinessYellowPageDetailPageController(ApplicationDbContext context
         return RedirectToAction(nameof(Index), new { listingGuid = entity.ListingGUID });
     }
 
+    [HttpGet("SalesSpecials/{listingGuid:guid}")]
+    public async Task<IActionResult> SalesSpecials(Guid listingGuid)
+    {
+        var listing = await context.Listings
+            .AsNoTracking()
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+
+        if (listing is null)
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        if (!string.Equals(listing.Category?.Name, BusinessYellowPageCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var specials = await context.SalesSpecialsImages
+            .AsNoTracking()
+            .Where(item => item.ListingGUID == listingGuid && !item.DeletedInd)
+            .OrderBy(item => item.SortOrder)
+            .ThenBy(item => item.CreatedDate)
+            .Take(50)
+            .Select(item => new SalesSpecialsImageViewModel
+            {
+                SalesSpecialsImageGUID = item.SalesSpecialsImageGUID,
+                ListingGUID = item.ListingGUID,
+                Title = item.Title,
+                SortOrder = item.SortOrder,
+                Price = item.Price,
+                SalePrice = item.SalePrice,
+                PercentOff = item.PercentOff,
+                SaleBegin = item.SaleBegin,
+                SaleEnd = item.SaleEnd,
+                Description = item.Description,
+                ThumbnailURL = item.ThumbnailURL,
+                ImageURL = item.ImageURL
+            })
+            .ToListAsync();
+
+        return Json(specials);
+    }
+
+    [HttpPost("UpsertSalesSpecialPhoto/{listingGuid:guid}")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpsertSalesSpecialPhoto(
+        Guid listingGuid,
+        Guid? salesSpecialsImageGuid,
+        string? title,
+        int? sortOrder,
+        decimal? price,
+        decimal? salePrice,
+        string? percentOff,
+        DateTime? saleBegin,
+        DateTime? saleEnd,
+        string? description,
+        string? croppedImageData,
+        string? thumbnailImageData)
+    {
+        if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
+        {
+            return Forbid();
+        }
+
+        var listing = await context.Listings
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+
+        if (listing is null)
+        {
+            return NotFound();
+        }
+
+        if (!string.Equals(listing.Category?.Name, BusinessYellowPageCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
+        if (!CanManageListing(listing, currentUserId))
+        {
+            return Forbid();
+        }
+
+        if (string.IsNullOrWhiteSpace(croppedImageData))
+        {
+            TempData["MessageError"] = "Image data is required.";
+            return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        var imagePath = await SaveListingImageFromDataUrlAsync(croppedImageData);
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            TempData["MessageError"] = "Invalid image data.";
+            return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        var thumbnailPath = string.IsNullOrWhiteSpace(thumbnailImageData)
+            ? null
+            : await SaveListingImageFromDataUrlAsync(thumbnailImageData);
+
+        if (string.IsNullOrWhiteSpace(thumbnailPath))
+        {
+            thumbnailPath = imagePath;
+        }
+
+        SalesSpecialsImage? entity = null;
+        if (salesSpecialsImageGuid.HasValue)
+        {
+            entity = await context.SalesSpecialsImages
+                .FirstOrDefaultAsync(item => item.SalesSpecialsImageGUID == salesSpecialsImageGuid.Value && item.ListingGUID == listingGuid && !item.DeletedInd);
+        }
+
+        if (entity is null)
+        {
+            var imageCount = await context.SalesSpecialsImages
+                .CountAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+
+            if (imageCount >= 50)
+            {
+                TempData["MessageError"] = "You can upload up to 50 sales & specials photos for a listing.";
+                return RedirectToAction(nameof(Index), new { listingGuid });
+            }
+
+            entity = new SalesSpecialsImage
+            {
+                SalesSpecialsImageGUID = Guid.NewGuid(),
+                ListingGUID = listingGuid,
+                CreatedBy = User.Identity?.Name,
+                CreatedDate = CanHappy.Common.EasternTime.Now.Date,
+                DeletedInd = false,
+                SampleInd = false
+            };
+            context.SalesSpecialsImages.Add(entity);
+        }
+
+        entity.Title = string.IsNullOrWhiteSpace(title) ? null : title.Trim();
+        entity.SortOrder = sortOrder.GetValueOrDefault(0);
+        entity.Price = price;
+        entity.SalePrice = salePrice;
+        entity.PercentOff = string.IsNullOrWhiteSpace(percentOff) ? null : percentOff.Trim();
+        entity.SaleBegin = saleBegin?.Date;
+        entity.SaleEnd = saleEnd?.Date;
+        entity.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+        entity.ImageURL = imagePath;
+        entity.ThumbnailURL = thumbnailPath;
+        entity.ModifiedBy = User.Identity?.Name;
+        entity.ModifiedDate = CanHappy.Common.EasternTime.Now.Date;
+
+        await context.SaveChangesAsync();
+
+        TempData["MessageSuccess"] = "Sales & specials photo saved.";
+        return RedirectToAction(nameof(Index), new { listingGuid });
+    }
+
+    [HttpPost("DeleteSalesSpecialPhoto/{listingGuid:guid}/{salesSpecialsImageGuid:guid}")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteSalesSpecialPhoto(Guid listingGuid, Guid salesSpecialsImageGuid)
+    {
+        if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
+        {
+            return Forbid();
+        }
+
+        var listing = await context.Listings
+            .Include(item => item.Category)
+            .FirstOrDefaultAsync(item => item.ListingGUID == listingGuid && !item.DeletedInd);
+        if (listing is null)
+        {
+            return NotFound();
+        }
+
+        if (!string.Equals(listing.Category?.Name, BusinessYellowPageCategoryName, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
+        if (!CanManageListing(listing, currentUserId))
+        {
+            return Forbid();
+        }
+
+        var entity = await context.SalesSpecialsImages
+            .FirstOrDefaultAsync(item => item.SalesSpecialsImageGUID == salesSpecialsImageGuid && item.ListingGUID == listingGuid && !item.DeletedInd);
+
+        if (entity is null)
+        {
+            TempData["MessageError"] = "Sales & specials photo not found.";
+            return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        entity.DeletedInd = true;
+        entity.ModifiedBy = User.Identity?.Name;
+        entity.ModifiedDate = CanHappy.Common.EasternTime.Now.Date;
+        await context.SaveChangesAsync();
+
+        TempData["MessageSuccess"] = "Sales & specials photo deleted.";
+        return RedirectToAction(nameof(Index), new { listingGuid });
+    }
+
     [HttpPost("UpsertPhoto/{listingGuid:guid}")]
     [Authorize]
     [ValidateAntiForgeryToken]

@@ -108,6 +108,8 @@ public class Listing
 
     public List<ListingImage> ListingImages { get; set; } = [];
 
+    public List<SalesSpecialsImage> SalesSpecialsImages { get; set; } = [];
+
     public List<ListingVideo> ListingVideos { get; set; } = [];
 
     public List<FavoriteListing> FavoriteListings { get; set; } = [];

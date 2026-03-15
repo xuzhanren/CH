@@ -229,6 +229,11 @@ body {
   font-size: 0.72rem;
 }
 
+.fancy-cursive-title {
+        font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+        font-weight: 700;
+    }
+    
 .footer {
   background-color: var(--bs-body-bg);
 }
