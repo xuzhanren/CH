@@ -3,6 +3,7 @@ using System;
 using CanHappy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CanHappy.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260316010810_AddSupportMessageEntity")]
+    partial class AddSupportMessageEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2544,6 +2547,56 @@ namespace CanHappy.Data.Migrations
                     b.ToTable("Subcategory", (string)null);
                 });
 
+            modelBuilder.Entity("CanHappy.Models.SupportMessage", b =>
+                {
+                    b.Property<Guid>("SupportMessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("RecipientUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("SenderEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("SupportMessageId");
+
+                    b.HasIndex("RecipientUserId");
+
+                    b.HasIndex("RecipientUserId", "CreatedDate");
+
+                    b.ToTable("SupportMessage", (string)null);
+                });
+
             modelBuilder.Entity("CanHappy.Models.UserMessage", b =>
                 {
                     b.Property<Guid>("UserMessageGUID")
@@ -2563,7 +2616,7 @@ namespace CanHappy.Data.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid?>("ListingGUID")
+                    b.Property<Guid>("ListingGUID")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("RecipientUserId")
@@ -3123,12 +3176,22 @@ namespace CanHappy.Data.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("CanHappy.Models.SupportMessage", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("RecipientUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CanHappy.Models.UserMessage", b =>
                 {
                     b.HasOne("CanHappy.Models.Listing", "Listing")
                         .WithMany()
                         .HasForeignKey("ListingGUID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Listing");
                 });

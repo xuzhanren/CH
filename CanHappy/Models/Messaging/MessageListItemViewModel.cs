@@ -4,7 +4,9 @@ public class MessageListItemViewModel
 {
     public Guid UserMessageGUID { get; set; }
 
-    public Guid ListingGUID { get; set; }
+    public Guid? ListingGUID { get; set; }
+
+    public bool HasListing => ListingGUID.HasValue;
 
     public string ListingSubject { get; set; } = string.Empty;
 

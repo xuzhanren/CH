@@ -1,12 +1,17 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using CanHappy.Models;
+using CanHappy.Models.Home;
 using CanHappy.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CanHappy.Controllers;
 
-public class HomeController(ApplicationDbContext context, IConfiguration configuration) : Controller
+public class HomeController(
+    ApplicationDbContext context,
+    IConfiguration configuration) : Controller
 {
     public IActionResult Index()
     {
@@ -63,9 +68,89 @@ public class HomeController(ApplicationDbContext context, IConfiguration configu
         return View();
     }
 
+    [HttpGet]
+    public IActionResult About()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    public IActionResult Contact()
+    {
+        return View(new ContactViewModel());
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Contact(ContactViewModel model)
+    {
+        if (!TryGetCurrentUserGuid(out var currentUserId))
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var recipientIdStrings = await (
+            from userRole in context.UserRoles
+            join role in context.Roles on userRole.RoleId equals role.Id
+            where role.Name == "Admin" || role.Name == "Clerk"
+            select userRole.UserId)
+            .Distinct()
+            .ToListAsync();
+
+        var recipientIds = recipientIdStrings
+            .Select(id => Guid.TryParse(id, out var parsedId) ? parsedId : Guid.Empty)
+            .Where(id => id != Guid.Empty && id != currentUserId)
+            .Distinct()
+            .ToList();
+
+        if (recipientIds.Count == 0)
+        {
+            TempData["ContactError"] = "No Clerk or Admin users are available to receive this message.";
+            return RedirectToAction(nameof(Contact));
+        }
+
+        var createdDate = CanHappy.Common.EasternTime.Now;
+        var senderName = User.Identity?.Name ?? "User";
+        var effectiveSubject = $"Contact: {model.Subject.Trim()}";
+        var effectiveBody = $"From: {senderName}\n\n{model.Body.Trim()}";
+
+        foreach (var recipientId in recipientIds)
+        {
+            context.UserMessages.Add(new UserMessage
+            {
+                UserMessageGUID = Guid.NewGuid(),
+                ListingGUID = null,
+                SenderUserId = currentUserId,
+                RecipientUserId = recipientId,
+                Subject = effectiveSubject,
+                Body = effectiveBody,
+                IsRead = false,
+                CreatedDate = createdDate
+            });
+        }
+
+        await context.SaveChangesAsync();
+
+        TempData["ContactSuccess"] = "Your message has been sent to all Clerk and Admin users.";
+        return RedirectToAction(nameof(Contact));
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    private bool TryGetCurrentUserGuid(out Guid userId)
+    {
+        userId = Guid.Empty;
+        var userIdText = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return !string.IsNullOrWhiteSpace(userIdText) && Guid.TryParse(userIdText, out userId);
     }
 }

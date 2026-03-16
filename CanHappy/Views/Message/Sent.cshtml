@@ -29,8 +29,16 @@ else
                             </a>
                             <small>
                                 To: <strong>@message.CounterpartyName</strong> |
-                                Listing: <a asp-controller="ListingPage" asp-action="Details"
-                                            asp-route-id="@message.ListingGUID">@message.ListingSubject</a>
+                                Listing:
+                                @if (message.HasListing)
+                                {
+                                    <a asp-controller="ListingPage" asp-action="Details"
+                                       asp-route-id="@message.ListingGUID">@message.ListingSubject</a>
+                                }
+                                else
+                                {
+                                    <span>@message.ListingSubject</span>
+                                }
                             </small>
                         </div>
                         <div class="col-12 col-md-2 text-md-end">

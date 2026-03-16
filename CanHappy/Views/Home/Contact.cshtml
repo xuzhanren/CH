@@ -1,0 +1,52 @@
+@model CanHappy.Models.Home.ContactViewModel
+
+@{
+    ViewData["Title"] = "Contact";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    Use this form to send a message to our support and operations team. Your message will be delivered to all users with
+    role <strong>Clerk</strong> and <strong>Admin</strong>.
+</p>
+
+@if (TempData["ContactSuccess"] is string contactSuccess && !string.IsNullOrWhiteSpace(contactSuccess))
+{
+    <div class="alert alert-success">@contactSuccess</div>
+}
+
+@if (TempData["ContactError"] is string contactError && !string.IsNullOrWhiteSpace(contactError))
+{
+    <div class="alert alert-danger">@contactError</div>
+}
+
+@if (!User.Identity?.IsAuthenticated ?? true)
+{
+    <div class="alert alert-warning">
+        Please <a asp-area="Identity" asp-page="/Account/Login">sign in</a> to send a contact message.
+    </div>
+}
+
+<form asp-controller="Home" asp-action="Contact" method="post" class="mt-3">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Subject" class="form-label"></label>
+        <input asp-for="Subject" class="form-control" maxlength="120" />
+        <span asp-validation-for="Subject" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Body" class="form-label">Message</label>
+        <textarea asp-for="Body" class="form-control" rows="8" maxlength="2000"></textarea>
+        <span asp-validation-for="Body" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary" @(User.Identity?.IsAuthenticated == true ? null : "disabled")>Send
+        Message</button>
+    </form>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }

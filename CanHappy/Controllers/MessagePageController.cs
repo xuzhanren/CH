@@ -44,7 +44,7 @@ public class MessagePageController(
         {
             UserMessageGUID = message.UserMessageGUID,
             ListingGUID = message.ListingGUID,
-            ListingSubject = message.Listing?.Subject ?? "Listing",
+            ListingSubject = message.Listing?.Subject ?? "Support",
             Subject = message.Subject,
             BodyPreview = BuildPreview(message.Body),
             CreatedDate = message.CreatedDate,
@@ -82,7 +82,7 @@ public class MessagePageController(
         {
             UserMessageGUID = message.UserMessageGUID,
             ListingGUID = message.ListingGUID,
-            ListingSubject = message.Listing?.Subject ?? "Listing",
+            ListingSubject = message.Listing?.Subject ?? "Support",
             Subject = message.Subject,
             BodyPreview = BuildPreview(message.Body),
             CreatedDate = message.CreatedDate,
@@ -132,7 +132,7 @@ public class MessagePageController(
         {
             UserMessageGUID = message.UserMessageGUID,
             ListingGUID = message.ListingGUID,
-            ListingSubject = message.Listing?.Subject ?? "Listing",
+            ListingSubject = message.Listing?.Subject ?? "Support",
             Subject = message.Subject,
             Body = message.Body,
             CreatedDate = message.CreatedDate,

@@ -7,7 +7,7 @@ public class UserMessage
     [Key]
     public Guid UserMessageGUID { get; set; } = Guid.NewGuid();
 
-    public Guid ListingGUID { get; set; }
+    public Guid? ListingGUID { get; set; }
 
     public Guid SenderUserId { get; set; }
 

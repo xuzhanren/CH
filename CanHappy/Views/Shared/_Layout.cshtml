@@ -158,564 +158,567 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-column w-100">
                     <div class="d-sm-inline-flex justify-content-start align-items-center w-100 compact-nav-row1">
                         <ul class="navbar-nav">
-                                                @if (User.IsInRole("Admin"))
-                                                {
-                                                    <li class="nav-item dropdown">
-                                                        <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
-                                                           data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
-                                                        <ul class="dropdown-menu">
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Ads">Manage Ads</a>
-                                                            </li>
-                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Areas">Manage
-                                                                Areas</a></li>
-                                                                <li><a class="dropdown-item" asp-controller="Category" asp-action="Index">Manage
-                                                                    Categories</a></li>
-                                                                    <li><a class="dropdown-item" asp-controller="Subcategory" asp-action="Index">Manage
-                                                                        Subcategory</a></li>
-                                                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Cities">Manage
-                                                                            Cities</a></li>
-                                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Listings">Manage
-                                                                                Listings</a></li>
-                                                                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Provinces">Manage
-                                                                                    Provinces</a></li>
-                                                                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Roles">Manage
-                                                                                        Roles</a></li>
-                                                                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Manage
-                                                                                            Users</a></li>
-                                                                                        </ul>
-                                                                                    </li>
-                                                                                    <li class="nav-item">
-                                                                                        <a class="nav-link text-dark" href="/swagger" target="_blank" rel="noopener">API
-                                                                                            Docs</a>
-                                                                                        </li>
-                                                                                    }
-                                                                                </ul>
-                                                                                  <form asp-controller="ListingPage" asp-action="Index" method="get"
-                                                                                      class="top-nav-search-box" id="topNavSearchBox">
-                                                                                    <div class="top-nav-search-primary">
-                                                                                        <button type="button" id="topNavSearchButton" class="top-nav-search-icon" aria-label="Search" title="Click to search">
-                                                                                            🔍
-                                                                                        </button>
-                                                                                        <input type="text" id="topNavKeywordInput" name="keywords" value="@selectedKeywords"
-                                                                                               class="form-control form-control-sm top-nav-search-input"
-                                                                                               placeholder="Search keywords" />
-                                                                                    </div>
-
-                                                                                    <div id="topNavGeoStatus" class="top-nav-geo-status text-muted small mt-1 d-none"
-                                                                                         role="status" aria-live="polite">
-                                                                                        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-                                                                                        Detecting your location...
-                                                                                    </div>
-
-                                                                                    <div id="topNavSearchAdvanced" class="top-nav-search-advanced">
-                                                                                        <select id="topNavCategorySelect" name="categoryName"
-                                                                                                class="form-select form-select-sm">
-                                                                                            <option value="">Category</option>
-                                                                                            @foreach (var category in searchCategories)
-                                                                                            {
-                                                                                                if (string.Equals(selectedCategoryName, category.Name,
-                                                                                                StringComparison.OrdinalIgnoreCase))
-                                                                                                {
-                                                                                                    <option value="@category.Name" selected>@category.Name</option>
-                                                                                                }
-                                                                                                else
-                                                                                                {
-                                                                                                    <option value="@category.Name">@category.Name</option>
-                                                                                                }
-                                                                                            }
-                                                                                        </select>
-
-                                                                                        <select id="topNavSubcategorySelect" name="subcategoryName"
-                                                                                                class="form-select form-select-sm" data-selected-value="@selectedSubcategoryName">
-                                                                                            <option value="">Subcategory</option>
-                                                                                        </select>
-
-                                                                                        <select id="topNavProvinceSelect" name="provinceId" class="form-select form-select-sm">
-                                                                                            <option value="">Province</option>
-                                                                                            @foreach (var province in searchProvinces)
-                                                                                            {
-                                                                                                if (selectedProvinceId == province.ProvinceId)
-                                                                                                {
-                                                                                                    <option value="@province.ProvinceId" selected>@province.Name</option>
-                                                                                                }
-                                                                                                else
-                                                                                                {
-                                                                                                    <option value="@province.ProvinceId">@province.Name</option>
-                                                                                                }
-                                                                                            }
-                                                                                        </select>
-
-                                                                                        <select id="topNavCitySelect" name="cityId" class="form-select form-select-sm"
-                                                                                                data-selected-value="@(selectedCityId?.ToString() ?? string.Empty)">
-                                                                                            <option value="">City</option>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                </form>
-                                                                                <div class="d-flex align-items-center ms-auto">
-                                                                                    <partial name="_LoginPartial" />
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <ul class="navbar-nav flex-row flex-wrap border-top mt-0 pt-0 compact-nav-row2 w-100">
-                                                                                @foreach (var categoryName in topCategoryNames)
-                                                                                {
-                                                                                    var subcategoryNames = SubcategoriesFor(categoryName);
-                                                                                    <li class="nav-item dropdown top-category-dropdown">
-                                                                                        <a class="nav-link top-category-link" asp-controller="ListingPage" asp-action="Index"
-                                                                                           asp-route-categoryName="@categoryName" title="@TooltipFor(categoryName)" role="button"
-                                                                                           aria-expanded="false">@categoryName</a>
-                                                                                        <ul class="dropdown-menu">
-                                                                                            @if (subcategoryNames.Count == 0)
-                                                                                            {
-                                                                                                <li><span class="dropdown-item-text">No subcategories</span></li>
-                                                                                            }
-                                                                                            else
-                                                                                            {
-                                                                                                @foreach (var subcategoryName in subcategoryNames)
-                                                                                                {
-                                                                                                    <li>
-                                                                                                        <a class="dropdown-item top-subcategory-link" asp-controller="ListingPage"
-                                                                                                           asp-action="Index" asp-route-categoryName="@categoryName"
-                                                                                                           asp-route-subcategoryName="@subcategoryName">@subcategoryName</a>
-                                                                                                    </li>
-                                                                                                }
-                                                                                            }
-                                                                                        </ul>
-                                                                                    </li>
-                                                                                }
-                                                                            </ul>
-                                                                        </div>
-                                                                    </div>
-                                                                </nav>
-                                                            </header>
-
-                                                            <div class="container">
-                                                                <main role="main" class="pb-3">
-                                                                    @RenderBody()
-                                                                </main>
-                                                            </div>
-
-                                                            <footer class="border-top footer text-muted">
-                                                                <div class="container">
-                                                                    &copy; 2026 - CanHappy - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Ads">Manage Ads</a>
+                                        </li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Areas">Manage
+                                            Areas</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Category" asp-action="Index">Manage
+                                                Categories</a></li>
+                                                <li><a class="dropdown-item" asp-controller="Subcategory" asp-action="Index">Manage
+                                                    Subcategory</a></li>
+                                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Cities">Manage
+                                                        Cities</a></li>
+                                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Listings">Manage
+                                                            Listings</a></li>
+                                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Provinces">Manage
+                                                                Provinces</a></li>
+                                                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Roles">Manage
+                                                                    Roles</a></li>
+                                                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Manage
+                                                                        Users</a></li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li class="nav-item">
+                                                                    <a class="nav-link text-dark" href="/swagger" target="_blank" rel="noopener">API
+                                                                        Docs</a>
+                                                                    </li>
+                                                                }
+                                                            </ul>
+                                                            <form asp-controller="ListingPage" asp-action="Index" method="get" class="top-nav-search-box"
+                                                                  id="topNavSearchBox">
+                                                                <div class="top-nav-search-primary">
+                                                                    <button type="button" id="topNavSearchButton" class="top-nav-search-icon"
+                                                                            aria-label="Search" title="Click to search">
+                                                                        🔍
+                                                                    </button>
+                                                                    <input type="text" id="topNavKeywordInput" name="keywords" value="@selectedKeywords"
+                                                                           class="form-control form-control-sm top-nav-search-input"
+                                                                           placeholder="Search keywords" />
                                                                 </div>
-                                                            </footer>
 
-                                                            <script src="~/lib/jquery/dist/jquery.min.js"></script>
-                                                            <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-                                                            <script src="~/js/site.js" asp-append-version="true"></script>
-                                                            <script>
-                                                                    (() => {
-                                                                        const categories = @Html.Raw(searchCategoriesJson);
-                                                                        const subcategories = @Html.Raw(searchSubcategoriesJson);
-                                                                        const provinces = @Html.Raw(searchProvincesJson);
-                                                                        const cities = @Html.Raw(searchCitiesJson);
+                                                                <div id="topNavGeoStatus" class="top-nav-geo-status text-muted small mt-1 d-none"
+                                                                     role="status" aria-live="polite">
+                                                                    <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                                                                    Detecting your location...
+                                                                </div>
 
-                                                                        const searchBox = document.getElementById("topNavSearchBox");
-                                                                        const keywordInput = document.getElementById("topNavKeywordInput");
-                                                                        const searchButton = document.getElementById("topNavSearchButton");
-                                                                        const advancedSection = document.getElementById("topNavSearchAdvanced");
-                                                                        const categorySelect = document.getElementById("topNavCategorySelect");
-                                                                        const subcategorySelect = document.getElementById("topNavSubcategorySelect");
-                                                                        const provinceSelect = document.getElementById("topNavProvinceSelect");
-                                                                        const citySelect = document.getElementById("topNavCitySelect");
-                                                                        const geoStatus = document.getElementById("topNavGeoStatus");
-
-                                                                        if (!searchBox || !keywordInput || !searchButton || !advancedSection || !categorySelect || !subcategorySelect || !provinceSelect || !citySelect) {
-                                                                            return;
+                                                                <div id="topNavSearchAdvanced" class="top-nav-search-advanced">
+                                                                    <select id="topNavCategorySelect" name="categoryName"
+                                                                            class="form-select form-select-sm">
+                                                                        <option value="">Category</option>
+                                                                        @foreach (var category in searchCategories)
+                                                                        {
+                                                                            if (string.Equals(selectedCategoryName, category.Name,
+                                                                            StringComparison.OrdinalIgnoreCase))
+                                                                            {
+                                                                                <option value="@category.Name" selected>@category.Name</option>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <option value="@category.Name">@category.Name</option>
+                                                                            }
                                                                         }
+                                                                    </select>
 
-                                                                        const executeSearch = () => {
-                                                                            searchBox.submit();
-                                                                        };
+                                                                    <select id="topNavSubcategorySelect" name="subcategoryName"
+                                                                            class="form-select form-select-sm" data-selected-value="@selectedSubcategoryName">
+                                                                        <option value="">Subcategory</option>
+                                                                    </select>
 
-                                                                        const normalize = (value) => (value || "").trim().toLowerCase();
-                                                                        const tokenize = (value) => normalize(value)
-                                                                            .split(/[\s,;|]+/)
-                                                                            .map((item) => item.trim())
-                                                                            .filter((item) => item.length > 0);
-
-                                                                        const computeKeywordMatchCount = (words, keywordsText) => {
-                                                                            if (!keywordsText || words.length === 0) {
-                                                                                return 0;
+                                                                    <select id="topNavProvinceSelect" name="provinceId" class="form-select form-select-sm">
+                                                                        <option value="">Province</option>
+                                                                        @foreach (var province in searchProvinces)
+                                                                        {
+                                                                            if (selectedProvinceId == province.ProvinceId)
+                                                                            {
+                                                                                <option value="@province.ProvinceId" selected>@province.Name</option>
                                                                             }
-
-                                                                            const keywordTokens = tokenize(keywordsText);
-                                                                            if (keywordTokens.length === 0) {
-                                                                                return 0;
+                                                                            else
+                                                                            {
+                                                                                <option value="@province.ProvinceId">@province.Name</option>
                                                                             }
-
-                                                                            return words.reduce((total, word) => {
-                                                                                return keywordTokens.includes(word) ? total + 1 : total;
-                                                                            }, 0);
-                                                                        };
-
-                                                                        const selectedSubcategoryName = subcategorySelect.dataset.selectedValue || "";
-                                                                        const selectedCityId = citySelect.dataset.selectedValue || "";
-                                                                        const storedProvinceKey = "canhappy.topNav.provinceId";
-                                                                        const storedCityKey = "canhappy.topNav.cityId";
-                                                                        const storedKeywordsKey = "canhappy.topNav.keywords";
-                                                                        const hasExplicitLocationSelection = @Html.Raw((selectedProvinceId.HasValue || selectedCityId.HasValue) ? "true" : "false");
-                                                                        const currentPath = window.location.pathname.toLowerCase();
-                                                                        const isHomePage = currentPath === "/" || currentPath === "/home" || currentPath === "/home/index";
-                                                                        const isListingIndexPage = currentPath === "/listing" || currentPath === "/listing/index";
-
-                                                                        const applyTopNavSearchVisibility = () => {
-                                                                            const collapseForHome = isHomePage;
-                                                                            advancedSection.classList.toggle("d-none", collapseForHome);
-                                                                            if (collapseForHome && geoStatus) {
-                                                                                geoStatus.classList.add("d-none");
-                                                                            }
-                                                                        };
-
-                                                                        const showGeoStatus = () => {
-                                                                            if (isHomePage) {
-                                                                                return;
-                                                                            }
-
-                                                                            if (geoStatus) {
-                                                                                geoStatus.classList.remove("d-none");
-                                                                            }
-                                                                        };
-
-                                                                        const hideGeoStatus = () => {
-                                                                            if (geoStatus) {
-                                                                                geoStatus.classList.add("d-none");
-                                                                            }
-                                                                        };
-
-                                                                        const persistProvinceAndCityChoice = () => {
-                                                                            const provinceValue = String(provinceSelect.value || "");
-                                                                            const cityValue = String(citySelect.value || "");
-
-                                                                            localStorage.setItem(storedProvinceKey, provinceValue);
-                                                                            localStorage.setItem(storedCityKey, cityValue);
-                                                                        };
-
-                                                                        const persistKeywordChoice = () => {
-                                                                            const keywordValue = String(keywordInput.value || "");
-                                                                            localStorage.setItem(storedKeywordsKey, keywordValue);
-                                                                        };
-
-                                                                        const applyStoredKeywordChoice = () => {
-                                                                            const keywordValue = String(keywordInput.value || "");
-                                                                            if (keywordValue.trim().length > 0) {
-                                                                                persistKeywordChoice();
-                                                                                return;
-                                                                            }
-
-                                                                            const storedKeywordValue = String(localStorage.getItem(storedKeywordsKey) || "");
-                                                                            if (storedKeywordValue.trim().length > 0) {
-                                                                                keywordInput.value = storedKeywordValue;
-                                                                            }
-                                                                        };
-
-                                                                        const applyStoredProvinceAndCityChoice = () => {
-                                                                            const storedProvinceId = String(localStorage.getItem(storedProvinceKey) || "");
-                                                                            const storedCityId = String(localStorage.getItem(storedCityKey) || "");
-
-                                                                            if (!storedProvinceId) {
-                                                                                return false;
-                                                                            }
-
-                                                                            if (!Array.from(provinceSelect.options).some((option) => option.value === storedProvinceId)) {
-                                                                                return false;
-                                                                            }
-
-                                                                            provinceSelect.value = storedProvinceId;
-                                                                            fillCities(storedProvinceId, storedCityId);
-
-                                                                            return true;
-                                                                        };
-
-                                                                        const fillSubcategories = (categoryName, preferredSubcategoryName) => {
-                                                                            const existingValue = preferredSubcategoryName || subcategorySelect.value || "";
-                                                                            const targetCategory = categories.find((category) => category.Name === categoryName);
-                                                                            const targetCategoryId = targetCategory ? targetCategory.CategoryId : null;
-
-                                                                            subcategorySelect.innerHTML = "";
-                                                                            subcategorySelect.appendChild(new Option("Subcategory", ""));
-
-                                                                            if (targetCategoryId === null) {
-                                                                                return;
-                                                                            }
-
-                                                                            const subcategoryOptions = subcategories
-                                                                                .filter((subcategory) => subcategory.CategoryId === targetCategoryId)
-                                                                                .sort((left, right) => left.Name.localeCompare(right.Name));
-
-                                                                            subcategoryOptions.forEach((subcategory) => {
-                                                                                const option = new Option(subcategory.Name, subcategory.Name);
-                                                                                option.selected = existingValue === subcategory.Name;
-                                                                                subcategorySelect.appendChild(option);
-                                                                            });
-
-                                                                        };
-
-                                                                        const fillCities = (provinceIdValue, preferredCityId) => {
-                                                                            const normalizedProvinceId = String(provinceIdValue || "");
-                                                                            const currentSelectedCity = String(preferredCityId || citySelect.value || "");
-
-                                                                            citySelect.innerHTML = "";
-                                                                            citySelect.appendChild(new Option("City", ""));
-
-                                                                            if (!normalizedProvinceId) {
-                                                                                return;
-                                                                            }
-
-                                                                            const cityOptions = cities
-                                                                                .filter((city) => String(city.ProvinceId) === normalizedProvinceId)
-                                                                                .sort((left, right) => left.Name.localeCompare(right.Name));
-
-                                                                            cityOptions.forEach((city) => {
-                                                                                const cityId = String(city.CityId);
-                                                                                const option = new Option(city.Name, cityId);
-                                                                                option.selected = cityId === String(currentSelectedCity);
-                                                                                citySelect.appendChild(option);
-                                                                            });
-
-                                                                        };
-
-                                                                        const autoSelectCategoryAndSubcategory = () => {
-                                                                            const words = Array.from(new Set(tokenize(keywordInput.value)));
-                                                                            if (words.length === 0) {
-                                                                                return;
-                                                                            }
-
-                                                                            let bestCategory = null;
-                                                                            let bestCategoryScore = 0;
-                                                                            categories.forEach((category) => {
-                                                                                const score = computeKeywordMatchCount(words, category.KeyWords);
-                                                                                if (score > bestCategoryScore) {
-                                                                                    bestCategoryScore = score;
-                                                                                    bestCategory = category;
-                                                                                }
-                                                                            });
-
-                                                                            if (!bestCategory || bestCategoryScore <= 0) {
-                                                                                return;
-                                                                            }
-
-                                                                            categorySelect.value = bestCategory.Name;
-
-                                                                            const candidates = subcategories.filter((subcategory) => subcategory.CategoryId === bestCategory.CategoryId);
-                                                                            let bestSubcategory = null;
-                                                                            let bestSubcategoryScore = 0;
-
-                                                                            candidates.forEach((subcategory) => {
-                                                                                const score = computeKeywordMatchCount(words, subcategory.KeyWords);
-                                                                                if (score > bestSubcategoryScore) {
-                                                                                    bestSubcategoryScore = score;
-                                                                                    bestSubcategory = subcategory;
-                                                                                }
-                                                                            });
-
-                                                                            fillSubcategories(bestCategory.Name, bestSubcategory ? bestSubcategory.Name : "");
-                                                                        };
-
-                                                                        const findMatchingProvinceByRegion = (regionName, regionCode) => {
-                                                                            return provinces.find((province) => {
-                                                                                const provinceName = normalize(province.Name);
-                                                                                const provinceCode = normalize(province.Code);
-                                                                                return (regionName && provinceName === regionName)
-                                                                                    || (regionCode && provinceCode === regionCode);
-                                                                            });
-                                                                        };
-
-                                                                        const applyProvinceAndCitySelection = (regionName, regionCode, cityName) => {
-                                                                            const matchedProvince = findMatchingProvinceByRegion(regionName, regionCode);
-                                                                            if (!matchedProvince) {
-                                                                                return false;
-                                                                            }
-
-                                                                            provinceSelect.value = String(matchedProvince.ProvinceId);
-                                                                            fillCities(matchedProvince.ProvinceId, "");
-
-                                                                            if (cityName) {
-                                                                                const matchedCity = cities.find((city) => String(city.ProvinceId) === String(matchedProvince.ProvinceId) && normalize(city.Name) === cityName);
-                                                                                if (matchedCity) {
-                                                                                    citySelect.value = String(matchedCity.CityId);
-                                                                                }
-                                                                            }
-
-                                                                            return true;
-                                                                        };
-
-                                                                        const autoSelectProvinceAndCityFromBrowserLocation = async (forceOverride = false) => {
-                                                                            if (!forceOverride && (provinceSelect.value || citySelect.value)) {
-                                                                                return false;
-                                                                            }
-
-                                                                            if (!navigator.geolocation) {
-                                                                                return false;
-                                                                            }
-
-                                                                            showGeoStatus();
-
-                                                                            try {
-                                                                                const position = await new Promise((resolve, reject) => {
-                                                                                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                                                                                        enableHighAccuracy: false,
-                                                                                        timeout: 5000,
-                                                                                        maximumAge: 600000
-                                                                                    });
-                                                                                });
-
-                                                                                const latitude = Number(position?.coords?.latitude);
-                                                                                const longitude = Number(position?.coords?.longitude);
-                                                                                if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-                                                                                    return;
-                                                                                }
-
-                                                                                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&zoom=10&addressdetails=1`, {
-                                                                                    method: "GET",
-                                                                                    headers: {
-                                                                                        "Accept": "application/json"
-                                                                                    }
-                                                                                });
-
-                                                                                if (!response.ok) {
-                                                                                    return;
-                                                                                }
-
-                                                                                const payload = await response.json();
-                                                                                const address = payload && payload.address ? payload.address : {};
-                                                                                const regionName = normalize(address.state || address.province || address.region);
-                                                                                const cityName = normalize(address.city || address.town || address.village || address.hamlet || "");
-
-                                                                                if (applyProvinceAndCitySelection(regionName, "", cityName)) {
-                                                                                    persistProvinceAndCityChoice();
-                                                                                    return true;
-                                                                                }
-                                                                            } catch {
-                                                                            } finally {
-                                                                                hideGeoStatus();
-                                                                            }
-
-                                                                            return false;
-                                                                        };
-
-                                                                        const autoSelectProvinceAndCityFromIp = async (forceOverride = false) => {
-                                                                            if (!forceOverride && (provinceSelect.value || citySelect.value)) {
-                                                                                hideGeoStatus();
-                                                                                return false;
-                                                                            }
-
-                                                                            showGeoStatus();
-                                                                            try {
-                                                                                const response = await fetch("https://ipapi.co/json/", { method: "GET" });
-                                                                                if (response.ok) {
-                                                                                    const ipData = await response.json();
-                                                                                    const regionName = normalize(ipData.region);
-                                                                                    const regionCode = normalize(ipData.region_code);
-                                                                                    const cityName = normalize(ipData.city);
-                                                                                    if (applyProvinceAndCitySelection(regionName, regionCode, cityName)) {
-                                                                                        persistProvinceAndCityChoice();
-                                                                                        return true;
-                                                                                    }
-                                                                                }
-                                                                            } catch {
-                                                                            } finally {
-                                                                                hideGeoStatus();
-                                                                            }
-
-                                                                            return false;
-                                                                        };
-
-                                                                        const syncListingIndexWithTopSearchProvinceAndCity = () => {
-                                                                            if (!isListingIndexPage) {
-                                                                                return;
-                                                                            }
-
-                                                                            const currentUrl = new URL(window.location.href);
-                                                                            const provinceInQuery = currentUrl.searchParams.get("provinceId") || "";
-                                                                            const cityInQuery = currentUrl.searchParams.get("cityId") || "";
-                                                                            const provinceInTopBar = String(provinceSelect.value || "");
-                                                                            const cityInTopBar = String(citySelect.value || "");
-
-                                                                            const shouldSync = provinceInQuery !== provinceInTopBar || cityInQuery !== cityInTopBar;
-                                                                            if (!shouldSync) {
-                                                                                return;
-                                                                            }
-
-                                                                            executeSearch();
-                                                                        };
-
-                                                                        let keywordInputTimer = null;
-                                                                        keywordInput.addEventListener("input", () => {
-                                                                            persistKeywordChoice();
-
-                                                                            if (keywordInputTimer) {
-                                                                                clearTimeout(keywordInputTimer);
-                                                                            }
-
-                                                                            keywordInputTimer = setTimeout(() => {
-                                                                                autoSelectCategoryAndSubcategory();
-                                                                            }, 300);
-                                                                        });
-
-                                                                        keywordInput.addEventListener("keydown", (event) => {
-                                                                            if (event.key === "Enter") {
-                                                                                event.preventDefault();
-                                                                            }
-                                                                        });
-
-                                                                        searchButton.addEventListener("click", () => {
-                                                                            persistKeywordChoice();
-                                                                            persistProvinceAndCityChoice();
-                                                                            executeSearch();
-                                                                        });
-
-                                                                        categorySelect.addEventListener("change", () => {
-                                                                            fillSubcategories(categorySelect.value, "");
-                                                                        });
-
-                                                                        provinceSelect.addEventListener("change", () => {
-                                                                            fillCities(provinceSelect.value, "");
-                                                                            persistProvinceAndCityChoice();
-
-                                                                            if (isListingIndexPage) {
-                                                                                executeSearch();
-                                                                            }
-                                                                        });
-
-                                                                        citySelect.addEventListener("change", () => {
-                                                                            persistProvinceAndCityChoice();
-
-                                                                            if (isListingIndexPage) {
-                                                                                executeSearch();
-                                                                            }
-                                                                        });
-
-                                                                        fillSubcategories(categorySelect.value, selectedSubcategoryName);
-                                                                        fillCities(provinceSelect.value, selectedCityId);
-                                                                        applyTopNavSearchVisibility();
-                                                                        applyStoredKeywordChoice();
-
-                                                                        if (!provinceSelect.value && !citySelect.value) {
-                                                                            applyStoredProvinceAndCityChoice();
                                                                         }
+                                                                    </select>
 
-                                                                        if (normalize(keywordInput.value).length > 0) {
-                                                                            autoSelectCategoryAndSubcategory();
+                                                                    <select id="topNavCitySelect" name="cityId" class="form-select form-select-sm"
+                                                                            data-selected-value="@(selectedCityId?.ToString() ?? string.Empty)">
+                                                                        <option value="">City</option>
+                                                                    </select>
+                                                                </div>
+                                                            </form>
+                                                            <div class="d-flex align-items-center ms-auto">
+                                                                <partial name="_LoginPartial" />
+                                                            </div>
+                                                        </div>
+
+                                                        <ul class="navbar-nav flex-row flex-wrap border-top mt-0 pt-0 compact-nav-row2 w-100">
+                                                            @foreach (var categoryName in topCategoryNames)
+                                                            {
+                                                                var subcategoryNames = SubcategoriesFor(categoryName);
+                                                                <li class="nav-item dropdown top-category-dropdown">
+                                                                    <a class="nav-link top-category-link" asp-controller="ListingPage" asp-action="Index"
+                                                                       asp-route-categoryName="@categoryName" title="@TooltipFor(categoryName)" role="button"
+                                                                       aria-expanded="false">@categoryName</a>
+                                                                    <ul class="dropdown-menu">
+                                                                        @if (subcategoryNames.Count == 0)
+                                                                        {
+                                                                            <li><span class="dropdown-item-text">No subcategories</span></li>
                                                                         }
-
-                                                                        if (isHomePage && !hasExplicitLocationSelection) {
-                                                                            autoSelectProvinceAndCityFromBrowserLocation(true).then((appliedFromBrowser) => {
-                                                                                if (!appliedFromBrowser) {
-                                                                                    autoSelectProvinceAndCityFromIp(true);
-                                                                                }
-                                                                            });
+                                                                        else
+                                                                        {
+                                                                            @foreach (var subcategoryName in subcategoryNames)
+                                                                            {
+                                                                                <li>
+                                                                                    <a class="dropdown-item top-subcategory-link" asp-controller="ListingPage"
+                                                                                       asp-action="Index" asp-route-categoryName="@categoryName"
+                                                                                       asp-route-subcategoryName="@subcategoryName">@subcategoryName</a>
+                                                                                </li>
+                                                                            }
                                                                         }
+                                                                    </ul>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </nav>
+                                        </header>
 
-                                                                        if (provinceSelect.value || citySelect.value) {
-                                                                            persistProvinceAndCityChoice();
-                                                                        }
+                                        <div class="container">
+                                            <main role="main" class="pb-3">
+                                                @RenderBody()
+                                            </main>
+                                        </div>
 
-                                                                        syncListingIndexWithTopSearchProvinceAndCity();
-                                                                    })();
-                                                            </script>
-                                                            @await RenderSectionAsync("Scripts", required: false)
-                                                        </body>
+                                        <footer class="border-top footer text-muted">
+                                            <div class="container">
+                                                &copy; 2026 - CanHappy - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a> - <a
+                                                asp-area="" asp-controller="Home" asp-action="About">About</a> - <a asp-area="" asp-controller="Home"
+                                                                                                                    asp-action="Contact">Contact</a>
+                                            </div>
+                                        </footer>
 
-                                                    </html>
+                                        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+                                        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+                                        <script src="~/js/site.js" asp-append-version="true"></script>
+                                        <script>
+                                                (() => {
+                                                    const categories = @Html.Raw(searchCategoriesJson);
+                                                    const subcategories = @Html.Raw(searchSubcategoriesJson);
+                                                    const provinces = @Html.Raw(searchProvincesJson);
+                                                    const cities = @Html.Raw(searchCitiesJson);
+
+                                                    const searchBox = document.getElementById("topNavSearchBox");
+                                                    const keywordInput = document.getElementById("topNavKeywordInput");
+                                                    const searchButton = document.getElementById("topNavSearchButton");
+                                                    const advancedSection = document.getElementById("topNavSearchAdvanced");
+                                                    const categorySelect = document.getElementById("topNavCategorySelect");
+                                                    const subcategorySelect = document.getElementById("topNavSubcategorySelect");
+                                                    const provinceSelect = document.getElementById("topNavProvinceSelect");
+                                                    const citySelect = document.getElementById("topNavCitySelect");
+                                                    const geoStatus = document.getElementById("topNavGeoStatus");
+
+                                                    if (!searchBox || !keywordInput || !searchButton || !advancedSection || !categorySelect || !subcategorySelect || !provinceSelect || !citySelect) {
+                                                        return;
+                                                    }
+
+                                                    const executeSearch = () => {
+                                                        searchBox.submit();
+                                                    };
+
+                                                    const normalize = (value) => (value || "").trim().toLowerCase();
+                                                    const tokenize = (value) => normalize(value)
+                                                        .split(/[\s,;|]+/)
+                                                        .map((item) => item.trim())
+                                                        .filter((item) => item.length > 0);
+
+                                                    const computeKeywordMatchCount = (words, keywordsText) => {
+                                                        if (!keywordsText || words.length === 0) {
+                                                            return 0;
+                                                        }
+
+                                                        const keywordTokens = tokenize(keywordsText);
+                                                        if (keywordTokens.length === 0) {
+                                                            return 0;
+                                                        }
+
+                                                        return words.reduce((total, word) => {
+                                                            return keywordTokens.includes(word) ? total + 1 : total;
+                                                        }, 0);
+                                                    };
+
+                                                    const selectedSubcategoryName = subcategorySelect.dataset.selectedValue || "";
+                                                    const selectedCityId = citySelect.dataset.selectedValue || "";
+                                                    const storedProvinceKey = "canhappy.topNav.provinceId";
+                                                    const storedCityKey = "canhappy.topNav.cityId";
+                                                    const storedKeywordsKey = "canhappy.topNav.keywords";
+                                                    const hasExplicitLocationSelection = @Html.Raw((selectedProvinceId.HasValue || selectedCityId.HasValue) ? "true" : "false");
+                                                    const currentPath = window.location.pathname.toLowerCase();
+                                                    const isHomePage = currentPath === "/" || currentPath === "/home" || currentPath === "/home/index";
+                                                    const isListingIndexPage = currentPath === "/listing" || currentPath === "/listing/index";
+
+                                                    const applyTopNavSearchVisibility = () => {
+                                                        const collapseForHome = isHomePage;
+                                                        advancedSection.classList.toggle("d-none", collapseForHome);
+                                                        if (collapseForHome && geoStatus) {
+                                                            geoStatus.classList.add("d-none");
+                                                        }
+                                                    };
+
+                                                    const showGeoStatus = () => {
+                                                        if (isHomePage) {
+                                                            return;
+                                                        }
+
+                                                        if (geoStatus) {
+                                                            geoStatus.classList.remove("d-none");
+                                                        }
+                                                    };
+
+                                                    const hideGeoStatus = () => {
+                                                        if (geoStatus) {
+                                                            geoStatus.classList.add("d-none");
+                                                        }
+                                                    };
+
+                                                    const persistProvinceAndCityChoice = () => {
+                                                        const provinceValue = String(provinceSelect.value || "");
+                                                        const cityValue = String(citySelect.value || "");
+
+                                                        localStorage.setItem(storedProvinceKey, provinceValue);
+                                                        localStorage.setItem(storedCityKey, cityValue);
+                                                    };
+
+                                                    const persistKeywordChoice = () => {
+                                                        const keywordValue = String(keywordInput.value || "");
+                                                        localStorage.setItem(storedKeywordsKey, keywordValue);
+                                                    };
+
+                                                    const applyStoredKeywordChoice = () => {
+                                                        const keywordValue = String(keywordInput.value || "");
+                                                        if (keywordValue.trim().length > 0) {
+                                                            persistKeywordChoice();
+                                                            return;
+                                                        }
+
+                                                        const storedKeywordValue = String(localStorage.getItem(storedKeywordsKey) || "");
+                                                        if (storedKeywordValue.trim().length > 0) {
+                                                            keywordInput.value = storedKeywordValue;
+                                                        }
+                                                    };
+
+                                                    const applyStoredProvinceAndCityChoice = () => {
+                                                        const storedProvinceId = String(localStorage.getItem(storedProvinceKey) || "");
+                                                        const storedCityId = String(localStorage.getItem(storedCityKey) || "");
+
+                                                        if (!storedProvinceId) {
+                                                            return false;
+                                                        }
+
+                                                        if (!Array.from(provinceSelect.options).some((option) => option.value === storedProvinceId)) {
+                                                            return false;
+                                                        }
+
+                                                        provinceSelect.value = storedProvinceId;
+                                                        fillCities(storedProvinceId, storedCityId);
+
+                                                        return true;
+                                                    };
+
+                                                    const fillSubcategories = (categoryName, preferredSubcategoryName) => {
+                                                        const existingValue = preferredSubcategoryName || subcategorySelect.value || "";
+                                                        const targetCategory = categories.find((category) => category.Name === categoryName);
+                                                        const targetCategoryId = targetCategory ? targetCategory.CategoryId : null;
+
+                                                        subcategorySelect.innerHTML = "";
+                                                        subcategorySelect.appendChild(new Option("Subcategory", ""));
+
+                                                        if (targetCategoryId === null) {
+                                                            return;
+                                                        }
+
+                                                        const subcategoryOptions = subcategories
+                                                            .filter((subcategory) => subcategory.CategoryId === targetCategoryId)
+                                                            .sort((left, right) => left.Name.localeCompare(right.Name));
+
+                                                        subcategoryOptions.forEach((subcategory) => {
+                                                            const option = new Option(subcategory.Name, subcategory.Name);
+                                                            option.selected = existingValue === subcategory.Name;
+                                                            subcategorySelect.appendChild(option);
+                                                        });
+
+                                                    };
+
+                                                    const fillCities = (provinceIdValue, preferredCityId) => {
+                                                        const normalizedProvinceId = String(provinceIdValue || "");
+                                                        const currentSelectedCity = String(preferredCityId || citySelect.value || "");
+
+                                                        citySelect.innerHTML = "";
+                                                        citySelect.appendChild(new Option("City", ""));
+
+                                                        if (!normalizedProvinceId) {
+                                                            return;
+                                                        }
+
+                                                        const cityOptions = cities
+                                                            .filter((city) => String(city.ProvinceId) === normalizedProvinceId)
+                                                            .sort((left, right) => left.Name.localeCompare(right.Name));
+
+                                                        cityOptions.forEach((city) => {
+                                                            const cityId = String(city.CityId);
+                                                            const option = new Option(city.Name, cityId);
+                                                            option.selected = cityId === String(currentSelectedCity);
+                                                            citySelect.appendChild(option);
+                                                        });
+
+                                                    };
+
+                                                    const autoSelectCategoryAndSubcategory = () => {
+                                                        const words = Array.from(new Set(tokenize(keywordInput.value)));
+                                                        if (words.length === 0) {
+                                                            return;
+                                                        }
+
+                                                        let bestCategory = null;
+                                                        let bestCategoryScore = 0;
+                                                        categories.forEach((category) => {
+                                                            const score = computeKeywordMatchCount(words, category.KeyWords);
+                                                            if (score > bestCategoryScore) {
+                                                                bestCategoryScore = score;
+                                                                bestCategory = category;
+                                                            }
+                                                        });
+
+                                                        if (!bestCategory || bestCategoryScore <= 0) {
+                                                            return;
+                                                        }
+
+                                                        categorySelect.value = bestCategory.Name;
+
+                                                        const candidates = subcategories.filter((subcategory) => subcategory.CategoryId === bestCategory.CategoryId);
+                                                        let bestSubcategory = null;
+                                                        let bestSubcategoryScore = 0;
+
+                                                        candidates.forEach((subcategory) => {
+                                                            const score = computeKeywordMatchCount(words, subcategory.KeyWords);
+                                                            if (score > bestSubcategoryScore) {
+                                                                bestSubcategoryScore = score;
+                                                                bestSubcategory = subcategory;
+                                                            }
+                                                        });
+
+                                                        fillSubcategories(bestCategory.Name, bestSubcategory ? bestSubcategory.Name : "");
+                                                    };
+
+                                                    const findMatchingProvinceByRegion = (regionName, regionCode) => {
+                                                        return provinces.find((province) => {
+                                                            const provinceName = normalize(province.Name);
+                                                            const provinceCode = normalize(province.Code);
+                                                            return (regionName && provinceName === regionName)
+                                                                || (regionCode && provinceCode === regionCode);
+                                                        });
+                                                    };
+
+                                                    const applyProvinceAndCitySelection = (regionName, regionCode, cityName) => {
+                                                        const matchedProvince = findMatchingProvinceByRegion(regionName, regionCode);
+                                                        if (!matchedProvince) {
+                                                            return false;
+                                                        }
+
+                                                        provinceSelect.value = String(matchedProvince.ProvinceId);
+                                                        fillCities(matchedProvince.ProvinceId, "");
+
+                                                        if (cityName) {
+                                                            const matchedCity = cities.find((city) => String(city.ProvinceId) === String(matchedProvince.ProvinceId) && normalize(city.Name) === cityName);
+                                                            if (matchedCity) {
+                                                                citySelect.value = String(matchedCity.CityId);
+                                                            }
+                                                        }
+
+                                                        return true;
+                                                    };
+
+                                                    const autoSelectProvinceAndCityFromBrowserLocation = async (forceOverride = false) => {
+                                                        if (!forceOverride && (provinceSelect.value || citySelect.value)) {
+                                                            return false;
+                                                        }
+
+                                                        if (!navigator.geolocation) {
+                                                            return false;
+                                                        }
+
+                                                        showGeoStatus();
+
+                                                        try {
+                                                            const position = await new Promise((resolve, reject) => {
+                                                                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                                                    enableHighAccuracy: false,
+                                                                    timeout: 5000,
+                                                                    maximumAge: 600000
+                                                                });
+                                                            });
+
+                                                            const latitude = Number(position?.coords?.latitude);
+                                                            const longitude = Number(position?.coords?.longitude);
+                                                            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                                                                return;
+                                                            }
+
+                                                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&zoom=10&addressdetails=1`, {
+                                                                method: "GET",
+                                                                headers: {
+                                                                    "Accept": "application/json"
+                                                                }
+                                                            });
+
+                                                            if (!response.ok) {
+                                                                return;
+                                                            }
+
+                                                            const payload = await response.json();
+                                                            const address = payload && payload.address ? payload.address : {};
+                                                            const regionName = normalize(address.state || address.province || address.region);
+                                                            const cityName = normalize(address.city || address.town || address.village || address.hamlet || "");
+
+                                                            if (applyProvinceAndCitySelection(regionName, "", cityName)) {
+                                                                persistProvinceAndCityChoice();
+                                                                return true;
+                                                            }
+                                                        } catch {
+                                                        } finally {
+                                                            hideGeoStatus();
+                                                        }
+
+                                                        return false;
+                                                    };
+
+                                                    const autoSelectProvinceAndCityFromIp = async (forceOverride = false) => {
+                                                        if (!forceOverride && (provinceSelect.value || citySelect.value)) {
+                                                            hideGeoStatus();
+                                                            return false;
+                                                        }
+
+                                                        showGeoStatus();
+                                                        try {
+                                                            const response = await fetch("https://ipapi.co/json/", { method: "GET" });
+                                                            if (response.ok) {
+                                                                const ipData = await response.json();
+                                                                const regionName = normalize(ipData.region);
+                                                                const regionCode = normalize(ipData.region_code);
+                                                                const cityName = normalize(ipData.city);
+                                                                if (applyProvinceAndCitySelection(regionName, regionCode, cityName)) {
+                                                                    persistProvinceAndCityChoice();
+                                                                    return true;
+                                                                }
+                                                            }
+                                                        } catch {
+                                                        } finally {
+                                                            hideGeoStatus();
+                                                        }
+
+                                                        return false;
+                                                    };
+
+                                                    const syncListingIndexWithTopSearchProvinceAndCity = () => {
+                                                        if (!isListingIndexPage) {
+                                                            return;
+                                                        }
+
+                                                        const currentUrl = new URL(window.location.href);
+                                                        const provinceInQuery = currentUrl.searchParams.get("provinceId") || "";
+                                                        const cityInQuery = currentUrl.searchParams.get("cityId") || "";
+                                                        const provinceInTopBar = String(provinceSelect.value || "");
+                                                        const cityInTopBar = String(citySelect.value || "");
+
+                                                        const shouldSync = provinceInQuery !== provinceInTopBar || cityInQuery !== cityInTopBar;
+                                                        if (!shouldSync) {
+                                                            return;
+                                                        }
+
+                                                        executeSearch();
+                                                    };
+
+                                                    let keywordInputTimer = null;
+                                                    keywordInput.addEventListener("input", () => {
+                                                        persistKeywordChoice();
+
+                                                        if (keywordInputTimer) {
+                                                            clearTimeout(keywordInputTimer);
+                                                        }
+
+                                                        keywordInputTimer = setTimeout(() => {
+                                                            autoSelectCategoryAndSubcategory();
+                                                        }, 300);
+                                                    });
+
+                                                    keywordInput.addEventListener("keydown", (event) => {
+                                                        if (event.key === "Enter") {
+                                                            event.preventDefault();
+                                                        }
+                                                    });
+
+                                                    searchButton.addEventListener("click", () => {
+                                                        persistKeywordChoice();
+                                                        persistProvinceAndCityChoice();
+                                                        executeSearch();
+                                                    });
+
+                                                    categorySelect.addEventListener("change", () => {
+                                                        fillSubcategories(categorySelect.value, "");
+                                                    });
+
+                                                    provinceSelect.addEventListener("change", () => {
+                                                        fillCities(provinceSelect.value, "");
+                                                        persistProvinceAndCityChoice();
+
+                                                        if (isListingIndexPage) {
+                                                            executeSearch();
+                                                        }
+                                                    });
+
+                                                    citySelect.addEventListener("change", () => {
+                                                        persistProvinceAndCityChoice();
+
+                                                        if (isListingIndexPage) {
+                                                            executeSearch();
+                                                        }
+                                                    });
+
+                                                    fillSubcategories(categorySelect.value, selectedSubcategoryName);
+                                                    fillCities(provinceSelect.value, selectedCityId);
+                                                    applyTopNavSearchVisibility();
+                                                    applyStoredKeywordChoice();
+
+                                                    if (!provinceSelect.value && !citySelect.value) {
+                                                        applyStoredProvinceAndCityChoice();
+                                                    }
+
+                                                    if (normalize(keywordInput.value).length > 0) {
+                                                        autoSelectCategoryAndSubcategory();
+                                                    }
+
+                                                    if (isHomePage && !hasExplicitLocationSelection) {
+                                                        autoSelectProvinceAndCityFromBrowserLocation(true).then((appliedFromBrowser) => {
+                                                            if (!appliedFromBrowser) {
+                                                                autoSelectProvinceAndCityFromIp(true);
+                                                            }
+                                                        });
+                                                    }
+
+                                                    if (provinceSelect.value || citySelect.value) {
+                                                        persistProvinceAndCityChoice();
+                                                    }
+
+                                                    syncListingIndexWithTopSearchProvinceAndCity();
+                                                })();
+                                        </script>
+                                        @await RenderSectionAsync("Scripts", required: false)
+                                    </body>
+
+                                </html>

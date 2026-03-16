@@ -5,7 +5,11 @@
     var replySubject = Model.Subject.StartsWith("Re:", StringComparison.OrdinalIgnoreCase)
         ? Model.Subject
         : $"Re: {Model.Subject}";
-    var replyBodyTemplate = $"\n\n--- Original message ---\n{Model.Body}";
+    var displayBody = (Model.Body ?? string.Empty)
+        .Replace("--- Original message ---", $"{Environment.NewLine}--- Original message ---{Environment.NewLine}")
+        .Replace($"--- Original message ---{Environment.NewLine}{Environment.NewLine}", $"--- Original message ---{Environment.NewLine}")
+        .Trim();
+    var replyBodyTemplate = $"\n\n--- Original message ---\nFrom: {Model.SenderName}\nTo: {Model.RecipientName}\nDate: {Model.CreatedDate.ToLocalTime()}\n{Model.Body}";
 }
 
 @if (TempData["MessageSuccess"] is string messageSuccess && !string.IsNullOrWhiteSpace(messageSuccess))
@@ -39,13 +43,20 @@
             <div><strong>Date:</strong> @Model.CreatedDate.ToLocalTime()</div>
             <div>
                 <strong>Listing:</strong>
-                <a asp-controller="ListingPage" asp-action="Details"
-                   asp-route-id="@Model.ListingGUID">@Model.ListingSubject</a>
+                @if (Model.HasListing)
+                {
+                    <a asp-controller="ListingPage" asp-action="Details"
+                       asp-route-id="@Model.ListingGUID">@Model.ListingSubject</a>
+                }
+                else
+                {
+                    <span>@Model.ListingSubject</span>
+                }
             </div>
         </div>
 
-        <div class="border rounded p-3 bg-body-tertiary text-body">
-            @Model.Body
+        <div class="border rounded p-3 bg-body-tertiary text-body" style="white-space: pre-line;">
+            @displayBody
         </div>
     </div>
 </div>
@@ -53,15 +64,15 @@
 @if (Model.IsInboxMessage)
 {
     <div class="modal fade" id="replyMessageModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-scrollable" style="max-width: 66.6667vw; width: 66.6667vw; height: 100vh; margin: 0 auto;">
+            <div class="modal-content h-100">
                 <div class="modal-header">
                     <h5 class="modal-title">Reply to sender</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="post" action="@Url.Action("Reply", "MessagePage", new { id = Model.UserMessageGUID })">
                     @Html.AntiForgeryToken()
-                    <div class="modal-body">
+                    <div class="modal-body d-flex flex-column">
                         <div class="mb-3">
                             <label for="replySubject" class="form-label">Subject</label>
                             <input id="replySubject" name="subject" type="text" class="form-control" maxlength="120"
@@ -69,7 +80,8 @@
                         </div>
                         <div class="mb-0">
                             <label for="replyBody" class="form-label">Message</label>
-                            <textarea id="replyBody" name="body" class="form-control" rows="7" maxlength="2000"
+                            <textarea id="replyBody" name="body" class="form-control" rows="18" style="height: calc(100vh - 260px);"
+                                      maxlength="2000"
                                       required>@replyBodyTemplate</textarea>
                         </div>
                     </div>
@@ -87,18 +99,18 @@
     @if (Model.IsInboxMessage)
     {
         <script>
-                            (() => {
-                                const replyModal = document.getElementById("replyMessageModal");
-                                const replyBody = document.getElementById("replyBody");
-                                if (!replyModal || !replyBody) {
-                                    return;
-                                }
+                                    (() => {
+                                        const replyModal = document.getElementById("replyMessageModal");
+                                        const replyBody = document.getElementById("replyBody");
+                                        if (!replyModal || !replyBody) {
+                                            return;
+                                        }
 
-                                replyModal.addEventListener("shown.bs.modal", () => {
-                                    replyBody.focus();
-                                    replyBody.setSelectionRange(0, 0);
-                                });
-                            })();
+                                        replyModal.addEventListener("shown.bs.modal", () => {
+                                            replyBody.focus();
+                                            replyBody.setSelectionRange(0, 0);
+                                        });
+                                    })();
         </script>
     }
 }
