@@ -306,6 +306,8 @@ public class HomeRentalDetailIndexItemViewModel
     public int RentalPropertyTypeId { get; set; }
     public string? RentalPropertyTypeName { get; set; }
     public int RentalSquareFeet { get; set; }
+    public int Bedrooms { get; set; }
+    public int BedroomsForRental { get; set; }
     public int Washrooms { get; set; }
     public bool SharedWashroomInd { get; set; }
     public int Baths { get; set; }
@@ -366,6 +368,11 @@ public class HomeRentalDetailEditViewModel
 
     [Display(Name = "Rental Square Feet")]
     public int RentalSquareFeet { get; set; }
+
+    public int Bedrooms { get; set; }
+
+    [Display(Name = "Bedrooms For Rental")]
+    public int BedroomsForRental { get; set; }
 
     public int Washrooms { get; set; }
 

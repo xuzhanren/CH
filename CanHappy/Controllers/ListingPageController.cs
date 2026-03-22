@@ -32,6 +32,8 @@ public class ListingPageController(
             .Include(listing => listing.Subcategory)
             .Include(listing => listing.Province)
             .Include(listing => listing.City)
+            .Include(listing => listing.HomeRentalDetail)
+            .Include(listing => listing.EstateSaleDetail)
             .AsNoTracking()
             .Where(listing => !listing.DeletedInd)
             .AsQueryable();

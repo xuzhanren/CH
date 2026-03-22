@@ -830,6 +830,9 @@
                                             @Model.FocusDetail.RentalPropertyTypeName</div>
                                             <div class="col-lg-3 col-md-4"><strong>Storeys:</strong> @Model.FocusDetail.NumberOfStoreys</div>
                                             <div class="col-lg-3 col-md-4"><strong>Square Feet:</strong> @Model.FocusDetail.RentalSquareFeet</div>
+                                            <div class="col-lg-3 col-md-4"><strong>Bedrooms:</strong> @Model.FocusDetail.Bedrooms</div>
+                                            <div class="col-lg-3 col-md-4"><strong>Bedrooms For Rental:</strong> @Model.FocusDetail.BedroomsForRental
+                                            </div>
                                             <div class="col-lg-3 col-md-4"><strong>Washrooms:</strong> @Model.FocusDetail.Washrooms</div>
                                             <div class="col-lg-3 col-md-4"><strong>Shared Washroom:</strong> @Model.FocusDetail.SharedWashroomInd</div>
                                             <div class="col-lg-3 col-md-4"><strong>Baths:</strong> @Model.FocusDetail.Baths</div>
@@ -1181,6 +1184,8 @@ else
                                                             <th>Property Type</th>
                                                             <th>Rental Type</th>
                                                             <th>Sq Ft</th>
+                                                            <th>Bedrooms</th>
+                                                            <th>Bedrooms For Rental</th>
                                                             <th>Washrooms</th>
                                                             <th>Baths</th>
                                                             <th>Storeys</th>
@@ -1207,6 +1212,8 @@ else
                                                                 <td>@item.PropertyTypeName</td>
                                                                 <td>@item.RentalPropertyTypeName</td>
                                                                 <td>@item.RentalSquareFeet</td>
+                                                                <td>@item.Bedrooms</td>
+                                                                <td>@item.BedroomsForRental</td>
                                                                 <td>@item.Washrooms</td>
                                                                 <td>@item.Baths</td>
                                                                 <td>@item.NumberOfStoreys</td>

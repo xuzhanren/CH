@@ -148,6 +148,8 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
                 RentalPropertyTypeId = item.RentalPropertyTypeId,
                 RentalPropertyTypeName = item.RentalPropertyType != null ? item.RentalPropertyType.Name : null,
                 RentalSquareFeet = item.RentalSquareFeet,
+                Bedrooms = item.Bedrooms,
+                BedroomsForRental = item.BedroomsForRental,
                 Washrooms = item.Washrooms,
                 SharedWashroomInd = item.SharedWashroomInd,
                 Baths = item.Baths,
@@ -197,6 +199,8 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
                     RentalPropertyTypeId = focusDetail.RentalPropertyTypeId,
                     RentalPropertyTypeName = focusDetail.RentalPropertyTypeName,
                     RentalSquareFeet = focusDetail.RentalSquareFeet,
+                    Bedrooms = focusDetail.Bedrooms,
+                    BedroomsForRental = focusDetail.BedroomsForRental,
                     Washrooms = focusDetail.Washrooms,
                     SharedWashroomInd = focusDetail.SharedWashroomInd,
                     Baths = focusDetail.Baths,
@@ -459,7 +463,7 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
     [HttpPost("Create")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ListingGUID,PropertyTypeId,NumberOfStoreys,PriceNegotiableInd,RentalPropertyTypeId,RentalSquareFeet,Washrooms,SharedWashroomInd,Baths,YearBuilt,ParkingSpots,RentalParkingSpots,ParkingIncludedInd,PreferredRentalStartDate,PreferredRentalTerm,RentalTermNegotiableInd,FurnishedInd,WaterIncludedInd,HeatingIncludedInd,HydroElectricityIncludedInd,InternetWiFiIncludedInd,AdditionalInfo")] HomeRentalDetailEditViewModel model)
+    public async Task<IActionResult> Create([Bind("ListingGUID,PropertyTypeId,NumberOfStoreys,PriceNegotiableInd,RentalPropertyTypeId,RentalSquareFeet,Bedrooms,BedroomsForRental,Washrooms,SharedWashroomInd,Baths,YearBuilt,ParkingSpots,RentalParkingSpots,ParkingIncludedInd,PreferredRentalStartDate,PreferredRentalTerm,RentalTermNegotiableInd,FurnishedInd,WaterIncludedInd,HeatingIncludedInd,HydroElectricityIncludedInd,InternetWiFiIncludedInd,AdditionalInfo")] HomeRentalDetailEditViewModel model)
     {
         if (!TryGetCurrentUserGuid(out var currentUserId) && !User.IsInRole("Admin") && !User.IsInRole("Clerk"))
         {
@@ -521,6 +525,8 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
             PriceNegotiableInd = model.PriceNegotiableInd,
             RentalPropertyTypeId = model.RentalPropertyTypeId,
             RentalSquareFeet = model.RentalSquareFeet,
+            Bedrooms = model.Bedrooms,
+            BedroomsForRental = model.BedroomsForRental,
             Washrooms = model.Washrooms,
             SharedWashroomInd = model.SharedWashroomInd,
             Baths = model.Baths,
@@ -588,7 +594,7 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
     [HttpPost("Edit/{id:guid}")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("HomeRentalDetailGUID,ListingGUID,PropertyTypeId,NumberOfStoreys,PriceNegotiableInd,RentalPropertyTypeId,RentalSquareFeet,Washrooms,SharedWashroomInd,Baths,YearBuilt,ParkingSpots,RentalParkingSpots,ParkingIncludedInd,PreferredRentalStartDate,PreferredRentalTerm,RentalTermNegotiableInd,FurnishedInd,WaterIncludedInd,HeatingIncludedInd,HydroElectricityIncludedInd,InternetWiFiIncludedInd,AdditionalInfo")] HomeRentalDetailEditViewModel model)
+    public async Task<IActionResult> Edit(Guid id, [Bind("HomeRentalDetailGUID,ListingGUID,PropertyTypeId,NumberOfStoreys,PriceNegotiableInd,RentalPropertyTypeId,RentalSquareFeet,Bedrooms,BedroomsForRental,Washrooms,SharedWashroomInd,Baths,YearBuilt,ParkingSpots,RentalParkingSpots,ParkingIncludedInd,PreferredRentalStartDate,PreferredRentalTerm,RentalTermNegotiableInd,FurnishedInd,WaterIncludedInd,HeatingIncludedInd,HydroElectricityIncludedInd,InternetWiFiIncludedInd,AdditionalInfo")] HomeRentalDetailEditViewModel model)
     {
         if (model.HomeRentalDetailGUID != id)
         {
@@ -643,6 +649,8 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
             invalidModel.PriceNegotiableInd = model.PriceNegotiableInd;
             invalidModel.RentalPropertyTypeId = model.RentalPropertyTypeId;
             invalidModel.RentalSquareFeet = model.RentalSquareFeet;
+            invalidModel.Bedrooms = model.Bedrooms;
+            invalidModel.BedroomsForRental = model.BedroomsForRental;
             invalidModel.Washrooms = model.Washrooms;
             invalidModel.SharedWashroomInd = model.SharedWashroomInd;
             invalidModel.Baths = model.Baths;
@@ -668,6 +676,8 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
         entity.PriceNegotiableInd = model.PriceNegotiableInd;
         entity.RentalPropertyTypeId = model.RentalPropertyTypeId;
         entity.RentalSquareFeet = model.RentalSquareFeet;
+        entity.Bedrooms = model.Bedrooms;
+        entity.BedroomsForRental = model.BedroomsForRental;
         entity.Washrooms = model.Washrooms;
         entity.SharedWashroomInd = model.SharedWashroomInd;
         entity.Baths = model.Baths;
@@ -919,6 +929,8 @@ public class HomeRentalDetailPageController(ApplicationDbContext context, IWebHo
             RentalPropertyTypeId = detail.RentalPropertyTypeId,
             RentalPropertyTypeName = detail.RentalPropertyType?.Name,
             RentalSquareFeet = detail.RentalSquareFeet,
+            Bedrooms = detail.Bedrooms,
+            BedroomsForRental = detail.BedroomsForRental,
             Washrooms = detail.Washrooms,
             SharedWashroomInd = detail.SharedWashroomInd,
             Baths = detail.Baths,

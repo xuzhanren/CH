@@ -19,6 +19,10 @@ public class HomeRentalDetail
 
     public int RentalSquareFeet { get; set; }
 
+    public int Bedrooms { get; set; }
+
+    public int BedroomsForRental { get; set; }
+
     public int Washrooms { get; set; }
 
     public bool SharedWashroomInd { get; set; } = true;
