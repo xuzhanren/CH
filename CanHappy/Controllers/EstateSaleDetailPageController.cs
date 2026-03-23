@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -93,7 +94,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                     .AnyAsync(item => item.ListingGUID == listing.ListingGUID && item.UserId == currentUserId && !item.DeletedInd);
             }
 
-            model.ListingImages = await context.ListingImages
+            var listingImages = await context.ListingImages
                 .AsNoTracking()
                 .Where(image => image.ListingGUID == listing.ListingGUID && !image.DeletedInd)
                 .OrderBy(image => image.SorOrder)
@@ -110,7 +111,15 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                 })
                 .ToListAsync();
 
-            model.ListingVideos = await context.ListingVideos
+            foreach (var image in listingImages)
+            {
+                image.ThumbnailURL = ResolveListingImageUrl(image.ThumbnailURL);
+                image.ImageURL = ResolveListingImageUrl(image.ImageURL);
+            }
+
+            model.ListingImages = listingImages;
+
+            var listingVideos = await context.ListingVideos
                 .AsNoTracking()
                 .Where(video => video.ListingGUID == listing.ListingGUID && !video.DeletedInd)
                 .OrderBy(video => video.SortOrder)
@@ -125,6 +134,14 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                     VideoURL = video.VideoURL
                 })
                 .ToListAsync();
+
+            foreach (var video in listingVideos)
+            {
+                video.ThumbnailURL = ResolveListingVideoThumbnailUrl(video.ThumbnailURL);
+                video.VideoURL = ResolveListingVideoUrl(video.VideoURL);
+            }
+
+            model.ListingVideos = listingVideos;
 
             var detail = await context.EstateSaleDetails
                 .AsNoTracking()
@@ -154,6 +171,12 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                         ImageURL = room.ImageURL
                     })
                     .ToListAsync();
+
+                foreach (var room in model.Rooms)
+                {
+                    room.ThumbnailURL = ResolveEstateRoomImageUrl(room.ThumbnailURL);
+                    room.ImageURL = ResolveEstateRoomImageUrl(room.ImageURL);
+                }
             }
             else
             {
@@ -325,7 +348,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             .GroupBy(item => item.ListingGUID)
             .ToDictionary(
                 group => group.Key,
-                group => group.Select(item => !string.IsNullOrWhiteSpace(item.ThumbnailURL) ? item.ThumbnailURL : item.ImageURL)
+                group => group.Select(item => ResolveListingImageUrl(!string.IsNullOrWhiteSpace(item.ThumbnailURL) ? item.ThumbnailURL : item.ImageURL))
                     .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)));
 
         var result = selectedSimilarListings
@@ -334,7 +357,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                 ListingGUID = item.ListingGUID,
                 Subject = item.Subject,
                 ThumbnailURL = !string.IsNullOrWhiteSpace(item.ThumbnailURL)
-                    ? item.ThumbnailURL
+                    ? ResolveListingImageUrl(item.ThumbnailURL)
                     : (thumbnailByListing.TryGetValue(item.ListingGUID, out var thumbnailUrl) ? thumbnailUrl : null)
             })
             .ToList();
@@ -862,7 +885,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             return RedirectToAction(nameof(Index), new { listingGuid });
         }
 
-        var imagePath = await SaveImageFromDataUrlAsync(croppedImageData, "ListingImages");
+        var imagePath = await SaveImageFromDataUrlAsync(croppedImageData, ListImageFolder);
         if (string.IsNullOrWhiteSpace(imagePath))
         {
             TempData["MessageError"] = "Invalid image data.";
@@ -871,7 +894,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
         var thumbnailPath = string.IsNullOrWhiteSpace(thumbnailImageData)
             ? null
-            : await SaveImageFromDataUrlAsync(thumbnailImageData, "ListingImages");
+            : await SaveImageFromDataUrlAsync(thumbnailImageData, ListImageFolder);
 
         if (string.IsNullOrWhiteSpace(thumbnailPath))
         {
@@ -1028,7 +1051,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
                 return RedirectToAction(nameof(Index), new { listingGuid });
             }
 
-            var savedVideoPath = await SaveUploadedVideoAsync(editedVideoFile, "ListingVideos");
+            var savedVideoPath = await SaveUploadedVideoAsync(editedVideoFile, ListingVideosFolder);
             if (string.IsNullOrWhiteSpace(savedVideoPath))
             {
                 TempData["MessageError"] = "Could not save video file.";
@@ -1041,7 +1064,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
         if (!string.IsNullOrWhiteSpace(thumbnailImageData))
         {
-            var thumbnailPath = await SaveImageFromDataUrlAsync(thumbnailImageData, "ListingVideoThumbnails");
+            var thumbnailPath = await SaveImageFromDataUrlAsync(thumbnailImageData, ListingVideoThumbnailsFolder);
             if (!string.IsNullOrWhiteSpace(thumbnailPath))
             {
                 listingVideo.ThumbnailURL = thumbnailPath;
@@ -1439,14 +1462,13 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var relativePath = $"/{folderName}/{fileName}";
-        var folderPath = Path.Combine(environment.WebRootPath, folderName);
+        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, folderName);
 
         Directory.CreateDirectory(folderPath);
         var filePath = Path.Combine(folderPath, fileName);
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
-        return relativePath;
+        return fileName;
     }
 
     private async Task<string?> SaveUploadedVideoAsync(IFormFile file, string folderName)
@@ -1458,14 +1480,42 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         }
 
         var fileName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
-        var relativePath = $"/{folderName}/{fileName}";
-        var folderPath = Path.Combine(environment.WebRootPath, folderName);
+        var relativePath = MediaPathHelper.BuildRelativeMediaPath(folderName, fileName);
+        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, folderName);
         Directory.CreateDirectory(folderPath);
 
         var filePath = Path.Combine(folderPath, fileName);
         await using var output = System.IO.File.Create(filePath);
         await file.CopyToAsync(output);
         return relativePath;
+    }
+
+    private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
+
+    private string ListingVideoThumbnailsFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListingVideoThumbnailsFolder", "/ListingVideoThumbnails");
+
+    private string ListingVideosFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListingVideosFolder", "/ListingVideos");
+
+    private string EstateRoomImagesFolder => "/EstateRoomImages";
+
+    private string? ResolveListingImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, ListImageFolder);
+    }
+
+    private string ResolveListingVideoThumbnailUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, ListingVideoThumbnailsFolder) ?? string.Empty;
+    }
+
+    private string ResolveListingVideoUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, ListingVideosFolder) ?? string.Empty;
+    }
+
+    private string? ResolveEstateRoomImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, EstateRoomImagesFolder);
     }
 
     private void TryDeleteMediaFile(string? mediaPath)
@@ -1497,12 +1547,43 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             }
 
             normalizedPath = normalizedPath.Replace('\\', '/');
+
+            var webRootFullPath = Path.GetFullPath(environment.WebRootPath);
             if (!normalizedPath.StartsWith('/'))
             {
+                var candidateFolders = new[]
+                {
+                    ListImageFolder,
+                    ListingVideoThumbnailsFolder,
+                    ListingVideosFolder,
+                    EstateRoomImagesFolder
+                };
+
+                foreach (var candidateFolder in candidateFolders)
+                {
+                    var candidateUrl = MediaPathHelper.BuildMediaUrl(normalizedPath, candidateFolder);
+                    if (string.IsNullOrWhiteSpace(candidateUrl))
+                    {
+                        continue;
+                    }
+
+                    var candidateRelativePath = candidateUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                    var candidateFullPath = Path.GetFullPath(Path.Combine(environment.WebRootPath, candidateRelativePath));
+                    if (!candidateFullPath.StartsWith(webRootFullPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (System.IO.File.Exists(candidateFullPath))
+                    {
+                        System.IO.File.Delete(candidateFullPath);
+                        return;
+                    }
+                }
+
                 return;
             }
 
-            var webRootFullPath = Path.GetFullPath(environment.WebRootPath);
             var relativeFsPath = normalizedPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
             var targetFullPath = Path.GetFullPath(Path.Combine(environment.WebRootPath, relativeFsPath));
 

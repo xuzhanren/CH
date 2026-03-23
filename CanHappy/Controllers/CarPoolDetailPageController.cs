@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -91,7 +92,7 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
 
             model.CanManageFocusedListing = canManageByRole || (hasUserGuid && listing.UserId != Guid.Empty && listing.UserId == currentUserId);
 
-            model.ListingImages = await context.ListingImages
+            var listingImages = await context.ListingImages
                 .AsNoTracking()
                 .Where(image => image.ListingGUID == listing.ListingGUID && !image.DeletedInd)
                 .OrderBy(image => image.SorOrder)
@@ -107,6 +108,14 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
                     ImageURL = image.ImageURL
                 })
                 .ToListAsync();
+
+            foreach (var image in listingImages)
+            {
+                image.ThumbnailURL = ResolveListingImageUrl(image.ThumbnailURL);
+                image.ImageURL = ResolveListingImageUrl(image.ImageURL);
+            }
+
+            model.ListingImages = listingImages;
         }
 
         model.Items = await query
@@ -348,7 +357,7 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
             {
                 listingGuid = item.Listing.ListingGUID,
                 subject = item.Listing.Subject,
-                thumbnailURL = item.ThumbnailURL,
+                thumbnailURL = ResolveListingImageUrl(item.ThumbnailURL),
                 score = item.Score
             })
             .ToList();
@@ -1004,13 +1013,19 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var relativePath = $"/ListingImages/{fileName}";
-        var folderPath = Path.Combine(environment.WebRootPath, "ListingImages");
+        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, ListImageFolder);
 
         Directory.CreateDirectory(folderPath);
         var filePath = Path.Combine(folderPath, fileName);
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
-        return relativePath;
+        return fileName;
+    }
+
+    private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
+
+    private string? ResolveListingImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, ListImageFolder);
     }
 }

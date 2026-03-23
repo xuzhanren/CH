@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -85,7 +86,7 @@ public class BusinessYellowPageDetailPageController(ApplicationDbContext context
                     .AnyAsync(item => item.ListingGUID == listing.ListingGUID && item.UserId == currentUserId && !item.DeletedInd);
             }
 
-            model.ListingImages = await context.ListingImages
+            var listingImages = await context.ListingImages
                 .AsNoTracking()
                 .Where(image => image.ListingGUID == listing.ListingGUID && !image.DeletedInd)
                 .OrderBy(image => image.SorOrder)
@@ -101,6 +102,14 @@ public class BusinessYellowPageDetailPageController(ApplicationDbContext context
                     ImageURL = image.ImageURL
                 })
                 .ToListAsync();
+
+            foreach (var image in listingImages)
+            {
+                image.ThumbnailURL = ResolveListingImageUrl(image.ThumbnailURL);
+                image.ImageURL = ResolveListingImageUrl(image.ImageURL);
+            }
+
+            model.ListingImages = listingImages;
 
             var similarCandidates = await context.Listings
                 .AsNoTracking()
@@ -154,7 +163,7 @@ public class BusinessYellowPageDetailPageController(ApplicationDbContext context
                     .GroupBy(item => item.ListingGUID)
                     .ToDictionary(
                         group => group.Key,
-                        group => group.Select(item => !string.IsNullOrWhiteSpace(item.ThumbnailURL) ? item.ThumbnailURL : item.ImageURL)
+                        group => group.Select(item => ResolveListingImageUrl(!string.IsNullOrWhiteSpace(item.ThumbnailURL) ? item.ThumbnailURL : item.ImageURL))
                             .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)));
 
                 model.SimilarBusinesses = selectedSimilarListings
@@ -648,6 +657,12 @@ public class BusinessYellowPageDetailPageController(ApplicationDbContext context
             })
             .ToListAsync();
 
+        foreach (var item in specials)
+        {
+            item.ThumbnailURL = ResolveListingImageUrl(item.ThumbnailURL);
+            item.ImageURL = ResolveListingImageUrl(item.ImageURL);
+        }
+
         return Json(specials);
     }
 
@@ -1042,14 +1057,20 @@ public class BusinessYellowPageDetailPageController(ApplicationDbContext context
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var relativePath = $"/ListingImages/{fileName}";
-        var folderPath = Path.Combine(environment.WebRootPath, "ListingImages");
+        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, ListImageFolder);
 
         Directory.CreateDirectory(folderPath);
         var filePath = Path.Combine(folderPath, fileName);
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
-        return relativePath;
+        return fileName;
+    }
+
+    private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
+
+    private string? ResolveListingImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, ListImageFolder);
     }
 
     private static int ComputeDetailPageAdScore(Listing listing, Ad ad)

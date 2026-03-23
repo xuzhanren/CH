@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -91,7 +92,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                     .AnyAsync(item => item.ListingGUID == listing.ListingGUID && item.UserId == currentUserId && !item.DeletedInd);
             }
 
-            model.ListingImages = await context.ListingImages
+            var listingImages = await context.ListingImages
                 .AsNoTracking()
                 .Where(image => image.ListingGUID == listing.ListingGUID && !image.DeletedInd)
                 .OrderBy(image => image.SorOrder)
@@ -107,6 +108,14 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                     ImageURL = image.ImageURL
                 })
                 .ToListAsync();
+
+            foreach (var image in listingImages)
+            {
+                image.ThumbnailURL = ResolveListingImageUrl(image.ThumbnailURL);
+                image.ImageURL = ResolveListingImageUrl(image.ImageURL);
+            }
+
+            model.ListingImages = listingImages;
         }
 
         model.Items = await query
@@ -343,7 +352,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
             .GroupBy(item => item.ListingGUID)
             .ToDictionary(
                 group => group.Key,
-                group => group.Select(item => !string.IsNullOrWhiteSpace(item.ThumbnailURL) ? item.ThumbnailURL : item.ImageURL)
+                group => group.Select(item => ResolveListingImageUrl(!string.IsNullOrWhiteSpace(item.ThumbnailURL) ? item.ThumbnailURL : item.ImageURL))
                     .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)));
 
         var result = selectedSimilarListings
@@ -352,7 +361,7 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
                 ListingGUID = item.ListingGUID,
                 Subject = item.Subject,
                 ThumbnailURL = !string.IsNullOrWhiteSpace(item.ThumbnailURL)
-                    ? item.ThumbnailURL
+                    ? ResolveListingImageUrl(item.ThumbnailURL)
                     : (thumbnailByListing.TryGetValue(item.ListingGUID, out var thumbnailUrl) ? thumbnailUrl : null)
             })
             .ToList();
@@ -829,14 +838,20 @@ public class BuySellDetailPageController(ApplicationDbContext context, IWebHostE
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var relativePath = $"/ListingImages/{fileName}";
-        var folderPath = Path.Combine(environment.WebRootPath, "ListingImages");
+        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, ListImageFolder);
 
         Directory.CreateDirectory(folderPath);
         var filePath = Path.Combine(folderPath, fileName);
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
-        return relativePath;
+        return fileName;
+    }
+
+    private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
+
+    private string? ResolveListingImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, ListImageFolder);
     }
 
     private static int ComputeDetailPageAdScore(Listing listing, Ad ad)

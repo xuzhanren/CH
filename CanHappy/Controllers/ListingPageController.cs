@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -79,6 +80,11 @@ public class ListingPageController(
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+        }
+
+        foreach (var listing in listings)
+        {
+            listing.ThumbnailURL = ResolveListingImageUrl(listing.ThumbnailURL);
         }
 
         ViewData["CategoryName"] = categoryName;
@@ -399,6 +405,8 @@ public class ListingPageController(
             return NotFound();
         }
 
+        listing.ThumbnailURL = ResolveListingImageUrl(listing.ThumbnailURL);
+
         var reviewCount = await context.ListingReviews
             .AsNoTracking()
             .CountAsync(item => item.ListingGUID == listing.ListingGUID && !item.DeletedInd);
@@ -470,6 +478,8 @@ public class ListingPageController(
         ViewData["SubcategoryName"] = !string.IsNullOrWhiteSpace(subcategoryName)
             ? subcategoryName
             : listing.Subcategory?.Name;
+
+        listing.ThumbnailURL = ResolveListingImageUrl(listing.ThumbnailURL);
 
         PopulateSelectLists(listing.CategoryId, listing.SubcategoryId, listing.ProvinceId, listing.CityId);
         return View("~/Views/Listing/Edit.cshtml", listing);
@@ -1013,15 +1023,21 @@ public class ListingPageController(
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var relativePath = $"/ListingImages/{fileName}";
-        var folderPath = Path.Combine(environment.WebRootPath, "ListingImages");
+        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, ListImageFolder);
 
         Directory.CreateDirectory(folderPath);
 
         var filePath = Path.Combine(folderPath, fileName);
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
-        return relativePath;
+        return fileName;
+    }
+
+    private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
+
+    private string? ResolveListingImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, ListImageFolder);
     }
 
     private void TryDeleteWebRootFile(string? imageUrl)
@@ -1042,6 +1058,11 @@ public class ListingPageController(
         if (queryOrFragmentIndex >= 0)
         {
             trimmedPath = trimmedPath[..queryOrFragmentIndex];
+        }
+
+        if (!trimmedPath.StartsWith('/') && !trimmedPath.StartsWith('\\'))
+        {
+            trimmedPath = ResolveListingImageUrl(trimmedPath) ?? trimmedPath;
         }
 
         var relativePath = trimmedPath

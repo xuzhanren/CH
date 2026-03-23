@@ -57,8 +57,90 @@
     }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex align-items-center mb-3">
     <h1 class="mb-0">@ViewData["Title"]</h1>
+
+    @if (totalPages > 1)
+    {
+        <div class="flex-grow-1 d-flex justify-content-center">
+            <nav aria-label="Listings pagination header">
+                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : string.Empty)">
+                        <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
+                           asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
+                           asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
+                           asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput"
+                           asp-route-page="@(currentPage - 1)" aria-label="Previous">&lt;</a>
+                    </li>
+
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item @(currentPage == 1 ? "active" : string.Empty)">
+                            <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
+                               asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
+                               asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
+                               asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput" asp-route-page="1">1</a>
+                        </li>
+
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @for (var pageNumber = startPage; pageNumber <= endPage; pageNumber++)
+                    {
+                        <li class="page-item @(pageNumber == currentPage ? "active" : string.Empty)">
+                            <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
+                               asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
+                               asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
+                               asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput"
+                               asp-route-page="@pageNumber">@pageNumber</a>
+                        </li>
+                    }
+
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+
+                        <li class="page-item @(currentPage == totalPages ? "active" : string.Empty)">
+                            <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
+                               asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
+                               asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
+                               asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput"
+                               asp-route-page="@totalPages">@totalPages</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : string.Empty)">
+                        <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
+                           asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
+                           asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
+                           asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput"
+                           asp-route-page="@(currentPage + 1)"                  aria-label="Next">&gt;</a>
+                    </li>
+
+                    <li class="page-item">
+                        <form asp-action="Listings" method="get" class="d-flex align-items-center ms-2">
+                            <input type="hidden" name="subject" value="@searchSubject" />
+                            <input type="hidden" name="categoryId" value="@selectedCategoryId" />
+                            <input type="hidden" name="subcategoryId" value="@selectedSubcategoryId" />
+                            <input type="hidden" name="provinceId" value="@selectedProvinceId" />
+                            <input type="hidden" name="cityId" value="@selectedCityId" />
+                            <input type="hidden" name="fromDate" value="@fromDateInput" />
+                            <input type="hidden" name="toDate" value="@toDateInput" />
+                            <input type="text" name="page" inputmode="numeric" pattern="[0-9]*" value="@currentPage"
+                                   class="form-control form-control-sm"
+                                   style="width: 1.65rem; height: 1.28rem; padding: 0 0.15rem; font-size: 0.72rem; line-height: 1; text-align: center;" />
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
 </div>
 
 <div class="card mb-3">
@@ -123,86 +205,6 @@
         </form>
     </div>
 </div>
-
-@if (totalPages > 1)
-{
-    <nav aria-label="Listings pagination header" class="mb-3">
-        <ul class="pagination pagination-sm mb-0 justify-content-center">
-            <li class="page-item @(currentPage <= 1 ? "disabled" : string.Empty)">
-                <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
-                   asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
-                   asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
-                   asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput" asp-route-page="@(currentPage - 1)"
-                   aria-label="Previous">&lt;</a>
-            </li>
-
-            @if (startPage > 1)
-            {
-                <li class="page-item @(currentPage == 1 ? "active" : string.Empty)">
-                    <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
-                       asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
-                       asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
-                       asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput" asp-route-page="1">1</a>
-                </li>
-
-                @if (startPage > 2)
-                {
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                }
-            }
-
-            @for (var pageNumber = startPage; pageNumber <= endPage; pageNumber++)
-            {
-                <li class="page-item @(pageNumber == currentPage ? "active" : string.Empty)">
-                    <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
-                       asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
-                       asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
-                       asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput"
-                       asp-route-page="@pageNumber">@pageNumber</a>
-                </li>
-            }
-
-            @if (endPage < totalPages)
-            {
-                @if (endPage < totalPages - 1)
-                {
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                }
-
-                <li class="page-item @(currentPage == totalPages ? "active" : string.Empty)">
-                    <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
-                       asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
-                       asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
-                       asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput"
-                       asp-route-page="@totalPages">@totalPages</a>
-                </li>
-            }
-
-            <li class="page-item @(currentPage >= totalPages ? "disabled" : string.Empty)">
-                <a class="page-link" asp-action="Listings" asp-route-subject="@searchSubject"
-                   asp-route-categoryId="@selectedCategoryId" asp-route-subcategoryId="@selectedSubcategoryId"
-                   asp-route-provinceId="@selectedProvinceId" asp-route-cityId="@selectedCityId"
-                   asp-route-fromDate="@fromDateInput" asp-route-toDate="@toDateInput" asp-route-page="@(currentPage + 1)"
-                   aria-label="Next">&gt;</a>
-            </li>
-
-            <li class="page-item">
-                <form asp-action="Listings" method="get" class="d-flex align-items-center ms-2">
-                    <input type="hidden" name="subject" value="@searchSubject" />
-                    <input type="hidden" name="categoryId" value="@selectedCategoryId" />
-                    <input type="hidden" name="subcategoryId" value="@selectedSubcategoryId" />
-                    <input type="hidden" name="provinceId" value="@selectedProvinceId" />
-                    <input type="hidden" name="cityId" value="@selectedCityId" />
-                    <input type="hidden" name="fromDate" value="@fromDateInput" />
-                    <input type="hidden" name="toDate" value="@toDateInput" />
-                    <input type="text" name="page" inputmode="numeric" pattern="[0-9]*" value="@currentPage"
-                           class="form-control form-control-sm"
-                           style="width: 1.65rem; height: 1.28rem; padding: 0 0.15rem; font-size: 0.72rem; line-height: 1; text-align: center;" />
-                </form>
-            </li>
-        </ul>
-    </nav>
-}
 
 <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
@@ -367,63 +369,63 @@
 
 @section Scripts {
     <script>
-        (() => {
-            const subcategories = @Html.Raw(subcategoryLookupJson);
-            const cities = @Html.Raw(cityLookupJson);
+            (() => {
+                const subcategories = @Html.Raw(subcategoryLookupJson);
+                const cities = @Html.Raw(cityLookupJson);
 
-            const categorySelect = document.getElementById("categoryId");
-            const subcategorySelect = document.getElementById("subcategoryId");
-            const provinceSelect = document.getElementById("provinceId");
-            const citySelect = document.getElementById("cityId");
+                const categorySelect = document.getElementById("categoryId");
+                const subcategorySelect = document.getElementById("subcategoryId");
+                const provinceSelect = document.getElementById("provinceId");
+                const citySelect = document.getElementById("cityId");
 
-            if (!categorySelect || !subcategorySelect || !provinceSelect || !citySelect) {
-                return;
-            }
-
-            const selectedSubcategoryId = subcategorySelect.dataset.selectedValue || "";
-            const selectedCityId = citySelect.dataset.selectedValue || "";
-
-            const populateSelect = (target, items, placeholder) => {
-                target.innerHTML = "";
-                target.appendChild(new Option(placeholder, ""));
-
-                items.forEach((item) => {
-                    const option = new Option(item.name, String(item.id));
-                    target.appendChild(option);
-                });
-            };
-
-            const refreshSubcategories = (selectedId = "") => {
-                const categoryId = Number(categorySelect.value || 0);
-                const filtered = categoryId > 0
-                    ? subcategories.filter((item) => Number(item.categoryId) === categoryId)
-                    : [];
-
-                populateSelect(subcategorySelect, filtered, "All");
-
-                if (selectedId && filtered.some((item) => String(item.id) === String(selectedId))) {
-                    subcategorySelect.value = String(selectedId);
+                if (!categorySelect || !subcategorySelect || !provinceSelect || !citySelect) {
+                    return;
                 }
-            };
 
-            const refreshCities = (selectedId = "") => {
-                const provinceId = Number(provinceSelect.value || 0);
-                const filtered = provinceId > 0
-                    ? cities.filter((item) => Number(item.provinceId) === provinceId)
-                    : [];
+                const selectedSubcategoryId = subcategorySelect.dataset.selectedValue || "";
+                const selectedCityId = citySelect.dataset.selectedValue || "";
 
-                populateSelect(citySelect, filtered, "All");
+                const populateSelect = (target, items, placeholder) => {
+                    target.innerHTML = "";
+                    target.appendChild(new Option(placeholder, ""));
 
-                if (selectedId && filtered.some((item) => String(item.id) === String(selectedId))) {
-                    citySelect.value = String(selectedId);
-                }
-            };
+                    items.forEach((item) => {
+                        const option = new Option(item.name, String(item.id));
+                        target.appendChild(option);
+                    });
+                };
 
-            refreshSubcategories(selectedSubcategoryId);
-            refreshCities(selectedCityId);
+                const refreshSubcategories = (selectedId = "") => {
+                    const categoryId = Number(categorySelect.value || 0);
+                    const filtered = categoryId > 0
+                        ? subcategories.filter((item) => Number(item.categoryId) === categoryId)
+                        : [];
 
-            categorySelect.addEventListener("change", () => refreshSubcategories(""));
-            provinceSelect.addEventListener("change", () => refreshCities(""));
-        })();
+                    populateSelect(subcategorySelect, filtered, "All");
+
+                    if (selectedId && filtered.some((item) => String(item.id) === String(selectedId))) {
+                        subcategorySelect.value = String(selectedId);
+                    }
+                };
+
+                const refreshCities = (selectedId = "") => {
+                    const provinceId = Number(provinceSelect.value || 0);
+                    const filtered = provinceId > 0
+                        ? cities.filter((item) => Number(item.provinceId) === provinceId)
+                        : [];
+
+                    populateSelect(citySelect, filtered, "All");
+
+                    if (selectedId && filtered.some((item) => String(item.id) === String(selectedId))) {
+                        citySelect.value = String(selectedId);
+                    }
+                };
+
+                refreshSubcategories(selectedSubcategoryId);
+                refreshCities(selectedCityId);
+
+                categorySelect.addEventListener("change", () => refreshSubcategories(""));
+                provinceSelect.addEventListener("change", () => refreshCities(""));
+            })();
     </script>
 }
