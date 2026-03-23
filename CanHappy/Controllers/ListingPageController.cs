@@ -1,5 +1,6 @@
 using CanHappy.Data;
 using CanHappy.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -446,6 +447,7 @@ public class ListingPageController(
     }
 
     [HttpGet("Edit/{id:guid}")]
+    [Authorize(Roles = "Admin,Clerk")]
     public async Task<IActionResult> Edit(Guid? id, string? categoryName, string? subcategoryName)
     {
         if (id is null)
@@ -475,7 +477,8 @@ public class ListingPageController(
 
     [HttpPost("Edit/{id:guid}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? clearedThumbnailUrl, string? categoryName, string? subcategoryName)
+    [Authorize(Roles = "Admin,Clerk")]
+    public async Task<IActionResult> Edit(Guid id, [Bind("ListingGUID,CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,ThumbnailURL,Rating,Brand,Condition,Model,Quantity,ManufactureYear,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,ViewCount,ClickCount,DeletedInd,SampleInd,UserId,CreatedBy,ModifiedBY,CreatedDate,ModifiedDate")] Listing listing, string? croppedThumbnailData, string? clearedThumbnailUrl, string? categoryName, string? subcategoryName)
     {
         if (id != listing.ListingGUID)
         {
@@ -519,6 +522,7 @@ public class ListingPageController(
             existingListing.ContactPhone = listing.ContactPhone;
             existingListing.ContactName = listing.ContactName;
             existingListing.ShowContactInd = listing.ShowContactInd;
+            existingListing.Rating = listing.Rating;
             existingListing.Price = listing.Price;
             existingListing.DiscountPercent = listing.DiscountPercent;
             existingListing.DiscountBeginDate = listing.DiscountBeginDate;
@@ -526,7 +530,17 @@ public class ListingPageController(
             existingListing.Brand = listing.Brand;
             existingListing.Model = listing.Model;
             existingListing.Condition = listing.Condition;
+            existingListing.Quantity = listing.Quantity;
+            existingListing.ManufactureYear = listing.ManufactureYear;
             existingListing.ThumbnailURL = listing.ThumbnailURL;
+            existingListing.ViewCount = listing.ViewCount;
+            existingListing.ClickCount = listing.ClickCount;
+            existingListing.DeletedInd = listing.DeletedInd;
+            existingListing.SampleInd = listing.SampleInd;
+            existingListing.UserId = listing.UserId;
+            existingListing.CreatedBy = listing.CreatedBy;
+            existingListing.ModifiedBY = listing.ModifiedBY;
+            existingListing.CreatedDate = listing.CreatedDate;
             existingListing.ModifiedDate = CanHappy.Common.EasternTime.Now;
 
             await context.SaveChangesAsync();

@@ -15,7 +15,8 @@ public class AdminController(
     UserManager<IdentityUser> userManager,
     RoleManager<IdentityRole> roleManager,
     ApplicationDbContext context,
-    IWebHostEnvironment environment) : Controller
+    IWebHostEnvironment environment,
+    IConfiguration configuration) : Controller
 {
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Users()
@@ -820,18 +821,90 @@ public class AdminController(
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Listings()
+    [Authorize(Roles = "Admin,Clerk")]
+    public async Task<IActionResult> Listings(string? subject, int? categoryId, int? subcategoryId, int? provinceId, int? cityId, DateTime? fromDate, DateTime? toDate, int page = 1)
     {
-        var listings = await context.Listings
+        page = Math.Max(1, page);
+        var adminListingNumberOfRows = Math.Max(1, configuration.GetValue<int?>("AdminListingNumberOfRows") ?? 30);
+
+        var query = context.Listings
             .AsNoTracking()
             .Include(listing => listing.Category)
             .Include(listing => listing.Subcategory)
             .Include(listing => listing.Province)
             .Include(listing => listing.City)
             .Where(listing => !listing.DeletedInd)
-            .OrderByDescending(listing => listing.CreatedDate)
+            .AsQueryable();
+
+        var hasSearch = !string.IsNullOrWhiteSpace(subject)
+            || categoryId.HasValue
+            || subcategoryId.HasValue
+            || provinceId.HasValue
+            || cityId.HasValue
+            || fromDate.HasValue
+            || toDate.HasValue;
+
+        if (!string.IsNullOrWhiteSpace(subject))
+        {
+            var trimmedSubject = subject.Trim();
+            query = query.Where(listing => listing.Subject.Contains(trimmedSubject));
+        }
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(listing => listing.CategoryId == categoryId.Value);
+        }
+
+        if (subcategoryId.HasValue)
+        {
+            query = query.Where(listing => listing.SubcategoryId == subcategoryId.Value);
+        }
+
+        if (provinceId.HasValue)
+        {
+            query = query.Where(listing => listing.ProvinceId == provinceId.Value);
+        }
+
+        if (cityId.HasValue)
+        {
+            query = query.Where(listing => listing.CityId == cityId.Value);
+        }
+
+        if (fromDate.HasValue)
+        {
+            var fromDateValue = fromDate.Value.Date;
+            query = query.Where(listing => listing.CreatedDate >= fromDateValue);
+        }
+
+        if (toDate.HasValue)
+        {
+            var toDateInclusiveEnd = toDate.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(listing => listing.CreatedDate <= toDateInclusiveEnd);
+        }
+
+        query = query.OrderByDescending(listing => listing.CreatedDate);
+
+        var totalItemCount = await query.CountAsync();
+        var totalPages = Math.Max(1, (int)Math.Ceiling(totalItemCount / (double)adminListingNumberOfRows));
+        page = Math.Min(page, totalPages);
+
+        var listings = await query
+            .Skip((page - 1) * adminListingNumberOfRows)
+            .Take(adminListingNumberOfRows)
             .ToListAsync();
+
+        await PopulateListingLookupSelectListsAsync(categoryId, subcategoryId, provinceId, cityId);
+
+        ViewData["SearchSubject"] = subject;
+        ViewData["SearchCategoryId"] = categoryId;
+        ViewData["SearchSubcategoryId"] = subcategoryId;
+        ViewData["SearchProvinceId"] = provinceId;
+        ViewData["SearchCityId"] = cityId;
+        ViewData["SearchFromDate"] = fromDate;
+        ViewData["SearchToDate"] = toDate;
+        ViewData["CurrentPage"] = page;
+        ViewData["TotalPages"] = totalPages;
+        ViewData["HasSearch"] = hasSearch;
 
         return View(listings);
     }
@@ -869,7 +942,7 @@ public class AdminController(
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Clerk")]
     public async Task<IActionResult> EditListing(Guid id)
     {
         var listing = await context.Listings.FirstOrDefaultAsync(item => item.ListingGUID == id && !item.DeletedInd);
@@ -884,7 +957,7 @@ public class AdminController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Clerk")]
     public async Task<IActionResult> EditListing(Guid id, Listing listingInput)
     {
         var listing = await context.Listings.FirstOrDefaultAsync(item => item.ListingGUID == id && !item.DeletedInd);
@@ -909,8 +982,23 @@ public class AdminController(
         listing.CityId = listingInput.CityId;
         listing.Address = listingInput.Address;
         listing.PostalCode = listingInput.PostalCode;
+        listing.ContactPhone = listingInput.ContactPhone;
+        listing.ContactName = listingInput.ContactName;
+        listing.ShowContactInd = listingInput.ShowContactInd;
+        listing.ThumbnailURL = listingInput.ThumbnailURL;
+        listing.Rating = string.IsNullOrWhiteSpace(listingInput.Rating) ? listing.Rating : listingInput.Rating;
+        listing.Brand = listingInput.Brand;
+        listing.Condition = listingInput.Condition;
+        listing.Model = listingInput.Model;
+        listing.Quantity = listingInput.Quantity;
+        listing.ManufactureYear = listingInput.ManufactureYear;
+        listing.Price = listingInput.Price;
+        listing.DiscountPercent = listingInput.DiscountPercent;
+        listing.DiscountBeginDate = listingInput.DiscountBeginDate;
+        listing.DiscountEndDate = listingInput.DiscountEndDate;
         listing.ViewCount = listingInput.ViewCount;
         listing.ClickCount = listingInput.ClickCount;
+        listing.DeletedInd = listingInput.DeletedInd;
         listing.SampleInd = listingInput.SampleInd;
         listing.UserId = listingInput.UserId == Guid.Empty ? listing.UserId : listingInput.UserId;
         listing.ModifiedBY = User.Identity?.Name ?? "admin";
@@ -920,10 +1008,30 @@ public class AdminController(
         return RedirectToAction(nameof(Listings));
     }
 
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteListing(Guid id)
+    {
+        var listing = await context.Listings
+            .AsNoTracking()
+            .Include(item => item.Category)
+            .Include(item => item.Subcategory)
+            .Include(item => item.Province)
+            .Include(item => item.City)
+            .FirstOrDefaultAsync(item => item.ListingGUID == id && !item.DeletedInd);
+
+        if (listing is null)
+        {
+            return NotFound();
+        }
+
+        return View(listing);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteListing(Guid id)
+    public async Task<IActionResult> DeleteListingConfirmed(Guid id)
     {
         var listing = await context.Listings.FirstOrDefaultAsync(item => item.ListingGUID == id && !item.DeletedInd);
         if (listing is null)
@@ -1141,7 +1249,7 @@ public class AdminController(
             .AsNoTracking()
             .Where(subcategory => !subcategory.DeletedInd)
             .OrderBy(subcategory => subcategory.Name)
-            .Select(subcategory => new { subcategory.SubcategoryId, subcategory.Name })
+            .Select(subcategory => new { subcategory.SubcategoryId, subcategory.CategoryId, subcategory.Name })
             .ToListAsync();
 
         var provinces = await context.Provinces
@@ -1155,13 +1263,29 @@ public class AdminController(
             .AsNoTracking()
             .Where(city => !city.DeletedInd)
             .OrderBy(city => city.Name)
-            .Select(city => new { city.CityId, city.Name })
+            .Select(city => new { city.CityId, city.ProvinceId, city.Name })
             .ToListAsync();
 
         ViewData["CategoryId"] = new SelectList(categories, "CategoryId", "Name", selectedCategoryId);
         ViewData["SubcategoryId"] = new SelectList(subcategories, "SubcategoryId", "Name", selectedSubcategoryId);
         ViewData["ProvinceId"] = new SelectList(provinces, "ProvinceId", "Name", selectedProvinceId);
         ViewData["CityId"] = new SelectList(cities, "CityId", "Name", selectedCityId);
+        ViewData["SubcategoryLookup"] = subcategories
+            .Select(subcategory => new
+            {
+                id = subcategory.SubcategoryId,
+                categoryId = subcategory.CategoryId,
+                name = subcategory.Name
+            })
+            .ToList();
+        ViewData["CityLookup"] = cities
+            .Select(city => new
+            {
+                id = city.CityId,
+                provinceId = city.ProvinceId,
+                name = city.Name
+            })
+            .ToList();
     }
 
     private void AddIdentityErrors(IEnumerable<IdentityError> errors)

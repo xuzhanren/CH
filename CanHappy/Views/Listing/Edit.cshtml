@@ -170,15 +170,67 @@
                         <label asp-for="ShowContactInd" class="form-check-label"></label>
                         <span asp-validation-for="ShowContactInd" class="text-danger"></span>
                     </div>
-                    <input type="hidden" asp-for="ViewCount" />
-                    <input type="hidden" asp-for="ClickCount" />
-                    <input type="hidden" asp-for="DeletedInd" />
-                    <input type="hidden" asp-for="SampleInd" />
-                    <input type="hidden" asp-for="UserId" />
-                    <input type="hidden" asp-for="CreatedBy" />
-                    <input type="hidden" asp-for="ModifiedBY" />
-                    <input type="hidden" asp-for="CreatedDate" />
-                    <input type="hidden" asp-for="ModifiedDate" />
+
+                    <div class="mb-3">
+                        <label asp-for="Rating" class="form-label"></label>
+                        <input asp-for="Rating" class="form-control" />
+                        <span asp-validation-for="Rating" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Quantity" class="form-label"></label>
+                        <input asp-for="Quantity" type="number" class="form-control" />
+                        <span asp-validation-for="Quantity" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ManufactureYear" class="form-label"></label>
+                        <input asp-for="ManufactureYear" type="number" class="form-control" />
+                        <span asp-validation-for="ManufactureYear" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ViewCount" class="form-label"></label>
+                        <input asp-for="ViewCount" type="number" class="form-control" />
+                        <span asp-validation-for="ViewCount" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ClickCount" class="form-label"></label>
+                        <input asp-for="ClickCount" type="number" class="form-control" />
+                        <span asp-validation-for="ClickCount" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="UserId" class="form-label"></label>
+                        <input asp-for="UserId" class="form-control" />
+                        <span asp-validation-for="UserId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CreatedBy" class="form-label"></label>
+                        <input asp-for="CreatedBy" class="form-control" />
+                        <span asp-validation-for="CreatedBy" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ModifiedBY" class="form-label"></label>
+                        <input asp-for="ModifiedBY" class="form-control" />
+                        <span asp-validation-for="ModifiedBY" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CreatedDate" class="form-label"></label>
+                        <input asp-for="CreatedDate" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="CreatedDate" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ModifiedDate" class="form-label"></label>
+                        <input asp-for="ModifiedDate" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="ModifiedDate" class="text-danger"></span>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input asp-for="DeletedInd" class="form-check-input" />
+                        <label asp-for="DeletedInd" class="form-check-label"></label>
+                        <span asp-validation-for="DeletedInd" class="text-danger"></span>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input asp-for="SampleInd" class="form-check-input" />
+                        <label asp-for="SampleInd" class="form-check-label"></label>
+                        <span asp-validation-for="SampleInd" class="text-danger"></span>
+                    </div>
                     <input type="hidden" asp-for="ThumbnailURL" />
                     <input type="hidden" id="CroppedThumbnailData" name="croppedThumbnailData" />
                     <input type="hidden" id="ClearedThumbnailUrl" name="clearedThumbnailUrl" />
