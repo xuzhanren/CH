@@ -43,14 +43,24 @@ public class HomeController(
                 && !string.IsNullOrWhiteSpace(item.ImageURL)
                 && !string.IsNullOrWhiteSpace(item.TargetURL));
 
-        if (provinceId.HasValue && cityId.HasValue)
+        if (provinceId.HasValue) // && cityId.HasValue)
         {
-            query = query.Where(item => item.ProvinceId == provinceId.Value && item.CityId == cityId.Value);
+            query = query.Where(item =>
+                item.ProvinceId == null
+                ||
+                (
+                    item.ProvinceId == provinceId.Value
+                    && (
+                        !item.CityId.HasValue
+                        || (item.CityId.HasValue && cityId.HasValue && item.CityId == cityId.Value)
+                        )
+                )
+                );
         }
 
         var ads = await query
             .OrderBy(item => EF.Functions.Random())
-            .Take(3)
+            .Take(10)
             .Select(item => new
             {
                 adGuid = item.AdGUID,
