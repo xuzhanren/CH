@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using CanHappy.Common;
 using CanHappy.Models;
 using CanHappy.Models.Home;
 using CanHappy.Data;
@@ -70,7 +71,16 @@ public class HomeController(
             })
             .ToListAsync();
 
-        return Json(ads);
+        var adImagesFolder = MediaPathHelper.ResolveWebFolder(configuration, "AdImagesFolder", "/AdImages");
+        var resolvedAds = ads.Select(item => new
+        {
+            item.adGuid,
+            item.subject,
+            imageURL = MediaPathHelper.BuildMediaUrl(item.imageURL, adImagesFolder),
+            item.targetURL
+        });
+
+        return Json(resolvedAds);
     }
 
     public IActionResult Privacy()

@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Common;
 using CanHappy.Models;
 using CanHappy.Models.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -299,6 +300,7 @@ public class AdminController(
     public async Task<IActionResult> CreateAd()
     {
         await PopulateAdLookupSelectListsAsync();
+        ViewData["ResolvedImageUrl"] = string.Empty;
         return View(new Ad
         {
             PublishDate = CanHappy.Common.EasternTime.Now,
@@ -321,6 +323,7 @@ public class AdminController(
         if (!ModelState.IsValid)
         {
             await PopulateAdLookupSelectListsAsync(model.CategoryId, model.SubcategoryId, model.ProvinceId, model.CityId);
+            ViewData["ResolvedImageUrl"] = ResolveAdImageUrl(model.ImageURL) ?? string.Empty;
             return View(model);
         }
 
@@ -380,6 +383,7 @@ public class AdminController(
         }
 
         await PopulateAdLookupSelectListsAsync(ad.CategoryId, ad.SubcategoryId, ad.ProvinceId, ad.CityId, ad.AdStatusId, ad.AdSizeId);
+        ViewData["ResolvedImageUrl"] = ResolveAdImageUrl(ad.ImageURL) ?? string.Empty;
         return View(ad);
     }
 
@@ -411,6 +415,7 @@ public class AdminController(
         {
             await PopulateAdLookupSelectListsAsync(model.CategoryId, model.SubcategoryId, model.ProvinceId, model.CityId, model.AdStatusId, model.AdSizeId);
             model.AdGUID = id;
+            ViewData["ResolvedImageUrl"] = ResolveAdImageUrl(model.ImageURL) ?? string.Empty;
             return View(model);
         }
 
@@ -1324,15 +1329,21 @@ public class AdminController(
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var relativePath = $"/images/ads/{fileName}";
-        var folderPath = Path.Combine(environment.WebRootPath, "images", "ads");
+        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, AdImagesFolder);
 
         Directory.CreateDirectory(folderPath);
 
         var filePath = Path.Combine(folderPath, fileName);
         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
-        return relativePath;
+        return fileName;
+    }
+
+    private string AdImagesFolder => MediaPathHelper.ResolveWebFolder(configuration, "AdImagesFolder", "/AdImages");
+
+    private string? ResolveAdImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, AdImagesFolder);
     }
 
     private void TryDeleteWebRootFile(string? imageUrl)
@@ -1353,6 +1364,11 @@ public class AdminController(
         if (queryOrFragmentIndex >= 0)
         {
             trimmedPath = trimmedPath[..queryOrFragmentIndex];
+        }
+
+        if (!trimmedPath.StartsWith('/') && !trimmedPath.StartsWith('\\'))
+        {
+            trimmedPath = ResolveAdImageUrl(trimmedPath) ?? trimmedPath;
         }
 
         var relativePath = trimmedPath

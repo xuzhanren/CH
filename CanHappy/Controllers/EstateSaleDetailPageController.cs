@@ -267,7 +267,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             {
                 adGuid = item.Ad.AdGUID,
                 subject = item.Ad.Subject,
-                imageURL = item.Ad.ImageURL,
+                imageURL = ResolveAdImageUrl(item.Ad.ImageURL),
                 targetURL = item.Ad.TargetURL,
                 score = item.Score
             })
@@ -1492,6 +1492,8 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
     private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
 
+    private string AdImagesFolder => MediaPathHelper.ResolveWebFolder(configuration, "AdImagesFolder", "/AdImages");
+
     private string ListingVideoThumbnailsFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListingVideoThumbnailsFolder", "/ListingVideoThumbnails");
 
     private string ListingVideosFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListingVideosFolder", "/ListingVideos");
@@ -1501,6 +1503,11 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
     private string? ResolveListingImageUrl(string? url)
     {
         return MediaPathHelper.BuildMediaUrl(url, ListImageFolder);
+    }
+
+    private string? ResolveAdImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, AdImagesFolder);
     }
 
     private string ResolveListingVideoThumbnailUrl(string? url)

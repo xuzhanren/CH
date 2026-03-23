@@ -267,7 +267,7 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
             {
                 adGuid = item.Ad.AdGUID,
                 subject = item.Ad.Subject,
-                imageURL = item.Ad.ImageURL,
+                imageURL = ResolveAdImageUrl(item.Ad.ImageURL),
                 targetURL = item.Ad.TargetURL,
                 score = item.Score
             })
@@ -1024,8 +1024,15 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IWebHostE
 
     private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
 
+    private string AdImagesFolder => MediaPathHelper.ResolveWebFolder(configuration, "AdImagesFolder", "/AdImages");
+
     private string? ResolveListingImageUrl(string? url)
     {
         return MediaPathHelper.BuildMediaUrl(url, ListImageFolder);
+    }
+
+    private string? ResolveAdImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, AdImagesFolder);
     }
 }

@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "Edit Ad";
     var hasImage = !string.IsNullOrWhiteSpace(Model?.ImageURL);
+    var resolvedImageUrl = ViewData["ResolvedImageUrl"]?.ToString() ?? Model?.ImageURL;
     var subcategoryLookup = ViewData["SubcategoryLookup"];
     var cityLookup = ViewData["CityLookup"];
     var isRegisteredOnlyUser = User.IsInRole("RegisteredUser") && !User.IsInRole("Admin") && !User.IsInRole("Clerk");
@@ -36,24 +37,49 @@
     .form-check-label {
         font-weight: 700;
     }
+
+    .compact-edit-form .compact-field {
+        display: grid;
+        grid-template-columns: 170px minmax(0, 1fr);
+        column-gap: .75rem;
+        align-items: center;
+        margin-bottom: .5rem !important;
+    }
+
+    .compact-edit-form .compact-field .form-label {
+        margin-bottom: 0;
+    }
+
+    .compact-edit-form .compact-field>.text-danger {
+        grid-column: 2;
+    }
+
+    .compact-edit-form .compact-field.stacked-field {
+        display: block;
+    }
+
+    .compact-edit-form .date-input-compact {
+        width: 70%;
+        min-width: 220px;
+    }
 </style>
 
 <h1>@ViewData["Title"]</h1>
 
-<form asp-action="EditAd" method="post" asp-route-id="@Model?.AdGUID">
+<form asp-action="EditAd" method="post" asp-route-id="@Model?.AdGUID" class="compact-edit-form">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="AdGUID" />
 
     <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6 mb-3 compact-field">
             <label asp-for="CategoryId" class="form-label"></label>
             <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
                 <option value="">Select Category</option>
             </select>
             <span asp-validation-for="CategoryId" class="text-danger"></span>
         </div>
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6 mb-3 compact-field">
             <label asp-for="SubcategoryId" class="form-label"></label>
             <select asp-for="SubcategoryId" class="form-select" asp-items="ViewBag.SubcategoryId">
                 <option value="">Select Subcategory</option>
@@ -63,45 +89,45 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6 mb-3 compact-field">
             <label asp-for="ProvinceId" class="form-label"></label>
             <select asp-for="ProvinceId" class="form-select" asp-items="ViewBag.ProvinceId">
                 <option value="">Select Province</option>
             </select>
             <span asp-validation-for="ProvinceId" class="text-danger"></span>
         </div>
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6 mb-3 compact-field">
             <label asp-for="CityId" class="form-label"></label>
             <select asp-for="CityId" class="form-select" asp-items="ViewBag.CityId"></select>
             <span asp-validation-for="CityId" class="text-danger"></span>
         </div>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 compact-field">
         <label asp-for="Subject" class="form-label"></label>
         <input asp-for="Subject" class="form-control" />
         <span asp-validation-for="Subject" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 compact-field stacked-field">
         <label asp-for="Description" class="form-label"></label>
         <textarea asp-for="Description" class="form-control" rows="3"></textarea>
         <span asp-validation-for="Description" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 compact-field">
         <label asp-for="KeyWords" class="form-label"></label>
         <input asp-for="KeyWords" class="form-control" />
         <span asp-validation-for="KeyWords" class="text-danger"></span>
     </div>
 
     <div class="row">
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-3 compact-field">
             <label asp-for="PostalCode" class="form-label"></label>
             <input asp-for="PostalCode" class="form-control" />
             <span asp-validation-for="PostalCode" class="text-danger"></span>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-3 compact-field">
             <label asp-for="Price" class="form-label"></label>
             @if (!isRegisteredOnlyUser)
             {
@@ -113,7 +139,7 @@
             }
             <span asp-validation-for="Price" class="text-danger"></span>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-3 compact-field">
             <label asp-for="CurrencyCode" class="form-label"></label>
             <input asp-for="CurrencyCode" class="form-control" />
             <span asp-validation-for="CurrencyCode" class="text-danger"></span>
@@ -123,7 +149,7 @@
     <div class="row">
         @if (!isRegisteredOnlyUser)
         {
-            <div class="col-md-4 mb-3">
+            <div class="col-md-4 mb-3 compact-field">
                 <label asp-for="AdStatusId" class="form-label"></label>
                 <select asp-for="AdStatusId" class="form-select" asp-items="ViewBag.AdStatusId">
                     <option value="">Select Status</option>
@@ -133,7 +159,7 @@
         }
         else
         {
-            <div class="col-md-4 mb-3">
+            <div class="col-md-4 mb-3 compact-field">
                 <label asp-for="AdStatusId" class="form-label"></label>
                 <select asp-for="AdStatusId" class="form-select" asp-items="ViewBag.AdStatusId" disabled>
                     <option value="">Select Status</option>
@@ -141,94 +167,86 @@
                 <input type="hidden" asp-for="AdStatusId" />
             </div>
         }
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-3 compact-field">
             <label asp-for="AdSizeId" class="form-label"></label>
             <select asp-for="AdSizeId" class="form-select" asp-items="ViewBag.AdSizeId">
                 <option value="">Select Ad Size</option>
             </select>
             <span asp-validation-for="AdSizeId" class="text-danger"></span>
         </div>
-        <div class="col-md-4 mb-3">
-            <label asp-for="TargetURL" class="form-label"></label>
-            <input asp-for="TargetURL" class="form-control" />
-            <span asp-validation-for="TargetURL" class="text-danger"></span>
-        </div>
+    </div>
+
+    <div class="mb-3 compact-field">
+        <label asp-for="TargetURL" class="form-label"></label>
+        <input asp-for="TargetURL" class="form-control" />
+        <span asp-validation-for="TargetURL" class="text-danger"></span>
     </div>
 
     <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6 mb-3 compact-field">
             <label asp-for="PublishDate" class="form-label"></label>
-            <input asp-for="PublishDate" type="datetime-local" class="form-control" />
+            <input asp-for="PublishDate" type="datetime-local" class="form-control date-input-compact" />
             <span asp-validation-for="PublishDate" class="text-danger"></span>
         </div>
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6 mb-3 compact-field">
             <label asp-for="ExpiryDate" class="form-label"></label>
-            <input asp-for="ExpiryDate" type="datetime-local" class="form-control" />
+            <input asp-for="ExpiryDate" type="datetime-local" class="form-control date-input-compact" />
             <span asp-validation-for="ExpiryDate" class="text-danger"></span>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-4 form-check mb-3">
+    <div class="row g-2">
+        <div class="col-xl-2 col-lg-3 col-md-4 form-check mb-2">
             <input asp-for="IsFeatured" class="form-check-input" />
             <label asp-for="IsFeatured" class="form-check-label"></label>
         </div>
         @if (!isRegisteredOnlyUser)
         {
-            <div class="col-md-4 form-check mb-3">
+            <div class="col-xl-2 col-lg-3 col-md-4 form-check mb-2">
                 <input asp-for="PaidInd" class="form-check-input" />
                 <label asp-for="PaidInd" class="form-check-label"></label>
             </div>
-            <div class="col-md-4 form-check mb-3">
+            <div class="col-xl-2 col-lg-3 col-md-4 form-check mb-2">
                 <input asp-for="ActiveInd" class="form-check-input" />
                 <label asp-for="ActiveInd" class="form-check-label"></label>
+            </div>
+            <div class="col-xl-2 col-lg-3 col-md-4 form-check mb-2">
+                <input asp-for="DeletedInd" class="form-check-input" />
+                <label asp-for="DeletedInd" class="form-check-label"></label>
+            </div>
+            <div class="col-xl-2 col-lg-3 col-md-4 form-check mb-2">
+                <input asp-for="SampleInd" class="form-check-input" />
+                <label asp-for="SampleInd" class="form-check-label"></label>
             </div>
         }
         else
         {
             <input type="hidden" asp-for="PaidInd" />
             <input type="hidden" asp-for="ActiveInd" />
+            <input type="hidden" asp-for="DeletedInd" />
+            <input type="hidden" asp-for="SampleInd" />
         }
     </div>
 
-    @if (!isRegisteredOnlyUser)
-    {
-        <div class="row">
-            <div class="col-md-6 form-check mb-3">
-                <input asp-for="DeletedInd" class="form-check-input" />
-                <label asp-for="DeletedInd" class="form-check-label"></label>
-            </div>
-            <div class="col-md-6 form-check mb-3">
-                <input asp-for="SampleInd" class="form-check-input" />
-                <label asp-for="SampleInd" class="form-check-label"></label>
-            </div>
-        </div>
-    }
-    else
-    {
-        <input type="hidden" asp-for="DeletedInd" />
-        <input type="hidden" asp-for="SampleInd" />
-    }
-
     <div class="row">
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-3 compact-field">
             <label asp-for="ContactName" class="form-label"></label>
             <input asp-for="ContactName" class="form-control" />
             <span asp-validation-for="ContactName" class="text-danger"></span>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-3 compact-field">
             <label asp-for="ContactEmail" class="form-label"></label>
             <input asp-for="ContactEmail" class="form-control" />
             <span asp-validation-for="ContactEmail" class="text-danger"></span>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-md-4 mb-3 compact-field">
             <label asp-for="ContactPhone" class="form-label"></label>
             <input asp-for="ContactPhone" class="form-control" />
             <span asp-validation-for="ContactPhone" class="text-danger"></span>
         </div>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 stacked-field">
         <label class="form-label">Ad Image</label>
         <input type="file" id="adImageFileInput" class="form-control" accept="image/*" />
         <div class="mt-2 d-flex gap-2">
@@ -241,7 +259,7 @@
         <div id="adImagePreviewContainer" class="mb-3 @(hasImage ? string.Empty : "d-none")">
             <label class="form-label">Image Preview</label>
             <div>
-                <img id="adImagePreview" src="@Model?.ImageURL" alt="Ad image preview" class="img-fluid rounded border"
+                <img id="adImagePreview" src="@resolvedImageUrl" alt="Ad image preview" class="img-fluid rounded border"
                      style="max-height: 220px;" />
             </div>
         </div>
@@ -347,70 +365,70 @@
         @section Scripts {
             <partial name="_ValidationScriptsPartial" />
             <script>
-                                        (() => {
-                                            const subcategories = @Html.Raw(JsonSerializer.Serialize(subcategoryLookup));
-                                            const cities = @Html.Raw(JsonSerializer.Serialize(cityLookup));
+                                                                (() => {
+                                                                    const subcategories = @Html.Raw(JsonSerializer.Serialize(subcategoryLookup));
+                                                                    const cities = @Html.Raw(JsonSerializer.Serialize(cityLookup));
 
-                                            const categorySelect = document.getElementById("CategoryId");
-                                            const subcategorySelect = document.getElementById("SubcategoryId");
-                                            const provinceSelect = document.getElementById("ProvinceId");
-                                            const citySelect = document.getElementById("CityId");
+                                                                    const categorySelect = document.getElementById("CategoryId");
+                                                                    const subcategorySelect = document.getElementById("SubcategoryId");
+                                                                    const provinceSelect = document.getElementById("ProvinceId");
+                                                                    const citySelect = document.getElementById("CityId");
 
-                                            const selectedSubcategoryId = Number(subcategorySelect?.value || 0);
-                                            const selectedCityId = Number(citySelect?.value || 0);
+                                                                    const selectedSubcategoryId = Number(subcategorySelect?.value || 0);
+                                                                    const selectedCityId = Number(citySelect?.value || 0);
 
-                                            const populate = (target, items, placeholder, valueKey = "id") => {
-                                                if (!target) {
-                                                    return;
-                                                }
+                                                                    const populate = (target, items, placeholder, valueKey = "id") => {
+                                                                        if (!target) {
+                                                                            return;
+                                                                        }
 
-                                                target.innerHTML = "";
+                                                                        target.innerHTML = "";
 
-                                                const placeholderOption = document.createElement("option");
-                                                placeholderOption.value = "";
-                                                placeholderOption.textContent = placeholder;
-                                                target.appendChild(placeholderOption);
+                                                                        const placeholderOption = document.createElement("option");
+                                                                        placeholderOption.value = "";
+                                                                        placeholderOption.textContent = placeholder;
+                                                                        target.appendChild(placeholderOption);
 
-                                                items.forEach(item => {
-                                                    const option = document.createElement("option");
-                                                    option.value = item[valueKey];
-                                                    option.textContent = item.name;
-                                                    target.appendChild(option);
-                                                });
-                                            };
+                                                                        items.forEach(item => {
+                                                                            const option = document.createElement("option");
+                                                                            option.value = item[valueKey];
+                                                                            option.textContent = item.name;
+                                                                            target.appendChild(option);
+                                                                        });
+                                                                    };
 
-                                            const refreshSubcategories = (selectedId = 0) => {
-                                                const categoryId = Number(categorySelect?.value || 0);
-                                                const filtered = categoryId > 0
-                                                    ? subcategories.filter(item => item.categoryId === categoryId)
-                                                    : [];
+                                                                    const refreshSubcategories = (selectedId = 0) => {
+                                                                        const categoryId = Number(categorySelect?.value || 0);
+                                                                        const filtered = categoryId > 0
+                                                                            ? subcategories.filter(item => item.categoryId === categoryId)
+                                                                            : [];
 
-                                                populate(subcategorySelect, filtered, "Select Subcategory");
+                                                                        populate(subcategorySelect, filtered, "Select Subcategory");
 
-                                                if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
-                                                    subcategorySelect.value = String(selectedId);
-                                                }
-                                            };
+                                                                        if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                                                                            subcategorySelect.value = String(selectedId);
+                                                                        }
+                                                                    };
 
-                                            const refreshCities = (selectedId = 0) => {
-                                                const provinceId = Number(provinceSelect?.value || 0);
-                                                const filtered = provinceId > 0
-                                                    ? cities.filter(item => item.provinceId === provinceId)
-                                                    : [];
+                                                                    const refreshCities = (selectedId = 0) => {
+                                                                        const provinceId = Number(provinceSelect?.value || 0);
+                                                                        const filtered = provinceId > 0
+                                                                            ? cities.filter(item => item.provinceId === provinceId)
+                                                                            : [];
 
-                                                populate(citySelect, filtered, "Select City");
+                                                                        populate(citySelect, filtered, "Select City");
 
-                                                if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
-                                                    citySelect.value = String(selectedId);
-                                                }
-                                            };
+                                                                        if (selectedId > 0 && filtered.some(item => item.id === selectedId)) {
+                                                                            citySelect.value = String(selectedId);
+                                                                        }
+                                                                    };
 
-                                            categorySelect?.addEventListener("change", () => refreshSubcategories());
-                                            provinceSelect?.addEventListener("change", () => refreshCities());
+                                                                    categorySelect?.addEventListener("change", () => refreshSubcategories());
+                                                                    provinceSelect?.addEventListener("change", () => refreshCities());
 
-                                            refreshSubcategories(selectedSubcategoryId);
-                                            refreshCities(selectedCityId);
-                                        })();
+                                                                    refreshSubcategories(selectedSubcategoryId);
+                                                                    refreshCities(selectedCityId);
+                                                                })();
             </script>
             <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
             <script>

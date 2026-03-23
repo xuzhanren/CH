@@ -246,7 +246,7 @@ public class ListingPageController(
         {
             adGuid = bestAd.Ad.AdGUID,
             subject = bestAd.Ad.Subject,
-            imageURL = bestAd.Ad.ImageURL,
+            imageURL = ResolveAdImageUrl(bestAd.Ad.ImageURL),
             targetURL = bestAd.Ad.TargetURL,
             score = bestAd.Match.Score,
             matchedKeywords = bestAd.Match.MatchedKeywords
@@ -1035,9 +1035,16 @@ public class ListingPageController(
 
     private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
 
+    private string AdImagesFolder => MediaPathHelper.ResolveWebFolder(configuration, "AdImagesFolder", "/AdImages");
+
     private string? ResolveListingImageUrl(string? url)
     {
         return MediaPathHelper.BuildMediaUrl(url, ListImageFolder);
+    }
+
+    private string? ResolveAdImageUrl(string? url)
+    {
+        return MediaPathHelper.BuildMediaUrl(url, AdImagesFolder);
     }
 
     private void TryDeleteWebRootFile(string? imageUrl)

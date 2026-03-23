@@ -39,6 +39,22 @@
     .form-check-label {
         font-weight: 700;
     }
+
+    .compact-edit-form .mb-3:not(.form-check):not(.stacked-field) {
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr);
+        column-gap: .75rem;
+        align-items: center;
+        margin-bottom: .5rem !important;
+    }
+
+    .compact-edit-form .mb-3:not(.form-check):not(.stacked-field)>.form-label {
+        margin-bottom: 0;
+    }
+
+    .compact-edit-form .mb-3:not(.form-check):not(.stacked-field)>.text-danger {
+        grid-column: 2;
+    }
 </style>
 
 <h1>Edit</h1>
@@ -47,7 +63,7 @@
     <div class="card-body">
         <h4 class="card-title">Listing</h4>
         <hr />
-        <form asp-action="Edit" enctype="multipart/form-data">
+        <form asp-action="Edit" enctype="multipart/form-data" class="compact-edit-form">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ListingGUID" />
             <div class="mb-3">
@@ -55,7 +71,7 @@
                 <input asp-for="Subject" class="form-control" />
                 <span asp-validation-for="Subject" class="text-danger"></span>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 stacked-field">
                 <label asp-for="Description" class="form-label"></label>
                 <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
@@ -128,7 +144,7 @@
                 <input asp-for="Condition" class="form-control" />
                 <span asp-validation-for="Condition" class="text-danger"></span>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 stacked-field">
                 <label class="form-label">Thumbnail Image</label>
                 <input type="file" id="thumbnailFileInput" class="form-control" accept="image/*" />
                 <div class="mt-2 d-flex gap-2">
@@ -138,7 +154,7 @@
                             Image</button>
                         </div>
                     </div>
-                    <div id="thumbnailPreviewContainer" class="mb-3 @(hasThumbnail ? string.Empty : "d-none")">
+                    <div id="thumbnailPreviewContainer" class="mb-3 stacked-field @(hasThumbnail ? string.Empty : "d-none")">
                         <label class="form-label">Thumbnail Preview</label>
                         <div>
                             <img id="thumbnailPreview" src="@Model?.ThumbnailURL" alt="Listing thumbnail"
