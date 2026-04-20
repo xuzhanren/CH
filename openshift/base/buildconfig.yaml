@@ -1,0 +1,31 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: canhappy
+  labels:
+    app: canhappy
+spec:
+  runPolicy: Serial
+  source:
+    type: Git
+    git:
+      uri: https://github.com/xuzhanren/CH.git
+      ref: feature/CH-OS-V1
+    contextDir: CanHappy
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: DockerImage
+        name: registry.redhat.io/dotnet/dotnet-10-rhel9:latest
+      env:
+        - name: DOTNET_STARTUP_PROJECT
+          value: CanHappy.csproj
+        - name: DOTNET_CONFIGURATION
+          value: Release
+  output:
+    to:
+      kind: ImageStreamTag
+      name: canhappy:latest
+  triggers:
+    - type: ConfigChange

@@ -1,0 +1,121 @@
+name: OpenShift S2I CI/CD
+
+on:
+  push:
+    branches:
+      - feature/CH-OS-V1
+      - main
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore CH.sln
+
+      - name: Build
+        run: dotnet build CH.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test CH.sln --configuration Release --no-build --verbosity normal
+
+  deploy-dev:
+    needs: validate
+    if: github.ref == 'refs/heads/feature/CH-OS-V1'
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install oc
+        uses: redhat-actions/oc-installer@v1
+
+      - name: Login to OpenShift (DEV)
+        run: |
+          oc login "${{ secrets.OPENSHIFT_API_URL_DEV }}" --token="${{ secrets.OPENSHIFT_TOKEN_DEV }}" --insecure-skip-tls-verify=true
+          oc project "${{ secrets.OPENSHIFT_NAMESPACE_DEV }}"
+
+      - name: Apply DEV manifests
+        run: oc apply -k openshift/overlays/dev
+
+      - name: Create or update DEV app secrets
+        run: |
+          oc create secret generic canhappy-secrets-dev \
+            --from-literal=ConnectionStrings__DefaultConnection='${{ secrets.DEV_DB_CONNECTION }}' \
+            --from-literal=Jwt__Key='${{ secrets.DEV_JWT_KEY }}' \
+            --from-literal=Authentication__Google__ClientId='${{ secrets.DEV_GOOGLE_CLIENT_ID }}' \
+            --from-literal=Authentication__Google__ClientSecret='${{ secrets.DEV_GOOGLE_CLIENT_SECRET }}' \
+            --from-literal=Authentication__Facebook__AppId='${{ secrets.DEV_FACEBOOK_APP_ID }}' \
+            --from-literal=Authentication__Facebook__AppSecret='${{ secrets.DEV_FACEBOOK_APP_SECRET }}' \
+            --from-literal=Email__UserName='${{ secrets.DEV_EMAIL_USERNAME }}' \
+            --from-literal=Email__Password='${{ secrets.DEV_EMAIL_PASSWORD }}' \
+            --dry-run=client -o yaml | oc apply -f -
+
+      - name: Trigger DEV S2I build
+        run: oc start-build canhappy-dev --follow --wait
+
+      - name: Wait for DEV rollout
+        run: oc rollout status deployment/canhappy-dev --timeout=300s
+
+      - name: DEV smoke test
+        run: |
+          DEV_URL="https://$(oc get route canhappy-dev -o jsonpath='{.spec.host}')/healthz"
+          echo "Smoke testing ${DEV_URL}"
+          curl --fail --show-error --silent "${DEV_URL}"
+
+  deploy-prd:
+    needs: validate
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install oc
+        uses: redhat-actions/oc-installer@v1
+
+      - name: Login to OpenShift (PRD)
+        run: |
+          oc login "${{ secrets.OPENSHIFT_API_URL_PRD }}" --token="${{ secrets.OPENSHIFT_TOKEN_PRD }}" --insecure-skip-tls-verify=true
+          oc project "${{ secrets.OPENSHIFT_NAMESPACE_PRD }}"
+
+      - name: Apply PRD manifests
+        run: oc apply -k openshift/overlays/prd
+
+      - name: Create or update PRD app secrets
+        run: |
+          oc create secret generic canhappy-secrets-prd \
+            --from-literal=ConnectionStrings__DefaultConnection='${{ secrets.PRD_DB_CONNECTION }}' \
+            --from-literal=Jwt__Key='${{ secrets.PRD_JWT_KEY }}' \
+            --from-literal=Authentication__Google__ClientId='${{ secrets.PRD_GOOGLE_CLIENT_ID }}' \
+            --from-literal=Authentication__Google__ClientSecret='${{ secrets.PRD_GOOGLE_CLIENT_SECRET }}' \
+            --from-literal=Authentication__Facebook__AppId='${{ secrets.PRD_FACEBOOK_APP_ID }}' \
+            --from-literal=Authentication__Facebook__AppSecret='${{ secrets.PRD_FACEBOOK_APP_SECRET }}' \
+            --from-literal=Email__UserName='${{ secrets.PRD_EMAIL_USERNAME }}' \
+            --from-literal=Email__Password='${{ secrets.PRD_EMAIL_PASSWORD }}' \
+            --dry-run=client -o yaml | oc apply -f -
+
+      - name: Trigger PRD S2I build
+        run: oc start-build canhappy-prd --follow --wait
+
+      - name: Wait for PRD rollout
+        run: oc rollout status deployment/canhappy-prd --timeout=600s
+
+      - name: PRD smoke test
+        run: |
+          PRD_URL="https://$(oc get route canhappy-prd -o jsonpath='{.spec.host}')/healthz"
+          echo "Smoke testing ${PRD_URL}"
+          curl --fail --show-error --silent "${PRD_URL}"

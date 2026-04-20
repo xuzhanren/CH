@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canhappy-env
+  labels:
+    app: canhappy
+data:
+  ASPNETCORE_URLS: http://0.0.0.0:8080
+  ASPNETCORE_ENVIRONMENT: OpenShift.Development
+  EnableDebug: "false"
+  Logging__LogLevel__Default: Information
+  Logging__LogLevel__Microsoft.AspNetCore: Warning
+  Jwt__Issuer: CanHappy
+  Jwt__Audience: CanHappyUsers
+  Email__SmtpHost: mailpit
+  Email__SmtpPort: "1025"
+  Email__UseSsl: "false"
+  Email__FromEmail: no-reply@canhappy.local
+  Email__FromName: CanHappy

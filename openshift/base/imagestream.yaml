@@ -1,0 +1,9 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: canhappy
+  labels:
+    app: canhappy
+spec:
+  lookupPolicy:
+    local: true

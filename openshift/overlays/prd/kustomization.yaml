@@ -1,0 +1,44 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ch-prd
+nameSuffix: -prd
+resources:
+  - ../../base
+patches:
+  - target:
+      kind: BuildConfig
+      name: canhappy
+    patch: |-
+      - op: replace
+        path: /spec/source/git/ref
+        value: develop
+  - target:
+      kind: ConfigMap
+      name: canhappy-env
+    patch: |-
+      - op: replace
+        path: /data/ASPNETCORE_ENVIRONMENT
+        value: OpenShift.Production
+      - op: replace
+        path: /data/EnableDebug
+        value: "false"
+      - op: replace
+        path: /data/Logging__LogLevel__Default
+        value: Warning
+  - target:
+      kind: Deployment
+      name: canhappy
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+        value: canhappy-secrets-prd
+  - target:
+      kind: Route
+      name: canhappy
+    patch: |-
+      - op: add
+        path: /spec/host
+        value: canhappy-prd.apps-crc.testing
