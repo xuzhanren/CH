@@ -1,4 +1,4 @@
-name: OpenShift S2I CI/CD
+name: OpenShift S2I CI/CD pipeline for CanHappy
 
 on:
   push:
