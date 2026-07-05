@@ -7,7 +7,21 @@ on:
       - main
     tags:
       - v*
-  workflow_dispatch:
+  workflow_dispatch:    
+    inputs:
+      environment:
+        description: 'Select the environment to deploy'
+        required: true
+        default: 'DEV'
+        type: choice
+        options:
+          - DEV
+          - PRD
+      debug_mode:
+        description: 'Enable debug logging?'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   validate:
