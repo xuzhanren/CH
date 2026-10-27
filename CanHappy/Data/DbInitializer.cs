@@ -1,58 +1,74 @@
-using CanHappy.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CanHappy.Data;
 
 public static class DbInitializer
 {
-    private static readonly string[] CategoryNames =
-    [
-        "Buy & Sell",
-        "Car & Vehicle",
-        "Home Rental",
-        "Estate Sale",
-        "Car Pool",
-        "Business Yellow Page"
-    ];
+    private const string AdminRoleName = "Admin";
+    private const string RegisteredUserRoleName = "RegisteredUser";
 
     public static async Task InitializeAsync(IServiceProvider services)
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         await context.Database.MigrateAsync();
+        await EnsureRoleExistsAsync(context, RegisteredUserRoleName);
+        await SeedAdminRoleAssignmentAsync(context, services);
+    }
 
-        var existing = await context.Categories.ToDictionaryAsync(c => c.Name);
+    private static async Task SeedAdminRoleAssignmentAsync(ApplicationDbContext context, IServiceProvider services)
+    {
+        var adminRole = await EnsureRoleExistsAsync(context, AdminRoleName);
 
-        for (var index = 0; index < CategoryNames.Length; index++)
+        var configuration = services.GetService<IConfiguration>();
+        var configuredAdminEmail = configuration?["SeedAdmin:Email"];
+
+        IdentityUser? adminUser = null;
+
+        if (!string.IsNullOrWhiteSpace(configuredAdminEmail))
         {
-            var name = CategoryNames[index];
-            if (existing.TryGetValue(name, out var category))
-            {
-                category.SortOrder = index + 1;
-                category.ModifiedBy = "system";
-                category.ModifiedDate = DateTime.UtcNow;
-                category.DeletedInd = false;
-            }
-            else
-            {
-                context.Categories.Add(new Category
-                {
-                    Name = name,
-                    Code = BuildCode(name),
-                    Description = name,
-                    SortOrder = index + 1,
-                    DeletedInd = false,
-                    SampleInd = false,
-                    CreatedBy = "system",
-                    CreatedDate = DateTime.UtcNow
-                });
-            }
+            var normalizedEmail = configuredAdminEmail.Trim().ToUpperInvariant();
+            adminUser = await context.Users.FirstOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail);
         }
+
+        adminUser ??= await context.Users.OrderBy(user => user.Id).FirstOrDefaultAsync();
+        if (adminUser is null)
+        {
+            return;
+        }
+
+        var alreadyMapped = await context.UserRoles
+            .AnyAsync(userRole => userRole.UserId == adminUser.Id && userRole.RoleId == adminRole.Id);
+
+        if (alreadyMapped)
+        {
+            return;
+        }
+
+        context.UserRoles.Add(new IdentityUserRole<string>
+        {
+            UserId = adminUser.Id,
+            RoleId = adminRole.Id
+        });
 
         await context.SaveChangesAsync();
     }
 
-    private static string BuildCode(string name)
+    private static async Task<IdentityRole> EnsureRoleExistsAsync(ApplicationDbContext context, string roleName)
     {
-        return new string(name.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+        var role = await context.Roles.FirstOrDefaultAsync(item => item.Name == roleName);
+        if (role is not null)
+        {
+            return role;
+        }
+
+        role = new IdentityRole(roleName)
+        {
+            NormalizedName = roleName.ToUpperInvariant()
+        };
+
+        context.Roles.Add(role);
+        await context.SaveChangesAsync();
+        return role;
     }
 }

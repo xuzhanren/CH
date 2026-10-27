@@ -17,6 +17,9 @@ public class Category
     [StringLength(100)]
     public string? Description { get; set; }
 
+    [StringLength(800)]
+    public string? KeyWords { get; set; }
+
     public int SortOrder { get; set; }
 
     public bool DeletedInd { get; set; }
@@ -29,7 +32,7 @@ public class Category
     [StringLength(100)]
     public string? ModifiedBy { get; set; }
 
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedDate { get; set; } = CanHappy.Common.EasternTime.Now;
 
     public DateTime? ModifiedDate { get; set; }
 }

@@ -1,0 +1,36 @@
+@model CanHappy.Models.Area
+
+@{
+    ViewData["Title"] = "Add Area";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="CreateArea" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="CityId" class="form-label"></label>
+        <select asp-for="CityId" class="form-select" asp-items="ViewBag.CityId"></select>
+        <span asp-validation-for="CityId" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Code" class="form-label"></label>
+        <input asp-for="Code" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Areas" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,60 @@
+@model IEnumerable<CanHappy.Models.Messaging.MessageListItemViewModel>
+
+@{
+    ViewData["Title"] = "Your Inbox Messages";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Inbox</h1>
+    <a asp-action="Sent" class="btn btn-outline-secondary">Sent</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No messages in inbox.</div>
+}
+else
+{
+    <div class="d-flex flex-column align-items-start gap-2 w-100">
+        @foreach (var message in Model)
+        {
+            <div class="card shadow ps-2 text-body w-100">
+
+                <div class="card-body">
+                    <div class="row g-2 align-items-start">
+
+                        <div class="col-12 col-md-10">
+                            <a asp-action="Details" asp-route-id="@message.UserMessageGUID"
+                                   class="text-decoration-none text-body w-100">
+                                <h5 class="mb-1">@message.Subject</h5>
+                                <p class="mb-1 text-muted">@message.BodyPreview</p>
+                            </a>
+                            <small>
+                                From: <strong>@message.CounterpartyName</strong> | Listing:
+                                @if (message.HasListing)
+                                {
+                                    <a asp-controller="ListingPage" asp-action="Details"
+                                       asp-route-id="@message.ListingGUID">@message.ListingSubject</a>
+                                }
+                                else
+                                {
+                                    <span>@message.ListingSubject</span>
+                                }
+                            </small>
+                        </div>
+
+                        <div class="col-12 col-md-2 text-md-end">
+                            @if (!message.IsRead)
+                            {
+                                <span class="badge bg-primary mb-1">New</span>
+                            }
+                            <div><small>@message.CreatedDate.ToLocalTime()</small></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        }
+    </div>
+}

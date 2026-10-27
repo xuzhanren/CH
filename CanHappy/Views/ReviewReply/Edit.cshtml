@@ -1,0 +1,65 @@
+@model CanHappy.Models.ReviewReply
+
+@{
+    ViewData["Title"] = "Edit Reply";
+    var canManageStatus = ViewData["CanManageStatus"] is bool canManage && canManage;
+    var canManageDeletedInd = ViewData["CanManageDeletedInd"] is bool canManageDeleted && canManageDeleted;
+}
+
+<h1>Edit Reply</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.ReviewReplyGUID" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="ReviewReplyGUID" />
+    <input type="hidden" asp-for="ListingReviewGUID" />
+
+    <div class="mb-3">
+        <label asp-for="ReplyMessage" class="form-label"></label>
+        <textarea asp-for="ReplyMessage" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="ReplyMessage" class="text-danger"></span>
+    </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-6">
+            <label asp-for="Status" class="form-label"></label>
+            @if (canManageStatus)
+            {
+                <select asp-for="Status" class="form-select" asp-items="ViewBag.Statuses"></select>
+            }
+            else
+            {
+                <input asp-for="Status" class="form-control" readonly />
+            }
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+            <div class="form-check mb-2">
+                <input asp-for="OfficialReplyInd" class="form-check-input" />
+                <label asp-for="OfficialReplyInd" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+
+    @if (canManageDeletedInd)
+    {
+        <div class="mb-3">
+            <div class="form-check">
+                <input asp-for="DeletedInd" class="form-check-input" />
+                <label asp-for="DeletedInd" class="form-check-label"></label>
+            </div>
+            <span asp-validation-for="DeletedInd" class="text-danger"></span>
+        </div>
+    }
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Index" asp-route-listingReviewGuid="@Model.ListingReviewGUID"
+           class="btn btn-outline-secondary">Back to List</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

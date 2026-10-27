@@ -1,0 +1,59 @@
+@model CanHappy.Models.ReviewReply
+
+@{
+    ViewData["Title"] = "Create Reply";
+    var hasContext = Model.ListingReviewGUID != Guid.Empty;
+}
+
+<h1>Create Reply</h1>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    @if (hasContext)
+    {
+        <input type="hidden" asp-for="ListingReviewGUID" />
+    }
+    else
+    {
+        <div class="mb-3">
+            <label asp-for="ListingReviewGUID" class="form-label"></label>
+            <select asp-for="ListingReviewGUID" class="form-select" asp-items="ViewBag.ListingReviewGUID">
+                <option value="">Select Review</option>
+            </select>
+            <span asp-validation-for="ListingReviewGUID" class="text-danger"></span>
+        </div>
+    }
+
+    <div class="mb-3">
+        <label asp-for="ReplyMessage" class="form-label"></label>
+        <textarea asp-for="ReplyMessage" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="ReplyMessage" class="text-danger"></span>
+    </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-6">
+            <label asp-for="Status" class="form-label"></label>
+            <input asp-for="Status" class="form-control" readonly />
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+            <div class="form-check mb-2">
+                <input asp-for="OfficialReplyInd" class="form-check-input" />
+                <label asp-for="OfficialReplyInd" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" asp-route-listingReviewGuid="@(hasContext? Model.ListingReviewGUID: (Guid?)null)"
+           class="btn btn-outline-secondary">Back to List</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

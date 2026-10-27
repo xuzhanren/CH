@@ -1,0 +1,56 @@
+@model IEnumerable<CanHappy.Models.RideRequest>
+
+@{
+    ViewData["Title"] = "My Ride Requests";
+}
+
+<h1 class="mb-3">My Ride Requests</h1>
+
+@if (TempData["MessageSuccess"] is string messageSuccess && !string.IsNullOrWhiteSpace(messageSuccess))
+{
+    <div class="alert alert-success">@messageSuccess</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create Ride Request</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No ride requests found.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Listing</th>
+                    <th>Car Pool Detail</th>
+                    <th>Status</th>
+                    <th>Rider</th>
+                    <th>Message</th>
+                    <th>Created Date</th>
+                    <th style="width: 120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@(item.CarPoolDetail?.Listing?.Subject ?? "-")</td>
+                        <td>@item.CarPoolDetailGUID</td>
+                        <td>@(item.RideRequestStatus?.Name ?? item.RideRequestStatusId.ToString())</td>
+                        <td>@item.RiderUserID</td>
+                        <td>@item.RequestMessage</td>
+                        <td>@item.CreatedDate</td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.RideRequestGUID"
+                               class="btn btn-sm btn-outline-primary">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

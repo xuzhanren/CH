@@ -1,0 +1,87 @@
+@model CanHappy.Models.Listing
+
+@{
+    ViewData["Title"] = "Delete Listing";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete this listing?
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Listing GUID</dt>
+    <dd class="col-sm-9">@Model.ListingGUID</dd>
+    <dt class="col-sm-3">CategoryId</dt>
+    <dd class="col-sm-9">@Model.CategoryId</dd>
+    <dt class="col-sm-3">SubcategoryId</dt>
+    <dd class="col-sm-9">@Model.SubcategoryId</dd>
+    <dt class="col-sm-3">Subject</dt>
+    <dd class="col-sm-9">@Model.Subject</dd>
+    <dt class="col-sm-3">Description</dt>
+    <dd class="col-sm-9">@Model.Description</dd>
+    <dt class="col-sm-3">KeyWords</dt>
+    <dd class="col-sm-9">@Model.KeyWords</dd>
+    <dt class="col-sm-3">ProvinceId</dt>
+    <dd class="col-sm-9">@Model.ProvinceId</dd>
+    <dt class="col-sm-3">CityId</dt>
+    <dd class="col-sm-9">@Model.CityId</dd>
+    <dt class="col-sm-3">Address</dt>
+    <dd class="col-sm-9">@Model.Address</dd>
+    <dt class="col-sm-3">PostalCode</dt>
+    <dd class="col-sm-9">@Model.PostalCode</dd>
+    <dt class="col-sm-3">ContactPhone</dt>
+    <dd class="col-sm-9">@Model.ContactPhone</dd>
+    <dt class="col-sm-3">ContactName</dt>
+    <dd class="col-sm-9">@Model.ContactName</dd>
+    <dt class="col-sm-3">ShowContactInd</dt>
+    <dd class="col-sm-9">@Model.ShowContactInd</dd>
+    <dt class="col-sm-3">ThumbnailURL</dt>
+    <dd class="col-sm-9">@Model.ThumbnailURL</dd>
+    <dt class="col-sm-3">Rating</dt>
+    <dd class="col-sm-9">@Model.Rating</dd>
+    <dt class="col-sm-3">Brand</dt>
+    <dd class="col-sm-9">@Model.Brand</dd>
+    <dt class="col-sm-3">Condition</dt>
+    <dd class="col-sm-9">@Model.Condition</dd>
+    <dt class="col-sm-3">Model</dt>
+    <dd class="col-sm-9">@Model.Model</dd>
+    <dt class="col-sm-3">Quantity</dt>
+    <dd class="col-sm-9">@Model.Quantity</dd>
+    <dt class="col-sm-3">ManufactureYear</dt>
+    <dd class="col-sm-9">@Model.ManufactureYear</dd>
+    <dt class="col-sm-3">Price</dt>
+    <dd class="col-sm-9">@Model.Price</dd>
+    <dt class="col-sm-3">DiscountPercent</dt>
+    <dd class="col-sm-9">@Model.DiscountPercent</dd>
+    <dt class="col-sm-3">DiscountBeginDate</dt>
+    <dd class="col-sm-9">@Model.DiscountBeginDate</dd>
+    <dt class="col-sm-3">DiscountEndDate</dt>
+    <dd class="col-sm-9">@Model.DiscountEndDate</dd>
+    <dt class="col-sm-3">ViewCount</dt>
+    <dd class="col-sm-9">@Model.ViewCount</dd>
+    <dt class="col-sm-3">ClickCount</dt>
+    <dd class="col-sm-9">@Model.ClickCount</dd>
+    <dt class="col-sm-3">DeletedInd</dt>
+    <dd class="col-sm-9">@Model.DeletedInd</dd>
+    <dt class="col-sm-3">SampleInd</dt>
+    <dd class="col-sm-9">@Model.SampleInd</dd>
+    <dt class="col-sm-3">UserId</dt>
+    <dd class="col-sm-9">@Model.UserId</dd>
+    <dt class="col-sm-3">CreatedBy</dt>
+    <dd class="col-sm-9">@Model.CreatedBy</dd>
+    <dt class="col-sm-3">ModifiedBY</dt>
+    <dd class="col-sm-9">@Model.ModifiedBY</dd>
+    <dt class="col-sm-3">CreatedDate</dt>
+    <dd class="col-sm-9">@Model.CreatedDate</dd>
+    <dt class="col-sm-3">ModifiedDate</dt>
+    <dd class="col-sm-9">@Model.ModifiedDate</dd>
+</dl>
+
+<form asp-action="DeleteListingConfirmed" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.ListingGUID" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Listings" class="btn btn-secondary">Cancel</a>
+</form>

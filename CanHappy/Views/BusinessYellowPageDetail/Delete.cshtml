@@ -1,0 +1,24 @@
+@model CanHappy.Models.BusinessYellowPageDetailEditViewModel
+
+@{
+    ViewData["Title"] = "Delete Business Yellow Page Detail";
+}
+
+<h1>Delete Business Yellow Page Detail</h1>
+<p class="text-danger">Are you sure you want to delete this business detail?</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div><strong>Business Hours:</strong> @Model.BusinessHours</div>
+        <div><strong>Business Style:</strong> @Model.BusinessStyle</div>
+        <div><strong>Products And Services:</strong> @Model.ProductsAndServices</div>
+        <div><strong>Specialties:</strong> @Model.Specialties</div>
+        <div><strong>Languages Spoken:</strong> @Model.LanguagesSpoken</div>
+    </div>
+</div>
+
+<form asp-action="Delete" asp-route-id="@Model.BusinessYellowPageDetailGUID" method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" asp-route-listingGuid="@Model.ListingGUID" class="btn btn-outline-secondary ms-2">Cancel</a>
+</form>

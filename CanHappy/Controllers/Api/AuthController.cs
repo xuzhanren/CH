@@ -12,8 +12,11 @@ namespace CanHappy.Controllers.Api;
 [Route("api/[controller]")]
 public class AuthController(
     UserManager<IdentityUser> userManager,
+    RoleManager<IdentityRole> roleManager,
     IConfiguration configuration) : ControllerBase
 {
+    private const string RegisteredUserRoleName = "RegisteredUser";
+
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
@@ -28,6 +31,21 @@ public class AuthController(
         if (!result.Succeeded)
         {
             return BadRequest(result.Errors.Select(e => e.Description));
+        }
+
+        if (!await roleManager.RoleExistsAsync(RegisteredUserRoleName))
+        {
+            var createRoleResult = await roleManager.CreateAsync(new IdentityRole(RegisteredUserRoleName));
+            if (!createRoleResult.Succeeded)
+            {
+                return BadRequest(createRoleResult.Errors.Select(e => e.Description));
+            }
+        }
+
+        var addRoleResult = await userManager.AddToRoleAsync(user, RegisteredUserRoleName);
+        if (!addRoleResult.Succeeded)
+        {
+            return BadRequest(addRoleResult.Errors.Select(e => e.Description));
         }
 
         return Ok();

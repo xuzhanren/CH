@@ -31,6 +31,11 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="mb-3">
+                <label asp-for="KeyWords" class="form-label"></label>
+                <textarea asp-for="KeyWords" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="KeyWords" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
                 <label asp-for="SortOrder" class="form-label"></label>
                 <input asp-for="SortOrder" class="form-control" />
                 <span asp-validation-for="SortOrder" class="text-danger"></span>
