@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Services.Media;
 using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +19,8 @@ public class ListingPageController(
     IWebHostEnvironment environment,
     IHttpClientFactory httpClientFactory,
     ILogger<ListingPageController> logger,
-    IConfiguration configuration) : Controller
+    IConfiguration configuration,
+    IMediaStorage mediaStorage) : Controller
 {
     private static readonly ConcurrentDictionary<string, (double Latitude, double Longitude)?> PostalCodeCoordinateCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -427,7 +429,7 @@ public class ListingPageController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("CategoryId,SubcategoryId,Subject,Description,KeyWords,ProvinceId,CityId,Address,PostalCode,ContactPhone,ContactName,ShowContactInd,Price,DiscountPercent,DiscountBeginDate,DiscountEndDate,Brand,Model,Condition,ThumbnailURL")] Listing listing, string? croppedThumbnailData, string? clearedThumbnailUrl)
     {
-        TryDeleteWebRootFile(clearedThumbnailUrl);
+        await TryDeleteMediaAsync(clearedThumbnailUrl);
 
         if (!ModelState.IsValid)
         {
@@ -495,7 +497,7 @@ public class ListingPageController(
             return NotFound();
         }
 
-        TryDeleteWebRootFile(clearedThumbnailUrl);
+        await TryDeleteMediaAsync(clearedThumbnailUrl);
 
         if (!ModelState.IsValid)
         {
@@ -557,7 +559,7 @@ public class ListingPageController(
 
             if (!string.Equals(originalThumbnailUrl, existingListing.ThumbnailURL, StringComparison.OrdinalIgnoreCase))
             {
-                TryDeleteWebRootFile(originalThumbnailUrl);
+                await TryDeleteMediaAsync(originalThumbnailUrl);
             }
         }
         catch (DbUpdateConcurrencyException)
@@ -1023,12 +1025,7 @@ public class ListingPageController(
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, ListImageFolder);
-
-        Directory.CreateDirectory(folderPath);
-
-        var filePath = Path.Combine(folderPath, fileName);
-        await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+        await mediaStorage.SaveAsync(ListImageFolder, fileName, imageBytes, extension == ".png" ? "image/png" : "image/jpeg");
 
         return fileName;
     }
@@ -1047,15 +1044,10 @@ public class ListingPageController(
         return MediaPathHelper.BuildMediaUrl(url, AdImagesFolder);
     }
 
-    private void TryDeleteWebRootFile(string? imageUrl)
+    private async Task TryDeleteMediaAsync(string? imageUrl)
     {
         if (string.IsNullOrWhiteSpace(imageUrl)
             || imageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        if (Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
         {
             return;
         }
@@ -1070,6 +1062,12 @@ public class ListingPageController(
         if (!trimmedPath.StartsWith('/') && !trimmedPath.StartsWith('\\'))
         {
             trimmedPath = ResolveListingImageUrl(trimmedPath) ?? trimmedPath;
+        }
+
+        if (MediaPathHelper.IsAbsoluteUrl(trimmedPath))
+        {
+            await mediaStorage.TryDeleteBlobAsync(trimmedPath, [ListImageFolder]);
+            return;
         }
 
         var relativePath = trimmedPath

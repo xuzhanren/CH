@@ -1,4 +1,11 @@
 # Build artifacts
+../CH-aks-argocd_infra/.terraform/
+../CH-aks-infra/.terraform/
+../CH-aks-infra/terraform.tfstate*
+.terraform/
+*.tfstate
+*.tfstate.backup
+
 bin/
 obj/
 **/obj/

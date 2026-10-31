@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Services.Media;
 using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,7 @@ using System.Security.Claims;
 namespace CanHappy.Controllers;
 
 [Route("BusinessYellowPageDetail")]
-public class BusinessYellowPageDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment, IConfiguration configuration) : Controller
+public class BusinessYellowPageDetailPageController(ApplicationDbContext context, IConfiguration configuration, IMediaStorage mediaStorage) : Controller
 {
     private const string BusinessYellowPageCategoryName = "Business Yellow Page";
 
@@ -1057,11 +1058,7 @@ public class BusinessYellowPageDetailPageController(ApplicationDbContext context
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, ListImageFolder);
-
-        Directory.CreateDirectory(folderPath);
-        var filePath = Path.Combine(folderPath, fileName);
-        await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+        await mediaStorage.SaveAsync(ListImageFolder, fileName, imageBytes, extension == ".png" ? "image/png" : "image/jpeg");
 
         return fileName;
     }

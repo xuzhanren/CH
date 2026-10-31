@@ -2,6 +2,7 @@ using System.Text;
 using CanHappy.Data;
 using CanHappy.Common;
 using CanHappy.Services.Email;
+using CanHappy.Services.Media;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -63,6 +64,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.SectionName));
 builder.Services.AddScoped<IMessageNotificationEmailSender, MailKitMessageNotificationEmailSender>();
+builder.Services.AddSingleton<IMediaStorage, MediaStorage>();
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT signing key is missing.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT issuer is missing.");

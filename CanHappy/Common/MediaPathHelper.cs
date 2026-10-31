@@ -4,14 +4,42 @@ namespace CanHappy.Common;
 
 public static class MediaPathHelper
 {
+    public static bool IsAbsoluteUrl(string? value)
+    {
+        return Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+    }
+
     public static string ResolveWebFolder(IConfiguration configuration, string settingKey, string defaultFolder)
     {
         var configured = configuration.GetValue<string>(settingKey);
         var folder = string.IsNullOrWhiteSpace(configured) ? defaultFolder : configured;
         folder = folder.Replace('\\', '/').Trim();
+
+        // Absolute URLs (e.g. Azure Blob Storage containers) are kept as-is.
+        if (IsAbsoluteUrl(folder))
+        {
+            return folder.TrimEnd('/');
+        }
+
         folder = folder.Trim('/');
 
         return string.IsNullOrWhiteSpace(folder) ? string.Empty : $"/{folder}";
+    }
+
+    public static string? ResolveReviewImageUrl(IConfiguration configuration, string? value)
+    {
+        const string legacyPrefix = "/ListingReviewImages/";
+
+        var folder = ResolveWebFolder(configuration, "ListingReviewImagesFolder", legacyPrefix.TrimEnd('/'));
+
+        // Rows saved before the move to blob storage hold "/ListingReviewImages/<file>".
+        if (IsAbsoluteUrl(folder) && value is not null && value.StartsWith(legacyPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            value = value[legacyPrefix.Length..];
+        }
+
+        return BuildMediaUrl(value, folder);
     }
 
     public static string? BuildMediaUrl(string? value, string webFolder)

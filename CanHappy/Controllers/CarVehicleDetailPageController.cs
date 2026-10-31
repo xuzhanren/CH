@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Services.Media;
 using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,7 @@ using System.Security.Claims;
 namespace CanHappy.Controllers;
 
 [Route("CarVehicleDetail")]
-public class CarVehicleDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment, IConfiguration configuration) : Controller
+public class CarVehicleDetailPageController(ApplicationDbContext context, IConfiguration configuration, IMediaStorage mediaStorage) : Controller
 {
     private const string CarVehicleCategoryName = "Car & Vehicle";
 
@@ -1028,11 +1029,7 @@ public class CarVehicleDetailPageController(ApplicationDbContext context, IWebHo
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, ListImageFolder);
-
-        Directory.CreateDirectory(folderPath);
-        var filePath = Path.Combine(folderPath, fileName);
-        await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+        await mediaStorage.SaveAsync(ListImageFolder, fileName, imageBytes, extension == ".png" ? "image/png" : "image/jpeg");
 
         return fileName;
     }

@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Services.Media;
 using CanHappy.Common;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,7 @@ using System.Security.Claims;
 namespace CanHappy.Controllers;
 
 [Route("EstateSaleDetail")]
-public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment, IConfiguration configuration) : Controller
+public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHostEnvironment environment, IConfiguration configuration, IMediaStorage mediaStorage) : Controller
 {
     private const string EstateSaleCategoryName = "Estate Sale";
     private const long MaxVideoBytes = 50L * 1024L * 1024L;
@@ -1146,10 +1147,10 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         listingVideo.ModifiedDate = CanHappy.Common.EasternTime.Now;
         await context.SaveChangesAsync();
 
-        TryDeleteMediaFile(videoUrlToDelete);
+        await TryDeleteMediaFileAsync(videoUrlToDelete, ListingVideosFolder);
         if (!string.Equals(videoUrlToDelete, thumbnailUrlToDelete, StringComparison.OrdinalIgnoreCase))
         {
-            TryDeleteMediaFile(thumbnailUrlToDelete);
+            await TryDeleteMediaFileAsync(thumbnailUrlToDelete, ListingVideoThumbnailsFolder);
         }
 
         TempData["MessageSuccess"] = "Video deleted.";
@@ -1218,7 +1219,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
         if (!string.IsNullOrWhiteSpace(croppedImageData))
         {
-            var imagePath = await SaveImageFromDataUrlAsync(croppedImageData, "EstateRoomImages");
+            var imagePath = await SaveImageFromDataUrlAsync(croppedImageData, EstateRoomImagesFolder);
             if (string.IsNullOrWhiteSpace(imagePath))
             {
                 TempData["MessageError"] = "Invalid room image data.";
@@ -1227,7 +1228,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
             var thumbnailPath = string.IsNullOrWhiteSpace(thumbnailImageData)
                 ? null
-                : await SaveImageFromDataUrlAsync(thumbnailImageData, "EstateRoomImages");
+                : await SaveImageFromDataUrlAsync(thumbnailImageData, EstateRoomImagesFolder);
 
             if (string.IsNullOrWhiteSpace(thumbnailPath))
             {
@@ -1462,11 +1463,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, folderName);
-
-        Directory.CreateDirectory(folderPath);
-        var filePath = Path.Combine(folderPath, fileName);
-        await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+        await mediaStorage.SaveAsync(folderName, fileName, imageBytes, extension == ".png" ? "image/png" : "image/jpeg");
 
         return fileName;
     }
@@ -1480,14 +1477,14 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         }
 
         var fileName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
-        var relativePath = MediaPathHelper.BuildRelativeMediaPath(folderName, fileName);
-        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, folderName);
-        Directory.CreateDirectory(folderPath);
 
-        var filePath = Path.Combine(folderPath, fileName);
-        await using var output = System.IO.File.Create(filePath);
-        await file.CopyToAsync(output);
-        return relativePath;
+        await using var input = file.OpenReadStream();
+        await mediaStorage.SaveAsync(folderName, fileName, input, file.ContentType);
+
+        // Blob folders store only the file name; local folders keep the web-relative path.
+        return MediaPathHelper.IsAbsoluteUrl(folderName)
+            ? fileName
+            : MediaPathHelper.BuildRelativeMediaPath(folderName, fileName);
     }
 
     private string ListImageFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListImageFolder", "/ListingImages");
@@ -1498,7 +1495,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
     private string ListingVideosFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListingVideosFolder", "/ListingVideos");
 
-    private string EstateRoomImagesFolder => "/EstateRoomImages";
+    private string EstateRoomImagesFolder => MediaPathHelper.ResolveWebFolder(configuration, "EstateRoomImagesFolder", "/EstateRoomImages");
 
     private string? ResolveListingImageUrl(string? url)
     {
@@ -1525,7 +1522,7 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         return MediaPathHelper.BuildMediaUrl(url, EstateRoomImagesFolder);
     }
 
-    private void TryDeleteMediaFile(string? mediaPath)
+    private async Task TryDeleteMediaFileAsync(string? mediaPath, string webFolder)
     {
         if (string.IsNullOrWhiteSpace(mediaPath))
         {
@@ -1546,6 +1543,13 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             if (fragmentIndex >= 0)
             {
                 normalizedPath = normalizedPath[..fragmentIndex];
+            }
+
+            var blobUrl = MediaPathHelper.BuildMediaUrl(normalizedPath, webFolder);
+            if (MediaPathHelper.IsAbsoluteUrl(blobUrl)
+                && await mediaStorage.TryDeleteBlobAsync(blobUrl, [webFolder]))
+            {
+                return;
             }
 
             if (Uri.TryCreate(normalizedPath, UriKind.Absolute, out var absoluteUri))

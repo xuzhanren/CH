@@ -2,6 +2,8 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CanHappy.Data;
+using CanHappy.Common;
+using CanHappy.Services.Media;
 using CanHappy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +16,7 @@ using SixLabors.ImageSharp.Processing;
 namespace CanHappy.Controllers;
 
 [Route("ListingReview")]
-public class ListingReviewController(ApplicationDbContext context, IWebHostEnvironment environment) : Controller
+public class ListingReviewController(ApplicationDbContext context, IConfiguration configuration, IMediaStorage mediaStorage) : Controller
 {
     private const int MaxReviewFullImageBytes = 1 * 1024 * 1024;
     private const int MaxReviewThumbnailBytes = 50 * 1024;
@@ -504,15 +506,15 @@ public class ListingReviewController(ApplicationDbContext context, IWebHostEnvir
     {
         var resolvedExtension = string.IsNullOrWhiteSpace(extension) ? ".jpg" : extension;
         var fileName = $"{Guid.NewGuid():N}{resolvedExtension}";
-        var relativePath = $"/ListingReviewImages/{fileName}";
-        var folderPath = Path.Combine(environment.WebRootPath, "ListingReviewImages");
+        var contentType = string.Equals(resolvedExtension, ".png", StringComparison.OrdinalIgnoreCase) ? "image/png" : "image/jpeg";
+        var webFolder = MediaPathHelper.ResolveWebFolder(configuration, "ListingReviewImagesFolder", "/ListingReviewImages");
 
-        Directory.CreateDirectory(folderPath);
+        await mediaStorage.SaveAsync(webFolder, fileName, imageBytes, contentType);
 
-        var filePath = Path.Combine(folderPath, fileName);
-        await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
-
-        return relativePath;
+        // Blob folders store only the file name; local folders keep the web-relative path.
+        return MediaPathHelper.IsAbsoluteUrl(webFolder)
+            ? fileName
+            : MediaPathHelper.BuildRelativeMediaPath(webFolder, fileName);
     }
 
     private sealed class ReviewPhotoPayload

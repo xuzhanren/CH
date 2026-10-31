@@ -1,0 +1,63 @@
+name: "Build and push CH Docker image with dynamic tag to Docker Hub and update Deployment.yaml"
+
+on:
+  push:
+    branches:
+      - feature/CH_AKSARGO_V1
+    paths-ignore:
+      - version.txt
+      - Deployment.yaml
+      - Tools\**
+      - CH-aks-argocd_infra\**
+      - CH-aks-infra\**
+      - CanHappy\wwwroot\EstateRoomImages\**
+      - CanHappy\wwwroot\Images\**
+      - CanHappy\wwwroot\ListingImages\**
+      - CanHappy\wwwroot\ListingReviewImages\**
+      - CanHappy\wwwroot\ListingVideos\**
+      - CanHappy\wwwroot\ListingVideoThumbnails\**
+      #- C:\DR\Projects\VSC\CH\CH\CH-aks-argocd_infra\**
+      #- C:\DR\Projects\VSC\CH\CH\CH-aks-infra\**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ch-build-push-deploy
+  cancel-in-progress: false
+
+env:
+  VERSION: $(( $(cat version.txt) + 1 ))
+
+jobs:
+  build_push_ch_docker_image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Compute next image version from version.txt
+        run: |
+          CURRENT_VERSION=$(tr -d '[:space:]' < version.txt)
+          echo "VERSION=$((CURRENT_VERSION + 1))" >> "$GITHUB_ENV"
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t docker.io/renxuzhan/ch:${{ env.VERSION }} .
+          docker push docker.io/renxuzhan/ch:${{ env.VERSION }}
+
+      - name: Update Deployment YAML and version.txt
+        run: |
+          git config user.email "${{ secrets.GIT_EMAIL }}"
+          git config user.name "${{ secrets.GIT_USERNAME }}"
+          git pull --rebase origin "${{ github.ref_name }}"
+          sed -i "s|image: renxuzhan/ch:.*$|image: renxuzhan/ch:${{ env.VERSION }}|" Deployment.yaml
+          echo "${{ env.VERSION }}" > version.txt
+          git add Deployment.yaml version.txt
+          git commit -m "Updated Deployment.yaml and version.txt with ch image tag ${{ env.VERSION }}"
+          git push origin "HEAD:${{ github.ref_name }}"

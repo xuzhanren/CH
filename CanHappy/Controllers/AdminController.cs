@@ -1,4 +1,5 @@
 using CanHappy.Data;
+using CanHappy.Services.Media;
 using CanHappy.Common;
 using CanHappy.Models;
 using CanHappy.Models.Admin;
@@ -17,7 +18,8 @@ public class AdminController(
     RoleManager<IdentityRole> roleManager,
     ApplicationDbContext context,
     IWebHostEnvironment environment,
-    IConfiguration configuration) : Controller
+    IConfiguration configuration,
+    IMediaStorage mediaStorage) : Controller
 {
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Users()
@@ -318,7 +320,7 @@ public class AdminController(
         string? croppedImageData,
         string? clearedImageUrl)
     {
-        TryDeleteWebRootFile(clearedImageUrl);
+        await TryDeleteMediaAsync(clearedImageUrl);
 
         if (!ModelState.IsValid)
         {
@@ -409,7 +411,7 @@ public class AdminController(
             return Forbid();
         }
 
-        TryDeleteWebRootFile(clearedImageUrl);
+        await TryDeleteMediaAsync(clearedImageUrl);
 
         if (!ModelState.IsValid)
         {
@@ -476,7 +478,7 @@ public class AdminController(
 
         if (!string.Equals(originalImageUrl, ad.ImageURL, StringComparison.OrdinalIgnoreCase))
         {
-            TryDeleteWebRootFile(originalImageUrl);
+            await TryDeleteMediaAsync(originalImageUrl);
         }
 
         return RedirectToAction(nameof(Ads));
@@ -1329,12 +1331,7 @@ public class AdminController(
 
         var extension = metadata.Contains("image/png", StringComparison.OrdinalIgnoreCase) ? ".png" : ".jpg";
         var fileName = $"{Guid.NewGuid():N}{extension}";
-        var folderPath = MediaPathHelper.BuildPhysicalFolderPath(environment.WebRootPath, AdImagesFolder);
-
-        Directory.CreateDirectory(folderPath);
-
-        var filePath = Path.Combine(folderPath, fileName);
-        await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+        await mediaStorage.SaveAsync(AdImagesFolder, fileName, imageBytes, extension == ".png" ? "image/png" : "image/jpeg");
 
         return fileName;
     }
@@ -1346,15 +1343,10 @@ public class AdminController(
         return MediaPathHelper.BuildMediaUrl(url, AdImagesFolder);
     }
 
-    private void TryDeleteWebRootFile(string? imageUrl)
+    private async Task TryDeleteMediaAsync(string? imageUrl)
     {
         if (string.IsNullOrWhiteSpace(imageUrl)
             || imageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        if (Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
         {
             return;
         }
@@ -1369,6 +1361,12 @@ public class AdminController(
         if (!trimmedPath.StartsWith('/') && !trimmedPath.StartsWith('\\'))
         {
             trimmedPath = ResolveAdImageUrl(trimmedPath) ?? trimmedPath;
+        }
+
+        if (MediaPathHelper.IsAbsoluteUrl(trimmedPath))
+        {
+            await mediaStorage.TryDeleteBlobAsync(trimmedPath, [AdImagesFolder]);
+            return;
         }
 
         var relativePath = trimmedPath

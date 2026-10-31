@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/log/
+**/artifacts/
+**/.vs/
+**/.vscode/
+.git/
+.github/
+mailpit/
+Dockerfile
+.dockerignore
+Deployment.yaml
+version.txt
