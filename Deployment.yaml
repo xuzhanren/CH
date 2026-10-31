@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: ch-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: ch
@@ -13,7 +13,7 @@ spec:
         app: ch
     spec:
       containers:
-      - image: renxuzhan/ch:0
+      - image: renxuzhan/ch:1
         name: ch-container
         ports:
         - containerPort: 8080
