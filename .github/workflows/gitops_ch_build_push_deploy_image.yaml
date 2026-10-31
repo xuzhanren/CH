@@ -7,15 +7,15 @@ on:
     paths-ignore:
       - version.txt
       - Deployment.yaml
-      - Tools\**
-      - CH-aks-argocd_infra\**
-      - CH-aks-infra\**
-      - CanHappy\wwwroot\EstateRoomImages\**
-      - CanHappy\wwwroot\Images\**
-      - CanHappy\wwwroot\ListingImages\**
-      - CanHappy\wwwroot\ListingReviewImages\**
-      - CanHappy\wwwroot\ListingVideos\**
-      - CanHappy\wwwroot\ListingVideoThumbnails\**
+      - Tools/**
+      - CH-aks-argocd_infra/**
+      - CH-aks-infra/**
+      - CanHappy/wwwroot/EstateRoomImages/**
+      - CanHappy/wwwroot/Images/**
+      - CanHappy/wwwroot/ListingImages/**
+      - CanHappy/wwwroot/ListingReviewImages/**
+      - CanHappy/wwwroot/ListingVideos/**
+      - CanHappy/wwwroot/ListingVideoThumbnails/**
       #- C:\DR\Projects\VSC\CH\CH\CH-aks-argocd_infra\**
       #- C:\DR\Projects\VSC\CH\CH\CH-aks-infra\**
   workflow_dispatch:
