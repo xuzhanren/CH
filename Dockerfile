@@ -10,6 +10,11 @@ RUN dotnet publish CanHappy/CanHappy.csproj -c Release -o /app/publish --no-rest
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
+# Npgsql loads the Kerberos/GSSAPI library when connecting to PostgreSQL; the slim runtime image doesn't ship it.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/publish .
 
 # The app writes logs and uploaded media under the content root, so the non-root user must own them.
