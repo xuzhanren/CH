@@ -356,6 +356,7 @@ public class AdminController(
         model.CreatedDate = CanHappy.Common.EasternTime.Now;
         model.ModifiedBY = null;
         model.ModifiedDate = null;
+        model.ImageURL = MediaPathHelper.ToStoredFileName(model.ImageURL);
 
         if (!string.IsNullOrWhiteSpace(croppedImageData))
         {
@@ -422,6 +423,7 @@ public class AdminController(
         }
 
         var originalImageUrl = ad.ImageURL;
+        model.ImageURL = MediaPathHelper.ToStoredFileName(model.ImageURL);
 
         if (!string.IsNullOrWhiteSpace(croppedImageData))
         {
@@ -992,7 +994,7 @@ public class AdminController(
         listing.ContactPhone = listingInput.ContactPhone;
         listing.ContactName = listingInput.ContactName;
         listing.ShowContactInd = listingInput.ShowContactInd;
-        listing.ThumbnailURL = listingInput.ThumbnailURL;
+        listing.ThumbnailURL = MediaPathHelper.ToStoredFileName(listingInput.ThumbnailURL);
         listing.Rating = string.IsNullOrWhiteSpace(listingInput.Rating) ? listing.Rating : listingInput.Rating;
         listing.Brand = listingInput.Brand;
         listing.Condition = listingInput.Condition;

@@ -445,6 +445,7 @@ public class ListingPageController(
         }
         listing.CreatedDate = CanHappy.Common.EasternTime.Now;
         listing.ModifiedDate = null;
+        listing.ThumbnailURL = MediaPathHelper.ToStoredFileName(listing.ThumbnailURL);
 
         if (!string.IsNullOrWhiteSpace(croppedThumbnailData))
         {
@@ -514,6 +515,7 @@ public class ListingPageController(
         }
 
         var originalThumbnailUrl = existingListing.ThumbnailURL;
+        listing.ThumbnailURL = MediaPathHelper.ToStoredFileName(listing.ThumbnailURL);
 
         if (!string.IsNullOrWhiteSpace(croppedThumbnailData))
         {

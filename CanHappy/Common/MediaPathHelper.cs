@@ -27,18 +27,28 @@ public static class MediaPathHelper
         return string.IsNullOrWhiteSpace(folder) ? string.Empty : $"/{folder}";
     }
 
-    public static string? ResolveReviewImageUrl(IConfiguration configuration, string? value)
+    public static string? ToStoredFileName(string? value)
     {
-        const string legacyPrefix = "/ListingReviewImages/";
-
-        var folder = ResolveWebFolder(configuration, "ListingReviewImagesFolder", legacyPrefix.TrimEnd('/'));
-
-        // Rows saved before the move to blob storage hold "/ListingReviewImages/<file>".
-        if (IsAbsoluteUrl(folder) && value is not null && value.StartsWith(legacyPrefix, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(value) || value.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
         {
-            value = value[legacyPrefix.Length..];
+            return value;
         }
 
+        // Media columns hold only the file name; pages may post back the resolved URL.
+        var path = value.Trim().Replace('\\', '/');
+        var queryOrFragmentIndex = path.IndexOfAny(['?', '#']);
+        if (queryOrFragmentIndex >= 0)
+        {
+            path = path[..queryOrFragmentIndex];
+        }
+
+        var fileName = path[(path.LastIndexOf('/') + 1)..];
+        return string.IsNullOrEmpty(fileName) ? value : fileName;
+    }
+
+    public static string? ResolveReviewImageUrl(IConfiguration configuration, string? value)
+    {
+        var folder = ResolveWebFolder(configuration, "ListingReviewImagesFolder", "/ListingReviewImages");
         return BuildMediaUrl(value, folder);
     }
 
