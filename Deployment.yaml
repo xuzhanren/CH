@@ -13,7 +13,7 @@ spec:
         app: ch
     spec:
       containers:
-      - image: renxuzhan/ch:2
+      - image: renxuzhan/ch:3
         name: ch-container
         ports:
         - containerPort: 8080
