@@ -22,7 +22,8 @@ RUN mkdir -p /app/log /app/wwwroot \
     && chown -R $APP_UID:$APP_UID /app/log /app/wwwroot
 
 ENV ASPNETCORE_URLS=http://+:8080 \
-    ASPNETCORE_ENVIRONMENT=Production
+        "ASPNETCORE_ENVIRONMENT": "Development"
+    ASPNETCORE_ENVIRONMENT=Development
 
 USER $APP_UID
 EXPOSE 8080

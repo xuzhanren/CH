@@ -19,7 +19,7 @@ spec:
         - containerPort: 8080
         env:
         - name: ASPNETCORE_ENVIRONMENT
-          value: Production
+          value: Development
         # Create beforehand (not stored in git):
         # kubectl create secret generic ch-secrets \
         #   --from-literal=connection-string='Host=...;Port=5432;Database=CH;Username=...;Password=...' \
