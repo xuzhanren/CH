@@ -21,10 +21,10 @@ COPY --from=build /app/publish .
 RUN mkdir -p /app/log /app/wwwroot \
     && chown -R $APP_UID:$APP_UID /app/log /app/wwwroot
 
-ENV ASPNETCORE_URLS=http://+:8080 \
+ENV ASPNETCORE_URLS=http://+:5116 \
     ASPNETCORE_ENVIRONMENT=Production
 
 USER $APP_UID
-EXPOSE 8080
+EXPOSE 5116
 
 ENTRYPOINT ["dotnet", "CanHappy.dll"]
