@@ -1,7 +1,8 @@
 # Build artifacts
-../CH-aks-argocd_infra/.terraform/
-../CH-aks-infra/.terraform/
-../CH-aks-infra/terraform.tfstate*
+CH-aks-infra/.terraform.lock.hcl
+CH-aks-argocd_infra/.terraform/
+CH-aks-infra/.terraform/
+CH-aks-infra/terraform.tfstate*
 .terraform/
 *.tfstate
 *.tfstate.backup

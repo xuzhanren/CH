@@ -117,9 +117,18 @@ public sealed class MediaStorage(
         }
     }
 
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+    }
+
     private static BlobServiceClient CreateServiceClient(IConfiguration configuration)
     {
-        var connectionString = configuration["AzureStorage:ConnectionString"];
+        // AKS sets the env var AzureStorage__ConnectionString (bound as AzureStorage:ConnectionString).
+        // Local runs put the same value in appsettings(.Development).json under the flat key "AzureStorage__ConnectionString".
+        var connectionString = FirstNonEmpty(
+            configuration["AzureStorage:ConnectionString"],
+            configuration["AzureStorage__ConnectionString"]);
         if (!string.IsNullOrWhiteSpace(connectionString))
         {
             return new BlobServiceClient(connectionString);
@@ -128,7 +137,7 @@ public sealed class MediaStorage(
         var accountName = configuration["AzureStorage:AccountName"];
         if (string.IsNullOrWhiteSpace(accountName))
         {
-            throw new InvalidOperationException("Configure AzureStorage:ConnectionString or AzureStorage:AccountName to use Azure Blob media folders.");
+            throw new InvalidOperationException("Set AzureStorage__ConnectionString (appsettings.Development.json locally, or the ch-secrets secret in AKS), or AzureStorage:AccountName with an Azure login, to use Azure Blob media folders.");
         }
 
         return new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
