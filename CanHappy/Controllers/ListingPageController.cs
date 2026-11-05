@@ -517,6 +517,12 @@ public class ListingPageController(
         var originalThumbnailUrl = existingListing.ThumbnailURL;
         listing.ThumbnailURL = MediaPathHelper.ToStoredFileName(listing.ThumbnailURL);
 
+        if (MediaPathHelper.IsValidImageDataUrl(croppedThumbnailData))
+        {
+            // Replacing the thumbnail: remove the original file before saving the new one.
+            await TryDeleteMediaAsync(originalThumbnailUrl);
+        }
+
         if (!string.IsNullOrWhiteSpace(croppedThumbnailData))
         {
             listing.ThumbnailURL = await SaveThumbnailFromDataUrlAsync(croppedThumbnailData);

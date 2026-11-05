@@ -27,6 +27,24 @@ public static class MediaPathHelper
         return string.IsNullOrWhiteSpace(folder) ? string.Empty : $"/{folder}";
     }
 
+    public static bool IsValidImageDataUrl(string? dataUrl)
+    {
+        if (string.IsNullOrWhiteSpace(dataUrl))
+        {
+            return false;
+        }
+
+        var commaIndex = dataUrl.IndexOf(',');
+        if (commaIndex <= 0 || !dataUrl[..commaIndex].Contains("base64", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var payload = dataUrl[(commaIndex + 1)..];
+        var buffer = new byte[payload.Length / 4 * 3 + 3];
+        return Convert.TryFromBase64String(payload, buffer, out var written) && written > 0;
+    }
+
     public static string? ToStoredFileName(string? value)
     {
         if (string.IsNullOrWhiteSpace(value) || value.StartsWith("data:", StringComparison.OrdinalIgnoreCase))

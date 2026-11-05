@@ -298,6 +298,14 @@ public class AdminController(
         return View(ads);
     }
 
+    
+    //private string AdImagesFolder => MediaPathHelper.ResolveWebFolder(configuration, "AdImagesFolder", "/AdImages");
+
+    // private string? ResolveAdImageUrl(string? url)
+    // {
+    //     return MediaPathHelper.BuildMediaUrl(url, AdImagesFolder);
+    // }
+
     [HttpGet]
     public async Task<IActionResult> CreateAd()
     {
@@ -424,6 +432,12 @@ public class AdminController(
 
         var originalImageUrl = ad.ImageURL;
         model.ImageURL = MediaPathHelper.ToStoredFileName(model.ImageURL);
+
+        if (MediaPathHelper.IsValidImageDataUrl(croppedImageData))
+        {
+            // Replacing the ad image: remove the original file before saving the new one.
+            await TryDeleteMediaAsync(originalImageUrl);
+        }
 
         if (!string.IsNullOrWhiteSpace(croppedImageData))
         {

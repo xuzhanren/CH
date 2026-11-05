@@ -886,6 +886,24 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
             return RedirectToAction(nameof(Index), new { listingGuid });
         }
 
+        if (!MediaPathHelper.IsValidImageDataUrl(croppedImageData))
+        {
+            TempData["MessageError"] = "Invalid image data.";
+            return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        ListingImage? listingImage = null;
+        if (listingImageGuid.HasValue)
+        {
+            listingImage = await context.ListingImages.FirstOrDefaultAsync(item => item.ListingImageGUID == listingImageGuid.Value && item.ListingGUID == listingGuid && !item.DeletedInd);
+        }
+
+        // Replacing a photo: remove the original image and thumbnail files before saving the new ones.
+        if (listingImage is not null)
+        {
+            await mediaStorage.DeleteImageAndThumbnailAsync(ListImageFolder, listingImage.ImageURL, listingImage.ThumbnailURL);
+        }
+
         var imagePath = await SaveImageFromDataUrlAsync(croppedImageData, ListImageFolder);
         if (string.IsNullOrWhiteSpace(imagePath))
         {
@@ -900,12 +918,6 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
         if (string.IsNullOrWhiteSpace(thumbnailPath))
         {
             thumbnailPath = imagePath;
-        }
-
-        ListingImage? listingImage = null;
-        if (listingImageGuid.HasValue)
-        {
-            listingImage = await context.ListingImages.FirstOrDefaultAsync(item => item.ListingImageGUID == listingImageGuid.Value && item.ListingGUID == listingGuid && !item.DeletedInd);
         }
 
         if (listingImage is null)
@@ -1065,6 +1077,12 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
         if (!string.IsNullOrWhiteSpace(thumbnailImageData))
         {
+            if (MediaPathHelper.IsValidImageDataUrl(thumbnailImageData))
+            {
+                // Replacing the video thumbnail: remove the original thumbnail file before saving the new one.
+                await mediaStorage.DeleteAsync(ListingVideoThumbnailsFolder, listingVideo.ThumbnailURL);
+            }
+
             var thumbnailPath = await SaveImageFromDataUrlAsync(thumbnailImageData, ListingVideoThumbnailsFolder);
             if (!string.IsNullOrWhiteSpace(thumbnailPath))
             {
@@ -1219,6 +1237,15 @@ public class EstateSaleDetailPageController(ApplicationDbContext context, IWebHo
 
         if (!string.IsNullOrWhiteSpace(croppedImageData))
         {
+            if (!MediaPathHelper.IsValidImageDataUrl(croppedImageData))
+            {
+                TempData["MessageError"] = "Invalid room image data.";
+                return RedirectToAction(nameof(Index), new { listingGuid });
+            }
+
+            // Replacing the room photo: remove the original image and thumbnail files before saving the new ones.
+            await mediaStorage.DeleteImageAndThumbnailAsync(EstateRoomImagesFolder, room.ImageURL, room.ThumbnailURL);
+
             var imagePath = await SaveImageFromDataUrlAsync(croppedImageData, EstateRoomImagesFolder);
             if (string.IsNullOrWhiteSpace(imagePath))
             {

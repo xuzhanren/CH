@@ -16,4 +16,10 @@ public interface IMediaStorage
     /// so the caller can handle it as a local file.
     /// </summary>
     Task<bool> TryDeleteBlobAsync(string? mediaUrl, IEnumerable<string> allowedWebFolders, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes a stored media item (a bare file name, a root-relative path or a full blob URL) from the given
+    /// media folder, whether that folder is an Azure Blob container or a local web-root folder. Never throws.
+    /// </summary>
+    Task DeleteAsync(string webFolder, string? storedValue, CancellationToken cancellationToken = default);
 }

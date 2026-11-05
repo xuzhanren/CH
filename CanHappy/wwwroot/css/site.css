@@ -78,6 +78,10 @@ body {
   padding-top: 0.125rem;
 }
 
+.compact-nav .compact-nav-login .navbar-nav {
+  flex-direction: row;
+}
+
 .compact-nav-row1 {
   align-items: center;
   gap: 0.5rem;

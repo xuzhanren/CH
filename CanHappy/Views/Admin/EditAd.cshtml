@@ -309,7 +309,7 @@
                             <button type="button" id="editPenModeButton"
                                     class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Free Draw Pen</button>
                             <button type="button" id="editEraseModeButton"
-                                    class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Erase</button>
+                                    class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Erasor</button>
                             <button type="button" id="editTextModeButton"
                                     class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Type Text</button>
                             <div class="d-flex align-items-center gap-2 mb-1">
@@ -340,8 +340,6 @@
                                 <input id="editColorInput" type="color" class="form-control form-control-color"
                                        value="#ff0000" />
                             </div>
-                            <button type="button" id="applyEditsButton"
-                                    class="btn btn-sm btn-outline-primary mb-1 text-nowrap">Apply Edits</button>
                             <button type="button" id="undoEditButton"
                                     class="btn btn-sm btn-outline-secondary mb-1 text-nowrap">Undo</button>
                             <button type="button" id="redoEditButton"
@@ -443,217 +441,26 @@
                 const clearedImageUrlInput = document.getElementById("ClearedImageUrl");
 
                 const cropModalElement = document.getElementById("adImageCropModal");
-                const cropperImage = document.getElementById("cropperImage");
-                const editCanvas = document.getElementById("editCanvas");
-                const editContext = editCanvas.getContext("2d");
-                const cropAspectRatioSelect = document.getElementById("cropAspectRatioSelect");
-                const editCropModeButton = document.getElementById("editCropModeButton");
-                const editPenModeButton = document.getElementById("editPenModeButton");
-                const editEraseModeButton = document.getElementById("editEraseModeButton");
-                const editTextModeButton = document.getElementById("editTextModeButton");
-                const editFontSelect = document.getElementById("editFontSelect");
-                const editFontSizeInput = document.getElementById("editFontSizeInput");
-                const editBrushSizeInput = document.getElementById("editBrushSizeInput");
-                const editColorInput = document.getElementById("editColorInput");
-                const applyEditsButton = document.getElementById("applyEditsButton");
-                const undoEditButton = document.getElementById("undoEditButton");
-                const redoEditButton = document.getElementById("redoEditButton");
-                const saveCroppedImageButton = document.getElementById("saveCroppedImageButton");
                 const cropModal = new bootstrap.Modal(cropModalElement);
 
                 let sourceImageDataUrl = "";
-                let workingImageDataUrl = "";
-                let cropper = null;
-                let currentAspectRatio = 3 / 2;
-                let activeEditTool = "crop";
-                let isDrawing = false;
-                let lastPoint = null;
-                let editHistory = [];
-                let redoHistory = [];
 
-                const getAspectRatio = (value) => {
-                if (value === "custom") {
-                return Number.NaN;
+                const editor = window.CanHappyImageClipping.createEditor({
+                modal: cropModalElement,
+                onSave: async ({ canvas }) => {
+                const croppedDataUrl = window.CanHappyImageClipping.buildFullImageDataUrl(canvas, { preferPng: true });
+                croppedAdImageDataInput.value = croppedDataUrl;
+                imageUrlInput.value = "";
+                adImagePreview.src = croppedDataUrl;
+                adImagePreviewContainer.classList.remove("d-none");
+                cropModal.hide();
                 }
-
-                const parts = (value || "").split(":");
-                if (parts.length !== 2) {
-                return 3 / 2;
-                }
-
-                const width = Number(parts[0]);
-                const height = Number(parts[1]);
-                if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-                return 3 / 2;
-                }
-
-                return width / height;
-                };
-
-                const createCropper = () => {
-                cropper?.destroy();
-                cropper = new Cropper(cropperImage, {
-                aspectRatio: currentAspectRatio,
-                viewMode: 1,
-                autoCropArea: 1,
-                dragMode: "move"
                 });
-                };
-
-                const setToolButtonStyles = () => {
-                const entries = [
-                [editCropModeButton, "crop"],
-                [editPenModeButton, "pen"],
-                [editEraseModeButton, "erase"],
-                [editTextModeButton, "text"]
-                ];
-
-                entries.forEach(([button, mode]) => {
-                const isActive = activeEditTool === mode;
-                button.classList.toggle("btn-primary", isActive);
-                button.classList.toggle("btn-outline-secondary", !isActive);
-                });
-                };
-
-                const getCanvasPoint = (event) => {
-                const rect = editCanvas.getBoundingClientRect();
-                const scaleX = editCanvas.width / rect.width;
-                const scaleY = editCanvas.height / rect.height;
-                return {
-                x: (event.clientX - rect.left) * scaleX,
-                y: (event.clientY - rect.top) * scaleY
-                };
-                };
-
-                const drawStroke = (fromPoint, toPoint) => {
-                editContext.lineCap = "round";
-                editContext.lineJoin = "round";
-                const brushSize = Number.parseFloat(editBrushSizeInput.value);
-                editContext.lineWidth = Number.isFinite(brushSize) ? brushSize : 6;
-                editContext.globalCompositeOperation = activeEditTool === "erase" ? "destination-out" : "source-over";
-                editContext.strokeStyle = editColorInput.value || "#ff0000";
-                editContext.beginPath();
-                editContext.moveTo(fromPoint.x, fromPoint.y);
-                editContext.lineTo(toPoint.x, toPoint.y);
-                editContext.stroke();
-                editContext.globalCompositeOperation = "source-over";
-                };
-
-                const loadImageToCanvas = (imageDataUrl, onLoaded = null) => {
-                if (!imageDataUrl) {
-                return;
-                }
-
-                const image = new Image();
-                image.onload = () => {
-                editCanvas.width = image.naturalWidth;
-                editCanvas.height = image.naturalHeight;
-                editContext.clearRect(0, 0, editCanvas.width, editCanvas.height);
-                editContext.drawImage(image, 0, 0, editCanvas.width, editCanvas.height);
-                if (typeof onLoaded === "function") {
-                onLoaded();
-                }
-                };
-                image.src = imageDataUrl;
-                };
-
-                const pushCanvasHistory = () => {
-                if (!editCanvas.width || !editCanvas.height) {
-                return;
-                }
-
-                const snapshot = editCanvas.toDataURL("image/png");
-                if (editHistory.length > 0 && editHistory[editHistory.length - 1] === snapshot) {
-                return;
-                }
-
-                editHistory.push(snapshot);
-                if (editHistory.length > 30) {
-                editHistory.shift();
-                }
-                };
-
-                const registerNewEdit = () => {
-                pushCanvasHistory();
-                redoHistory = [];
-                };
-
-                const undoCanvasEdit = () => {
-                if (editHistory.length <= 1) {
-                return;
-                }
-
-                redoHistory.push(editHistory[editHistory.length - 1]);
-                editHistory.pop();
-                const previousSnapshot = editHistory[editHistory.length - 1];
-                loadImageToCanvas(previousSnapshot);
-                };
-
-                const redoCanvasEdit = () => {
-                if (redoHistory.length === 0) {
-                return;
-                }
-
-                const nextSnapshot = redoHistory.pop();
-                if (!nextSnapshot) {
-                return;
-                }
-
-                editHistory.push(nextSnapshot);
-                loadImageToCanvas(nextSnapshot);
-                };
-
-                const showCropperImage = () => {
-                editCanvas.classList.add("d-none");
-                cropperImage.classList.remove("d-none");
-                cropperImage.src = workingImageDataUrl || sourceImageDataUrl;
-
-                if (cropperImage.complete) {
-                createCropper();
-                } else {
-                cropperImage.addEventListener("load", () => createCropper(), { once: true });
-                }
-                };
-
-                const applyCanvasEdits = () => {
-                if (editCanvas.classList.contains("d-none")) {
-                return;
-                }
-
-                workingImageDataUrl = editCanvas.toDataURL("image/png");
-                sourceImageDataUrl = workingImageDataUrl;
-                };
-
-                const switchToTool = (tool) => {
-                const previousTool = activeEditTool;
-                activeEditTool = tool;
-                setToolButtonStyles();
-
-                if (tool === "crop") {
-                applyCanvasEdits();
-                showCropperImage();
-                return;
-                }
-
-                cropper?.destroy();
-                cropper = null;
-
-                cropperImage.classList.add("d-none");
-                editCanvas.classList.remove("d-none");
-                if (previousTool === "crop" || !editCanvas.width || !editCanvas.height) {
-                loadImageToCanvas(workingImageDataUrl || sourceImageDataUrl, () => {
-                editHistory = [];
-                redoHistory = [];
-                pushCanvasHistory();
-                });
-                }
-                };
 
                 adImageFileInput.addEventListener("change", () => {
                 const file = adImageFileInput.files?.[0];
                 if (!file) {
                 sourceImageDataUrl = "";
-                workingImageDataUrl = "";
                 openAdCropModalButton.disabled = true;
                 return;
                 }
@@ -661,17 +468,9 @@
                 const reader = new FileReader();
                 reader.onload = (event) => {
                 sourceImageDataUrl = event.target?.result?.toString() || "";
-                workingImageDataUrl = sourceImageDataUrl;
                 openAdCropModalButton.disabled = !sourceImageDataUrl;
                 if (sourceImageDataUrl) {
-                activeEditTool = "crop";
-                setToolButtonStyles();
-                editHistory = [];
-                redoHistory = [];
-                editCanvas.width = 0;
-                editCanvas.height = 0;
-                cropperImage.src = sourceImageDataUrl;
-                cropModal.show();
+                editor.open(sourceImageDataUrl);
                 }
                 };
                 reader.readAsDataURL(file);
@@ -679,7 +478,6 @@
 
                 if (adImagePreview?.src) {
                 sourceImageDataUrl = adImagePreview.src;
-                workingImageDataUrl = sourceImageDataUrl;
                 openAdCropModalButton.disabled = false;
                 }
 
@@ -688,115 +486,7 @@
                 return;
                 }
 
-                activeEditTool = "crop";
-                setToolButtonStyles();
-                cropperImage.src = workingImageDataUrl || sourceImageDataUrl;
-                cropModal.show();
-                });
-
-                cropModalElement.addEventListener("shown.bs.modal", () => {
-                if (!cropperImage.src) {
-                return;
-                }
-
-                if (activeEditTool === "crop") {
-                createCropper();
-                }
-                });
-
-                cropModalElement.addEventListener("hidden.bs.modal", () => {
-                cropper?.destroy();
-                cropper = null;
-                });
-
-                cropAspectRatioSelect.addEventListener("change", () => {
-                currentAspectRatio = getAspectRatio(cropAspectRatioSelect.value);
-                if (cropper) {
-                cropper.setAspectRatio(currentAspectRatio);
-                }
-                });
-
-                editCropModeButton.addEventListener("click", () => switchToTool("crop"));
-                editPenModeButton.addEventListener("click", () => switchToTool("pen"));
-                editEraseModeButton.addEventListener("click", () => switchToTool("erase"));
-                editTextModeButton.addEventListener("click", () => switchToTool("text"));
-                applyEditsButton.addEventListener("click", () => switchToTool("crop"));
-                undoEditButton.addEventListener("click", () => undoCanvasEdit());
-                redoEditButton.addEventListener("click", () => redoCanvasEdit());
-
-                editCanvas.addEventListener("pointerdown", (event) => {
-                if (activeEditTool === "text") {
-                const textValue = prompt("Enter text to add:");
-                if (!textValue) {
-                return;
-                }
-
-                const point = getCanvasPoint(event);
-                const fontSize = Number.parseInt(editFontSizeInput.value, 10);
-                const resolvedFontSize = Number.isFinite(fontSize) ? Math.max(8, fontSize) : 24;
-                const selectedFont = editFontSelect.value || "Arial, sans-serif";
-                editContext.globalCompositeOperation = "source-over";
-                editContext.fillStyle = editColorInput.value || "#ff0000";
-                editContext.font = `${resolvedFontSize}px ${selectedFont}`;
-                editContext.fillText(textValue, point.x, point.y);
-                registerNewEdit();
-                return;
-                }
-
-                if (activeEditTool !== "pen" && activeEditTool !== "erase") {
-                return;
-                }
-
-                isDrawing = true;
-                lastPoint = getCanvasPoint(event);
-                editCanvas.setPointerCapture(event.pointerId);
-                });
-
-                editCanvas.addEventListener("pointermove", (event) => {
-                if (!isDrawing || !lastPoint) {
-                return;
-                }
-
-                const nextPoint = getCanvasPoint(event);
-                drawStroke(lastPoint, nextPoint);
-                lastPoint = nextPoint;
-                });
-
-                const stopDrawing = (event) => {
-                if (isDrawing) {
-                isDrawing = false;
-                lastPoint = null;
-                registerNewEdit();
-                if (typeof event.pointerId !== "undefined") {
-                editCanvas.releasePointerCapture(event.pointerId);
-                }
-                }
-                };
-
-                editCanvas.addEventListener("pointerup", stopDrawing);
-                editCanvas.addEventListener("pointerleave", stopDrawing);
-                editCanvas.addEventListener("pointercancel", stopDrawing);
-
-                saveCroppedImageButton.addEventListener("click", () => {
-                if (activeEditTool !== "crop") {
-                switchToTool("crop");
-                }
-
-                if (!cropper) {
-                return;
-                }
-
-                const canvas = cropper.getCroppedCanvas({
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: "high"
-                });
-
-                const croppedDataUrl = canvas.toDataURL("image/png");
-                croppedAdImageDataInput.value = croppedDataUrl;
-                imageUrlInput.value = "";
-                adImagePreview.src = croppedDataUrl;
-                adImagePreviewContainer.classList.remove("d-none");
-                cropModal.hide();
+                editor.open(sourceImageDataUrl);
                 });
 
                 clearAdImageButton.addEventListener("click", () => {
@@ -805,19 +495,12 @@
                 }
                 adImageFileInput.value = "";
                 sourceImageDataUrl = "";
-                workingImageDataUrl = "";
-                activeEditTool = "crop";
-                editHistory = [];
-                redoHistory = [];
-                setToolButtonStyles();
                 openAdCropModalButton.disabled = true;
                 croppedAdImageDataInput.value = "";
                 imageUrlInput.value = "";
                 adImagePreview.src = "";
                 adImagePreviewContainer.classList.add("d-none");
                 });
-
-                setToolButtonStyles();
                 })();
             </script>
             <script>

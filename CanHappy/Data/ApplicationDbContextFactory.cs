@@ -17,8 +17,16 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        var connectionString = String.IsNullOrEmpty(configuration.GetConnectionString("DefaultConnection")) ?  
+            
+                String.IsNullOrEmpty(configuration.GetConnectionString("LocalConnection")) ? 
+                throw new InvalidOperationException("Connection string 'LocalConnection' not found.") 
+                : configuration.GetConnectionString("LocalConnection")
+            
+            : configuration.GetConnectionString("DefaultConnection")
+            ;
+        // var connectionString = configuration.GetConnectionString("DefaultConnection")
+        //     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");    
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseNpgsql(connectionString);

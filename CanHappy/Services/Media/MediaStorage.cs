@@ -97,6 +97,49 @@ public sealed class MediaStorage(
         }
     }
 
+    public async Task DeleteAsync(string webFolder, string? storedValue, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(storedValue)
+            || storedValue.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var path = storedValue.Trim();
+        var queryOrFragmentIndex = path.IndexOfAny(['?', '#']);
+        if (queryOrFragmentIndex >= 0)
+        {
+            path = path[..queryOrFragmentIndex];
+        }
+
+        var mediaUrl = MediaPathHelper.BuildMediaUrl(path, webFolder);
+        if (string.IsNullOrWhiteSpace(mediaUrl))
+        {
+            return;
+        }
+
+        if (MediaPathHelper.IsAbsoluteUrl(mediaUrl))
+        {
+            await TryDeleteBlobAsync(mediaUrl, [webFolder], cancellationToken);
+            return;
+        }
+
+        try
+        {
+            var webRootPath = Path.GetFullPath(environment.WebRootPath);
+            var fullPath = Path.GetFullPath(Path.Combine(webRootPath, mediaUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
+            if (fullPath.StartsWith(webRootPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                && File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to delete local media {MediaUrl}.", mediaUrl);
+        }
+    }
+
     private bool IsConfiguredAccount(string? accountName)
     {
         try

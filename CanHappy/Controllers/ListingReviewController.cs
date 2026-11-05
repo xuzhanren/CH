@@ -18,8 +18,20 @@ namespace CanHappy.Controllers;
 [Route("ListingReview")]
 public class ListingReviewController(ApplicationDbContext context, IConfiguration configuration, IMediaStorage mediaStorage) : Controller
 {
-    private const int MaxReviewFullImageBytes = 1 * 1024 * 1024;
-    private const int MaxReviewThumbnailBytes = 50 * 1024;
+    private int MaxReviewFullImageBytes => (int)((configuration.GetValue<double?>("ImageClippingMaxSizeInMB") ?? 3d) * 1024 * 1024);
+
+    private int MaxReviewThumbnailBytes => (int)((configuration.GetValue<double?>("ImageThumbnailMaxSizeInKB") ?? 50d) * 1024);
+
+    private string ReviewImagesFolder => MediaPathHelper.ResolveWebFolder(configuration, "ListingReviewImagesFolder", "/ListingReviewImages");
+
+    private async Task DeleteReviewImageFilesAsync(ListingReviewImage image)
+    {
+        await mediaStorage.DeleteAsync(ReviewImagesFolder, image.ImageURL);
+        if (!string.Equals(image.ImageURL, image.ThumbnailURL, StringComparison.OrdinalIgnoreCase))
+        {
+            await mediaStorage.DeleteAsync(ReviewImagesFolder, image.ThumbnailURL);
+        }
+    }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(Guid? listingGuid)
@@ -190,6 +202,7 @@ public class ListingReviewController(ApplicationDbContext context, IConfiguratio
             foreach (var image in targets)
             {
                 image.DeletedInd = true;
+                await DeleteReviewImageFilesAsync(image);
             }
         }
 
@@ -364,7 +377,11 @@ public class ListingReviewController(ApplicationDbContext context, IConfiguratio
             }
             else
             {
-                var thumbnail = await BuildSizedImageFromDataUrlAsync(payload.FullImageDataUrl, MaxReviewThumbnailBytes, 160);
+                // The editor already sizes its thumbnail to ImageThumbnailMaxSizeInKB; fall back to re-encoding the full image.
+                var thumbnail = await BuildSizedImageFromDataUrlAsync(
+                    string.IsNullOrWhiteSpace(payload.ThumbnailDataUrl) ? payload.FullImageDataUrl : payload.ThumbnailDataUrl,
+                    MaxReviewThumbnailBytes,
+                    160);
                 var thumbnailPath = thumbnail is null
                     ? null
                     : await SaveImageBytesAsync(thumbnail.Value.ImageBytes, thumbnail.Value.Extension);

@@ -4,12 +4,14 @@ using CanHappy.Common;
 using CanHappy.Services.Email;
 using CanHappy.Services.Media;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 var enableDebug = builder.Configuration.GetValue<bool>("EnableDebug");
@@ -41,7 +43,18 @@ Log.Logger = loggerConfiguration.CreateLogger();
 builder.Host.UseSerilog();
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+var configuration = builder.Configuration;
+var connectionString = String.IsNullOrEmpty(configuration.GetConnectionString("DefaultConnection")) ?  
+    
+        String.IsNullOrEmpty(configuration.GetConnectionString("LocalConnection")) ? 
+        throw new InvalidOperationException("Connection string 'LocalConnection' not found.") 
+        : configuration.GetConnectionString("LocalConnection")
+    
+    : configuration.GetConnectionString("DefaultConnection")
+    ;
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(connectionString);
@@ -65,6 +78,13 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.SectionName));
 builder.Services.AddScoped<IMessageNotificationEmailSender, MailKitMessageNotificationEmailSender>();
 builder.Services.AddSingleton<IMediaStorage, MediaStorage>();
+
+// Clipped images are posted as base64 data URLs; the default 4 MB form value limit would reject larger ones.
+var imageClippingMaxMb = builder.Configuration.GetValue<double?>("ImageClippingMaxSizeInMB") ?? 3d;
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = (int)Math.Min(int.MaxValue, imageClippingMaxMb * 1024 * 1024 * 4 / 3 + 1024 * 1024);
+});
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT signing key is missing.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT issuer is missing.");
@@ -136,6 +156,13 @@ if (enableDebug)
 {
     app.UseSerilogRequestLogging();
 }
+
+// 2. Map your custom C: drive folder to a public URL path
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(@"C:\DR\Projects\VSC\CH\AzureCHImagesStorageAcct"),
+    RequestPath = "/ImagesFolder"
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -669,6 +669,24 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IConfigur
             return RedirectToAction(nameof(Index), new { listingGuid });
         }
 
+        if (!MediaPathHelper.IsValidImageDataUrl(croppedImageData))
+        {
+            TempData["MessageError"] = "Invalid image data.";
+            return RedirectToAction(nameof(Index), new { listingGuid });
+        }
+
+        ListingImage? listingImage = null;
+        if (listingImageGuid.HasValue)
+        {
+            listingImage = await context.ListingImages.FirstOrDefaultAsync(item => item.ListingImageGUID == listingImageGuid.Value && item.ListingGUID == listingGuid && !item.DeletedInd);
+        }
+
+        // Replacing a photo: remove the original image and thumbnail files before saving the new ones.
+        if (listingImage is not null)
+        {
+            await mediaStorage.DeleteImageAndThumbnailAsync(ListImageFolder, listingImage.ImageURL, listingImage.ThumbnailURL);
+        }
+
         var imagePath = await SaveListingImageFromDataUrlAsync(croppedImageData);
         if (string.IsNullOrWhiteSpace(imagePath))
         {
@@ -683,12 +701,6 @@ public class CarPoolDetailPageController(ApplicationDbContext context, IConfigur
         if (string.IsNullOrWhiteSpace(thumbnailPath))
         {
             thumbnailPath = imagePath;
-        }
-
-        ListingImage? listingImage = null;
-        if (listingImageGuid.HasValue)
-        {
-            listingImage = await context.ListingImages.FirstOrDefaultAsync(item => item.ListingImageGUID == listingImageGuid.Value && item.ListingGUID == listingGuid && !item.DeletedInd);
         }
 
         if (listingImage is null)
